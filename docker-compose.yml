@@ -1,0 +1,27 @@
+services:
+  web:
+    build: .
+    # 개발 중에는 runserver로 자동 리로드
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app          # 코드 변경 시 즉시 반영
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dopamine}
+      POSTGRES_USER: ${POSTGRES_USER:-dopamine}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dopamine}
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
