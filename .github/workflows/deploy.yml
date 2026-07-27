@@ -36,8 +36,8 @@ jobs:
 
       - name: Docker 이미지 빌드 및 push
         run: |
-          docker compose build web
-          docker compose push web
+          docker build -t cjs1004ounds/dopamine-ledger:latest .
+          docker push cjs1004ounds/dopamine-ledger:latest
 
       - name: EC2에 배포
         uses: appleboy/ssh-action@v1.0.3
