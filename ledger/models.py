@@ -38,14 +38,13 @@ class EarnRecord(models.Model):
         db_table = 'earn_record'
         indexes = [models.Index(fields=['user', 'earn_date'])]
 
-
 class DailyClose(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name='daily_closes'
     )
     close_date = models.DateField('마감 날짜')
-    closed_at = models.TimeField('마감 시각')
+    closed_at = models.DateTimeField('마감 일시')  # ← TimeField → DateTimeField
 
     class Meta:
         db_table = 'daily_close'

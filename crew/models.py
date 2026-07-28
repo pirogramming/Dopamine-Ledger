@@ -5,7 +5,7 @@ from django.db import models
 class Crew(models.Model):
     name = models.CharField('크루명', max_length=50)
     invite_code = models.CharField('초대 코드', max_length=10, unique=True)
-    status = models.CharField('상태', max_length=10, default='ACTIVE')
+    status = models.CharField('상태', max_length=10, default='WAITING')  # ← 변경
 
     class Meta:
         db_table = 'crew'
