@@ -18,7 +18,6 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -128,3 +127,4 @@ AUTHENTICATION_BACKENDS = [
 
 LOGIN_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+AUTH_USER_MODEL = "accounts.User"

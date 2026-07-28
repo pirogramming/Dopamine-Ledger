@@ -1,3 +1,9 @@
 from django.contrib import admin
+from .models import Activity
 
-# Register your models here.
+
+@admin.register(Activity)
+class ActivityAdmin(admin.ModelAdmin):
+    list_display = ('user', 'activity_type', 'rate')
+    list_filter = ('activity_type',)
+    search_fields = ('user__nickname', 'activity_type')
