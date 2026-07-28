@@ -24,6 +24,8 @@ class Activity(models.Model):
         ]
     )
 
+
+
     class Meta:
         db_table = 'activity'
         constraints = [

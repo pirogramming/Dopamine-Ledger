@@ -1,5 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from decimal import Decimal
+from django.core.validators import MinValueValidator, MaxValueValidator
+
 
 
 class User(AbstractUser):
@@ -10,6 +13,16 @@ class User(AbstractUser):
     credit_grade = models.CharField('신용 등급', max_length=20, default='BRONZE')
     weekly_budget_min = models.DecimalField(
         '주간 예산(분)', max_digits=10, decimal_places=2, default=210
+    )
+    conversion_base = models.DecimalField(
+        '환산 비율', max_digits=10, decimal_places=4, default = 0,
+        validators=[
+            MinValueValidator(
+                Decimal('0.0001'),
+                message='값이 올바르지 않습니다.'
+            ),
+        ],
+        help_text='지출 시간(분)을 금액·책 권수 등으로 변환할 때 곱하는 비율'
     )
 
     USERNAME_FIELD = 'email'
