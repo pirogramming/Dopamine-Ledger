@@ -9,7 +9,7 @@ class User(AbstractUser):
     streak_days = models.IntegerField('연속 기록 일수', default=0)
     credit_grade = models.CharField('신용 등급', max_length=20, default='BRONZE')
     weekly_budget_min = models.DecimalField(
-        '주간 예산(분)', max_digits=10, decimal_places=2, default=0
+        '주간 예산(분)', max_digits=10, decimal_places=2, default=210
     )
 
     USERNAME_FIELD = 'email'
