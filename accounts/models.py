@@ -5,7 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 
-class User(AbstractUser):
+class Users(AbstractUser):
     email = models.EmailField('이메일', max_length=255, unique=True)
     nickname = models.CharField('닉네임', max_length=30, unique=True)
     kakao_id = models.CharField('카카오 ID', max_length=100, blank=True, null=True)
