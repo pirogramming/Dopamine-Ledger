@@ -5,7 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Activity(models.Model):
-    user = models.ForeignKey(
+    users = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name='activities'
     )
@@ -24,8 +24,6 @@ class Activity(models.Model):
         ]
     )
 
-
-
     class Meta:
         db_table = 'activity'
         constraints = [
@@ -36,4 +34,4 @@ class Activity(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.user} - {self.activity_type}'
+        return f'{self.users} - {self.activity_type}'

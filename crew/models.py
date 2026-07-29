@@ -5,7 +5,7 @@ from django.db import models
 class Crew(models.Model):
     name = models.CharField('크루명', max_length=50)
     invite_code = models.CharField('초대 코드', max_length=10, unique=True)
-    status = models.CharField('상태', max_length=10, default='WAITING')  # ← 변경
+    status = models.CharField('상태', max_length=10, default='WAITING')
 
     class Meta:
         db_table = 'crew'
@@ -18,7 +18,7 @@ class CrewMember(models.Model):
     crew = models.ForeignKey(
         Crew, on_delete=models.CASCADE, related_name='members'
     )
-    user = models.ForeignKey(
+    users = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name='crew_memberships'
     )
@@ -26,4 +26,4 @@ class CrewMember(models.Model):
 
     class Meta:
         db_table = 'crew_member'
-        unique_together = [['crew', 'user']]
+        unique_together = [['crew', 'users']]
