@@ -10,5 +10,5 @@ class CrewAdmin(admin.ModelAdmin):
 
 @admin.register(CrewMember)
 class CrewMemberAdmin(admin.ModelAdmin):
-    list_display = ('crew', 'user', 'joined_date')
+    list_display = ('crew', 'users', 'joined_date')
     list_filter = ('joined_date',)
