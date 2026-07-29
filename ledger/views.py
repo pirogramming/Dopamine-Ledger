@@ -1,3 +1,70 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .forms import SpendRecordForm, EarnRecordForm
+from .models import SpendRecord, EarnRecord
 
-# Create your views here.
+
+@login_required
+def spend_record_create(request):
+    """
+    지출 기록 생성 뷰.
+    - GET: 빈 폼을 보여줌
+    - POST: 검증 후 저장. user는 폼 필드로 노출하지 않고 request.user로 직접 채움(다른 사람 이름으로 기록 남기는 것 방지)
+    """
+    if request.method == 'POST':
+        form = SpendRecordForm(request.POST)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.users = request.user  # 모델 필드명이 user -> users로 바뀐 것 반영
+            instance.save()
+            # Post-Redirect-Get: 새로고침 시 중복 저장 방지
+            return redirect('ledger:spend_record_list')
+        # form.is_valid()가 False면 여기서 form을 새로 안 만들고
+        # 에러가 담긴 form 그대로 아래 render로 넘어감 (에러 메시지 보존)
+    else:
+        # GET 요청 분기가 없어서 아무것도 반환 안 하던 버그 수정
+        form = SpendRecordForm()
+
+    return render(request, 'ledger/spend_record_form.html', {'form': form})
+
+
+@login_required
+def spend_record_list(request):
+    """
+    지출 기록 목록 조회 뷰.
+    - 본인 기록만 조회(다른 유저 기록 노출 금지)
+    - 최신순 정렬
+    * 이 쿼리셋은 나중에 홈 화면에서도 최근 지출 미리보기 용도로 재사용될 수 있음 - 2주차 담당자한테 공유 예정
+    """
+    # 필드명이 users라서 필터 키워드도 맞춰줘야 함 (안 그러면 FieldError)
+    records = SpendRecord.objects.filter(users=request.user).order_by('-spend_start')
+    return render(request, 'ledger/spend_record_list.html', {'records': records})
+
+
+@login_required
+def earn_record_create(request):
+    """
+    수입 기록 생성 뷰
+    - GET: entry_mode(타이머/수동입력)로 어떤 화면을 보여줄지 결정
+    - POST: entry_mode에 따라 폼이 다르게 검증/계산됨
+    """
+    if request.method == 'POST':
+        form = EarnRecordForm(request.POST, user=request.user)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.users = request.user  # user -> users
+            instance.save()
+            return redirect('ledger:earn_record_list')
+        # 검증 실패 시 새 폼으로 덮어쓰지 않고 에러 담긴 form 그대로 유지
+    else:
+        entry_mode = request.GET.get('mode', 'manual')
+        form = EarnRecordForm(initial={'entry_mode': entry_mode}, user=request.user)
+
+    return render(request, 'ledger/earn_record_form.html', {'form': form})
+
+
+@login_required
+def earn_record_list(request):
+    """수입 기록 목록 조회 뷰, 본인 기록만 최신순으로"""
+    records = EarnRecord.objects.filter(users=request.user).order_by('-earn_start')
+    return render(request, 'ledger/earn_record_list.html', {'records': records})
