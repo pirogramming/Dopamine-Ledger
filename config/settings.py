@@ -35,7 +35,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.kakao",
 
-    # 우리 앱 (만들면 여기 추가)
+    # 우리 앱
     "accounts",
     "ledger",
     "budget",
@@ -127,4 +127,4 @@ AUTHENTICATION_BACKENDS = [
 
 LOGIN_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
-AUTH_USER_MODEL = "accounts.User"
+AUTH_USER_MODEL = "accounts.Users"
