@@ -19,3 +19,6 @@ pillow==12.0.0
 
 # ── HTTP 요청 (카카오 API 연동 시) ──
 requests==2.34.2
+
+# Django REST Framework 추가 설치 (auth 부분에서 필요)
+djangorestframework==3.17.1
