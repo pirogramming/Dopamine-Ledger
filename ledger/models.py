@@ -3,7 +3,7 @@ from django.db import models
 
 
 class SpendRecord(models.Model):
-    user = models.ForeignKey(
+    users = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name='spend_records'
     )
@@ -15,16 +15,16 @@ class SpendRecord(models.Model):
 
     class Meta:
         db_table = 'spend_record'
-        indexes = [models.Index(fields=['user', 'spend_date'])]
+        indexes = [models.Index(fields=['users', 'spend_date'])]
 
 
 class EarnRecord(models.Model):
-    user = models.ForeignKey(
+    users = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name='earn_records'
     )
     activity = models.ForeignKey(
-        'budget.Activity', on_delete=models.PROTECT,  # ← 앱 이름 budget으로
+        'budget.Activity', on_delete=models.PROTECT,
         related_name='earn_records'
     )
     earn_min = models.DecimalField('적립 분', max_digits=8, decimal_places=2)
@@ -36,16 +36,17 @@ class EarnRecord(models.Model):
 
     class Meta:
         db_table = 'earn_record'
-        indexes = [models.Index(fields=['user', 'earn_date'])]
+        indexes = [models.Index(fields=['users', 'earn_date'])]
+
 
 class DailyClose(models.Model):
-    user = models.ForeignKey(
+    users = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name='daily_closes'
     )
     close_date = models.DateField('마감 날짜')
-    closed_at = models.DateTimeField('마감 일시')  # ← TimeField → DateTimeField
+    closed_at = models.DateTimeField('마감 일시')
 
     class Meta:
         db_table = 'daily_close'
-        unique_together = [['user', 'close_date']]
+        unique_together = [['users', 'close_date']]
