@@ -13,6 +13,18 @@ from .serializers import (
 from django.shortcuts import render
 
 # Create your views here.
+def signup_page(request):
+    """
+    회원가입 페이지 화면 반환
+    """
+    return render(request, "accounts/signup.html")
+
+def login_page(request):
+    """
+    로그인 페이지 화면 반환
+    """
+    return render(request, "accounts/login.html")
+
 class SignupView(APIView):
     """
     회원가입 API

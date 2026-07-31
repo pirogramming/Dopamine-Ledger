@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인 - 도파민 가계부</title>
+</head>
+<body>
+    <h2>로그인</h2>
+
+    <form id="loginForm">
+        <div>
+            <label for="email">이메일</label><br>
+            <input type="email" id="email" placeholder="이메일" required>
+        </div>
+        <br>
+        <div>
+            <label for="password">비밀번호</label><br>
+            <input type="password" id="password" placeholder="비밀번호 (8자 이상)" required>
+        </div>
+        <br>
+        <button type="button" onclick="handleLogin()">로그인</button>
+        <button type="button" onclick="alert('카카오 소셜 연동 예정')">카카오로 로그인</button>
+    </form>
+
+    <p>계정이 없나요? <a href="signup.html">회원가입</a></p>
+
+    <script>
+        async function handleLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/accounts/login/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // 전달받은 토큰을 브라우저에 저장
+                    localStorage.setItem('userToken', data.token);
+                    alert('로그인 성공! ' + data.user.nickname + '님 환영합니다.');
+                    // window.location.href = 'main.html'; 메인화면 페이지 연동 시 주석 해제
+                } else {
+                    alert('로그인 실패: ' + JSON.stringify(data));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('서버 통신 중 에러가 발생했습니다.');
+            }
+        }
+    </script>
+</body>
+</html>
