@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ crew.name }}</title>
+</head>
+<body>
+    <div id="crew-data" data-crew-id="{{ crew.id }}"></div>
+
+    <h1>{{ crew.name }}</h1>
+
+    <p>초대 코드: <strong>{{ crew.invite_code }}</strong></p>
+    <p>초대 링크:
+        <a href="{% url 'crew:join_by_link' invite_code=crew.invite_code %}">
+            {{ request.scheme }}://{{ request.get_host }}{% url 'crew:join_by_link' invite_code=crew.invite_code %}
+        </a>
+    </p>
+
+    <h2>멤버 (<span id="member-count">{{ members.count }}</span>/{{ crew.MAX_MEMBERS }})</h2>
+    <p>상태: <span id="crew-status">{{ crew.get_status_display }}</span></p>
+    <ul id="member-list">
+        {% for member in members %}
+            <li>
+                {{ member.user }}
+                {% if member.user == crew.owner %}👑 (크루장){% endif %}
+                — {{ member.joined_date }} 가입
+            </li>
+        {% endfor %}
+    </ul>
+
+    <hr>
+    <a href="{% url 'crew:leave' crew_id=crew.id %}">이 크루 나가기</a>
+    <br><br>
+    <a href="{% url 'crew:list' %}">← 내 크루 목록으로</a>
+
+    <script src="{% static 'crew/crew_detail.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 크루</title>
+</head>
+<body>
+    <h1>내 크루</h1>
+
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if crews %}
+        <ul>
+            {% for crew in crews %}
+                <li>
+                    <a href="{% url 'crew:detail' crew_id=crew.id %}">
+                        {{ crew.name }}
+                    </a>
+                    — {{ crew.get_status_display }}
+                    ({{ crew.member_count }}/{{ crew.MAX_MEMBERS }})
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>아직 속한 크루가 없어요. 새로 만들거나 초대 코드로 참여해보세요.</p>
+    {% endif %}
+
+    <hr>
+
+    <a href="{% url 'crew:create' %}">
+        <button>새 크루 만들기</button>
+    </a>
+    <a href="{% url 'crew:join' %}">
+        <button>초대 코드로 참여</button>
+    </a>
+</body>
+</html>

@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=50, verbose_name='크루명')),
                 ('invite_code', models.CharField(max_length=10, unique=True, verbose_name='초대 코드')),
-                ('status', models.CharField(default='ACTIVE', max_length=10, verbose_name='상태')),
+                ('status', models.CharField(default='WATING', max_length=10, verbose_name='상태')),
             ],
             options={
                 'db_table': 'crew',
