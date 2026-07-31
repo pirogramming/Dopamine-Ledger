@@ -28,6 +28,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    # DRF
+    "rest_framework",
+    "rest_framework.authtoken",
+
     # 소셜 로그인 (allauth)
     "django.contrib.sites",
     "allauth",
