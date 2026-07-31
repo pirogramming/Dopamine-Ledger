@@ -61,7 +61,7 @@ class CrewMember(models.Model):
     crew = models.ForeignKey(
         Crew, on_delete=models.CASCADE, related_name='members'
     )
-    user = models.ForeignKey(
+    users = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name='crew_memberships'
     )
