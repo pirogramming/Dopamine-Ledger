@@ -3,6 +3,7 @@ from django import forms
 from django.utils import timezone
 from .models import SpendRecord, EarnRecord
 from budget.models import Activity
+# from .services import calculate_earn_minutes <- 환산함수 머지되면 주석해제
 
 class SpendRecordForm(forms.ModelForm):
     # 00:30처럼 시:분을 따로 입력받기 위해 별도 필드 두 개 사용
@@ -62,7 +63,6 @@ class SpendRecordForm(forms.ModelForm):
         duration_min = self.cleaned_data['duration_min']
         now = timezone.now()
         
-        instance.category = self.cleaned_data['category']
         instance.duration_min = duration_min
         instance.spend_end = now
         instance.spend_start = now - timezone.timedelta(minutes=duration_min)
@@ -145,7 +145,7 @@ class EarnRecordForm(forms.ModelForm):
             if end <= start:
                 raise forms.ValidationError('종료 시각은 시작 시각보다 늦어야 합니다.')
             duration = (end - start).total_seconds() / 60
-            cleaned_data['duration_min'] = int(duration)
+            cleaned_data['duration_min'] = round(duration)
 
         else:
             raise forms.ValidationError('입력 방식(entry_mode)이 올바르지 않습니다.')
@@ -155,7 +155,7 @@ class EarnRecordForm(forms.ModelForm):
     def save(self, commit=True):
         """
         - earn_start/earn_end/earn_date: entry_mode가 timer면 실제 타이머 시각, manual이면 now() 역산
-        - earn_min: activity.rate x duration_min (소수점 둘째 자리 반올림)
+        - earn_min: 공용환산함수(calculate_earn_minutes)로 계산
         - verify_method: entry_mode 값을 그대로 저장 → 사용자가 고르지 않고 진입 경로로 자동 결정
             (와이어프레임 "수입 종료 후 적립" 화면 주석: "타이머/수동 중 실제 입력 경로에 따라 기본 선택")
         """
@@ -176,10 +176,10 @@ class EarnRecordForm(forms.ModelForm):
         instance.earn_date = instance.earn_end.date()
         instance.verify_method = entry_mode
 
-        # 적립분 = 활동 시간(분) × 환율. activity.rate는 0 < rate < 1.0으로 모델에서 이미 검증됨
+        # 적립분 계산은 환산 함수 사용
         raw_earn_min = Decimal(duration_min) * activity.rate
         instance.earn_min = raw_earn_min.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-
+        
         if commit:
             instance.save()
         return instance

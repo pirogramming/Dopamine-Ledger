@@ -1,0 +1,273 @@
+{% comment %}
+와이어프레임 3장(수입기록-타이머 / 수입기록-수동입력 / 수입 종료 후 적립) 통합 화면
+동작 방식 (views.py earn_record_create 기준):
+    - GET ?mode=timer  -> 타이머 모드로 진입 (기본값)
+    - GET ?mode=manual -> 수동입력 모드로 진입
+    - entry_mode는 forms.py에서 HiddenInput이라 사용자가 못 바꿈. 진입 경로 그대로 저장됨.
+
+주의: activity <option>에 data-rate 속성을 심어서, JS에서 "예상 적립 분" 미리보기를 계산함.
+    이건 화면 미리보기용이고, 실제 earn_min은 forms.py save()의 calculate_earn_minutes()가 계산함.
+{% endcomment %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도파민 알바 - 도파민 가계부</title>
+    <link rel="stylesheet" href="{% static 'ledger/record.css' %}">
+</head>
+<body class="ledger-page">
+    <main class="ledger-screen">
+        <div class="ledger-topbar">
+            <a href="javascript:history.back()" class="ledger-back" aria-label="뒤로가기">&lsaquo;</a>
+            <span class="ledger-title">도파민 알바</span>
+        </div>
+
+        <form method="post" action="{% url 'ledger:earn_record_create' %}" id="earn-form">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <ul class="form-errors">
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            {# entry_mode: 사용자가 조작 못 함. URL(mode 파라미터)에서 뷰가 initial로 내려준 값을 그대로 hidden 전송 #}
+            <input type="hidden" name="entry_mode" id="id_entry_mode" value="{{ form.entry_mode.value|default:'timer' }}">
+
+            <!-- 활동 종류 탭: 유저 소유 활동만 노출 (forms.py __init__에서 이미 필터링된 쿼리셋) -->
+            <div class="activity-tabs" role="tablist" aria-label="활동 종류 선택">
+                {% for choice in form.activity.field.queryset %}
+                    <button type="button"
+                            class="activity-tab {% if forloop.first %}is-active{% endif %}"
+                            data-activity-id="{{ choice.id }}"
+                            data-rate="{{ choice.rate }}"
+                            role="tab">
+                        {{ choice.activity_type }}
+                    </button>
+                {% empty %}
+                    <p class="field-note">등록된 활동이 없어요. 설정에서 먼저 활동을 추가해주세요.</p>
+                {% endfor %}
+            </div>
+            {# 실제 전송되는 select는 화면에서 숨기고 탭 클릭으로만 조작 (name은 forms.py Meta.fields의 'activity') #}
+            <select name="activity" id="id_activity" style="display:none;">
+                {% for choice in form.activity.field.queryset %}
+                    <option value="{{ choice.id }}">{{ choice.activity_type }}</option>
+                {% endfor %}
+            </select>
+            {% if form.activity.errors %}
+                <ul class="form-errors">
+                    {% for error in form.activity.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <!-- ============ 타이머 모드 ============ -->
+            <div id="timer-mode-panel" style="display:none;">
+                <div class="timer-circle-wrap">
+                    <div class="timer-circle">
+                        <span class="timer-circle-time" id="timer-display">00:00</span>
+                        <span class="timer-circle-caption">시작을 눌러주세요</span>
+                    </div>
+                </div>
+                <div class="button-row">
+                    <button type="button" class="btn btn-ghost" id="timer-start-btn">시작</button>
+                    <button type="button" class="btn btn-primary-earn" id="timer-stop-btn" disabled>종료</button>
+                </div>
+                <p class="time-caption" style="margin-top:16px;">시간을 직접 입력하려면 <a href="?mode=manual">여기</a></p>
+
+                {# 타이머로 계산된 시작/종료 시각이 여기에 JS로 채워짐 (forms.py timer_start/timer_end) #}
+                <input type="hidden" name="timer_start" id="id_timer_start">
+                <input type="hidden" name="timer_end" id="id_timer_end">
+            </div>
+
+            <!-- ============ 수동입력 모드 ============ -->
+            <div id="manual-mode-panel" style="display:none;">
+                <p class="manual-form-title">직접입력</p>
+                <div class="manual-time-row">
+                    <div class="manual-time-field">
+                        <label for="id_hours">시간</label>
+                        <input type="number" name="hours" id="id_hours" min="0" max="23"
+                               value="{{ form.hours.value|default:'0' }}" inputmode="numeric">
+                    </div>
+                    <div class="manual-time-field">
+                        <label for="id_minutes">분</label>
+                        <input type="number" name="minutes" id="id_minutes" min="0" max="59"
+                               value="{{ form.minutes.value|default:'30' }}" inputmode="numeric">
+                    </div>
+                </div>
+                {% if form.hours.errors or form.minutes.errors %}
+                    <ul class="form-errors">
+                        {% for error in form.hours.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                        {% for error in form.minutes.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                <!-- 실시간 미리보기: "+운동 25분 적립 예정" (클라이언트 계산, 실제 값은 서버가 재계산) -->
+                <div class="earn-preview" id="manual-preview">+ 0분 적립 예정</div>
+            </div>
+
+            <!-- ============ 공통: 종료 후 적립 확인 영역 ============ -->
+            <div id="result-panel" style="display:none;">
+                <div class="result-summary">
+                    <div class="result-activity" id="result-activity-name">활동</div>
+                    <div class="result-duration" id="result-duration">0분</div>
+                    <div class="result-rate-note" id="result-rate-note">환율 -분/시간 기준</div>
+                </div>
+
+                <div class="field-block">
+                    <span class="field-label">인증 방식</span>
+                    <div class="toggle-pair">
+                        <span class="toggle-pill" id="pill-timer">타이머</span>
+                        <span class="toggle-pill" id="pill-manual">수동입력</span>
+                    </div>
+                    <p class="field-note">타이머/수동 중 실제 입력 경로에 따라 자동으로 선택돼요 (변경 불가)</p>
+                </div>
+
+                <div class="field-block">
+                    <span class="field-label">인증 사진 (선택)</span>
+                    <input type="url" name="photo_url" id="id_photo_url" class="photo-upload-input"
+                           placeholder="인증 사진 URL (선택)" value="{{ form.photo_url.value|default:'' }}">
+                    {% if form.photo_url.errors %}
+                        <p class="field-note" style="color:var(--warning-text);">{{ form.photo_url.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="button-row" style="margin-top: 24px;">
+                    <button type="submit" class="btn btn-primary-earn" id="submit-btn">적립하기</button>
+                </div>
+                <div class="button-row">
+                    <a href="{% url 'ledger:record_choice' %}" class="btn btn-ghost" style="text-decoration:none;">기록 취소</a>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        /*
+            화면 흐름 제어 스크립트.
+            1) entry_mode(hidden input)에 따라 타이머 패널 / 수동입력 패널 중 하나만 노출
+            2) 활동 탭 클릭 -> 숨겨진 select(id_activity) 값 동기화 + rate 저장
+            3) 타이머: 시작 누르면 현재 시각 기록 + 1초마다 화면 갱신, 종료 누르면 종료 시각 기록 후 result-panel 노출
+            4) 수동입력: 시/분 바뀔 때마다 "+N분 적립 예정" 미리보기 갱신, 값 있으면 result-panel도 같이 갱신
+        */
+        (function () {
+            const entryMode = document.getElementById('id_entry_mode').value;
+            const timerPanel = document.getElementById('timer-mode-panel');
+            const manualPanel = document.getElementById('manual-mode-panel');
+            const resultPanel = document.getElementById('result-panel');
+
+            const tabs = document.querySelectorAll('.activity-tab');
+            const activitySelect = document.getElementById('id_activity');
+            let currentRate = tabs.length ? parseFloat(tabs[0].dataset.rate) : 0;
+            let currentActivityName = tabs.length ? tabs[0].textContent.trim() : '활동';
+
+            function selectActivity(tabEl) {
+                tabs.forEach((t) => t.classList.remove('is-active'));
+                tabEl.classList.add('is-active');
+                activitySelect.value = tabEl.dataset.activityId;
+                currentRate = parseFloat(tabEl.dataset.rate);
+                currentActivityName = tabEl.textContent.trim();
+                document.getElementById('result-activity-name').textContent = currentActivityName;
+            }
+
+            tabs.forEach((tab) => {
+                tab.addEventListener('click', () => selectActivity(tab));
+            });
+
+            // ---- 결과 요약 갱신 (분 단위, rate는 "1시간당 N분" 표기로 환산해서 보여줌) ----
+            function updateResultPanel(durationMin) {
+                const earnMin = Math.round(durationMin * currentRate * 100) / 100;
+                document.getElementById('result-duration').textContent = durationMin + '분';
+                document.getElementById('result-rate-note').innerHTML =
+                    '환율 ' + Math.round(currentRate * 60) + '분/시간 기준 · <strong>+' + earnMin + '분 적립</strong>';
+                resultPanel.style.display = 'block';
+            }
+
+            // ---- 타이머 모드 ----
+            if (entryMode === 'timer') {
+                timerPanel.style.display = 'block';
+                const startBtn = document.getElementById('timer-start-btn');
+                const stopBtn = document.getElementById('timer-stop-btn');
+                const display = document.getElementById('timer-display');
+                let startTime = null;
+                let tickHandle = null;
+
+                function formatMMSS(totalSeconds) {
+                    // 1시간(3600초) 넘어가면 h:mm:ss 형태로, 아니면 기존처럼 mm:ss로 표시
+                    const h = Math.floor(totalSeconds / 3600);
+                    const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+                    const s = String(totalSeconds % 60).padStart(2, '0');
+                    return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
+                }
+
+                startBtn.addEventListener('click', () => {
+                    startTime = new Date();
+                    document.getElementById('id_timer_start').value = startTime.toISOString();
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    document.querySelector('.timer-circle-caption').textContent = '측정 중...';
+                    tickHandle = setInterval(() => {
+                        const elapsed = Math.floor((new Date() - startTime) / 1000);
+                        display.textContent = formatMMSS(elapsed);
+                    }, 1000);
+                });
+
+                stopBtn.addEventListener('click', () => {
+                    clearInterval(tickHandle);
+                    const endTime = new Date();
+                    document.getElementById('id_timer_end').value = endTime.toISOString();
+                    const durationMin = Math.round((endTime - startTime) / 60000);
+                    // 시작/종료 버튼 다시 초기화(재기록 방지 위해 시작 비활성 유지)
+                    stopBtn.disabled = true;
+                    updateResultPanel(durationMin);
+                    document.getElementById('pill-timer').classList.add('is-selected');
+                });
+            }
+
+            // ---- 수동입력 모드 ----
+            if (entryMode === 'manual') {
+                manualPanel.style.display = 'block';
+                const hoursInput = document.getElementById('id_hours');
+                const minutesInput = document.getElementById('id_minutes');
+                const preview = document.getElementById('manual-preview');
+
+                function updatePreview() {
+                    const h = parseInt(hoursInput.value, 10) || 0;
+                    const m = parseInt(minutesInput.value, 10) || 0;
+                    const durationMin = h * 60 + m;
+                    const earnMin = Math.round(durationMin * currentRate * 100) / 100;
+                    preview.textContent = '+ ' + currentActivityName + ' ' + earnMin + '분 적립 예정';
+                    if (durationMin > 0) {
+                        updateResultPanel(durationMin);
+                    } else {
+                        resultPanel.style.display = 'none';
+                    }
+                }
+
+                hoursInput.addEventListener('input', updatePreview);
+                minutesInput.addEventListener('input', updatePreview);
+                document.getElementById('pill-manual').classList.add('is-selected');
+                updatePreview();
+            }
+
+            // 활동 탭을 나중에 바꾸면 진행 중이던 미리보기도 다시 계산
+            tabs.forEach((tab) => {
+                tab.addEventListener('click', () => {
+                    if (entryMode === 'manual') {
+                        document.getElementById('id_hours').dispatchEvent(new Event('input'));
+                    }
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

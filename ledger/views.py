@@ -18,7 +18,7 @@ def spend_record_create(request):
             instance.users = request.user  # 모델 필드명이 user -> users로 바뀐 것 반영
             instance.save()
             # Post-Redirect-Get: 새로고침 시 중복 저장 방지
-            return redirect('ledger:spend_record_list')
+            return redirect('ledger:record_choice')
         # form.is_valid()가 False면 여기서 form을 새로 안 만들고
         # 에러가 담긴 form 그대로 아래 render로 넘어감 (에러 메시지 보존)
     else:
@@ -54,7 +54,7 @@ def earn_record_create(request):
             instance = form.save(commit=False)
             instance.users = request.user  # user -> users
             instance.save()
-            return redirect('ledger:earn_record_list')
+            return redirect('ledger:record_choice')
         # 검증 실패 시 새 폼으로 덮어쓰지 않고 에러 담긴 form 그대로 유지
     else:
         entry_mode = request.GET.get('mode', 'manual')
@@ -68,3 +68,8 @@ def earn_record_list(request):
     """수입 기록 목록 조회 뷰, 본인 기록만 최신순으로"""
     records = EarnRecord.objects.filter(users=request.user).order_by('-earn_start')
     return render(request, 'ledger/earn_record_list.html', {'records': records})
+
+@login_required
+def record_choice(request):
+    """기록하기 진입 화면 - 지출/수입 선택만 보여주는 단순 뷰"""
+    return render(request, 'ledger/record_choice.html')
