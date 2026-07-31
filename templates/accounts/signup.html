@@ -24,10 +24,11 @@
         </div>
         <br>
         <button type="button" onclick="handleSignup()">가입하기</button>
-        <button type="button" onclick="alert('카카오 소셜 연동 예정')">카카오로 시작하기</button>
+        
+        <button type="button" onclick="location.href='/accounts/kakao/login/'">카카오로 시작하기</button>
     </form>
 
-    <p>이미 계정이 있나요? <a href="login.html">로그인</a></p>
+    <p>이미 계정이 있나요? <a href="/accounts/login-page/">로그인</a></p>
 
     <script>
         async function handleSignup() {
