@@ -137,3 +137,14 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 LOGIN_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "login-page"
 AUTH_USER_MODEL = "accounts.User"
+
+# 카카오 키 읽어오기
+SOCIALACCOUNT_PROVIDERS = {
+    "kakao": {
+        "APP": {
+            "client_id": os.environ.get("KAKAO_REST_API_KEY"),
+            "secret": os.environ.get("KAKAO_CLIENT_SECRET"),
+            "key": "",
+        }
+    }
+}
