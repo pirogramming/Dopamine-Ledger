@@ -18,7 +18,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        field = ('email', 'nickname', 'password')
+        fields = ('email', 'nickname', 'password')
 
     def validate_email(self, value):
         """
@@ -26,6 +26,14 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         """
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("이미 가입된 이메일입니다.")
+        return value
+
+    def validate_nickname(self, value):
+        """
+        닉네임 중복 체크 (추가 권장)
+        """
+        if User.objects.filter(nickname=value).exists():
+            raise serializers.ValidationError("이미 사용 중인 닉네임입니다.")
         return value
 
     def create(self, validated_data):
@@ -39,6 +47,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             password=validated_data['password']
         )
         return user
+
 
 class UserLoginSerializer(serializers.Serializer):
     """
@@ -74,7 +83,7 @@ class UserLoginSerializer(serializers.Serializer):
         return data
 
 
-def UserResponseSerializer(serializers.ModelSerializer):
+class UserResponseSerializer(serializers.ModelSerializer):
     """
     회원가입/로그인 성공 시 클라이언트에 응답해줄 기본 유저 정보 Serializer
     """
