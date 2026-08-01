@@ -23,7 +23,7 @@
         <button type="button" onclick="location.href='/accounts/kakao/login/'">카카오로 로그인</button>
     </form>
 
-    <p>계정이 없나요? <a href="/accounts/signup/">회원가입</a></p>
+    <p>계정이 없나요? <a href="/accounts/signup-page/">회원가입</a></p>
 
     <script>
         function getCookie(name) {
@@ -51,7 +51,7 @@
             }
 
             try {
-                const response = await fetch('/accounts/api/login/', {
+                const response = await fetch('/accounts/login/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
