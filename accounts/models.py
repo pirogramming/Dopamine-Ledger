@@ -7,12 +7,13 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 class Users(AbstractUser):
     email = models.EmailField('이메일', max_length=255, unique=True)
     nickname = models.CharField('닉네임', max_length=30, unique=True)
-    kakao_id = models.CharField('카카오 ID', max_length=100, blank=True, null=True)
     streak_days = models.IntegerField('연속 기록 일수', default=0)
     credit_grade = models.CharField('신용 등급', max_length=20, default='BRONZE')
     weekly_budget_min = models.DecimalField(
         '주간 예산(분)', max_digits=10, decimal_places=2, default=210
     )
+    kakao_id = models.CharField('카카오 ID', max_length=100, blank=True, null=True)
+    converting_activity = models.CharField('환산활동', max_length=100, blank=True, null=True)
     conversion_base = models.DecimalField(
         '환산 비율', max_digits=10, decimal_places=4, default=Decimal('0.0001'),
         validators=[
@@ -23,6 +24,7 @@ class Users(AbstractUser):
         ],
         help_text='지출 시간(분)을 금액·책 권수 등으로 변환할 때 곱하는 비율'
     )
+    conversion_unit = models.CharField('환산단위', max_length=30, blank=True, null=True)
 
     groups = models.ManyToManyField(
         'auth.Group',
