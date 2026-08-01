@@ -69,7 +69,7 @@ class CrewMember(models.Model):
 
     class Meta:
         db_table = 'crew_member'
-        unique_together = [['crew', 'user']]
+        unique_together = [['crew', 'users']]
 
     def __str__(self):
         return f'{self.crew.name} - {self.user}'
