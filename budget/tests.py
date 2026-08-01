@@ -15,13 +15,13 @@ class CalculateEarnMinutesTest(SimpleTestCase):
 
         self.assertEqual(result, Decimal("15.00"))
 
-    def test_minimum_rate(self):
+    def test_small_positive_rate(self):
         result = calculate_earn_minutes(
             100,
-            Decimal("0.01"),
+            Decimal("0.005"),
         )
 
-        self.assertEqual(result, Decimal("1.00"))
+        self.assertEqual(result, Decimal("0.50"))
 
     def test_maximum_rate(self):
         result = calculate_earn_minutes(
@@ -70,6 +70,14 @@ class ConvertEarnToUnitTest(SimpleTestCase):
         )
 
         self.assertEqual(result, Decimal("0.00"))
+
+    def test_round_half_up(self):
+        result = convert_earn_to_unit(
+            Decimal("1"),
+            Decimal("6"),
+        )
+
+        self.assertEqual(result, Decimal("0.17"))
 
     def test_invalid_earn_amount(self):
         with self.assertRaises(ValueError):

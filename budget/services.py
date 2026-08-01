@@ -8,8 +8,10 @@ def calculate_earn_minutes(duration_min, rate):
     if duration_min <= 0:
         raise ValueError("duration_min must be greater than 0")
 
-    if rate < Decimal("0.01") or rate >= Decimal("1.00"):
-        raise ValueError("rate must be between 0.01 and 0.99")
+    if rate <= Decimal("0") or rate >= Decimal("1.00"):
+        raise ValueError(
+            "rate must be between 0 (exclusive) and 1.0 (exclusive)"
+        )
 
     raw_earn_min = duration_min * rate
 
