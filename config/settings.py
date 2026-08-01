@@ -28,6 +28,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    # DRF
+    "rest_framework",
+    "rest_framework.authtoken",
+
     # 소셜 로그인 (allauth)
     "django.contrib.sites",
     "allauth",
@@ -125,6 +129,22 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
+# ── 소셜로그인 동작 설정 ──
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+
 LOGIN_REDIRECT_URL = "/"
-ACCOUNT_LOGOUT_REDIRECT_URL = "/"
-AUTH_USER_MODEL = "accounts.Users"
+ACCOUNT_LOGOUT_REDIRECT_URL = "login-page"
+AUTH_USER_MODEL = "accounts.User"
+
+# 카카오 키 읽어오기
+SOCIALACCOUNT_PROVIDERS = {
+    "kakao": {
+        "APP": {
+            "client_id": os.environ.get("KAKAO_REST_API_KEY"),
+            "secret": os.environ.get("KAKAO_CLIENT_SECRET"),
+            "key": "",
+        }
+    }
+}

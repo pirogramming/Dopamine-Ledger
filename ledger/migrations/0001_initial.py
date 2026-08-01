@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('budget', '0001_initial'),
+        ('budget', '0002_alter_activity_rate_activity_rate_between_0_and_1'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
