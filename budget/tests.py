@@ -79,7 +79,7 @@ class ConvertEarnToUnitTest(SimpleTestCase):
 
         self.assertEqual(result, Decimal("0.17"))
 
-    def test_invalid_earn_amount(self):
+    def test_invalid_earn_minutes(self):
         with self.assertRaises(ValueError):
             convert_earn_to_unit(
                 Decimal("-1"),

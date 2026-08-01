@@ -21,17 +21,17 @@ def calculate_earn_minutes(duration_min, rate):
     )
 
 
-def convert_earn_to_unit(earn_amount, conversion_rate):
-    earn_amount = Decimal(str(earn_amount))
+def convert_earn_to_unit(earn_minutes, conversion_rate):
+    earn_minutes = Decimal(str(earn_minutes))
     conversion_rate = Decimal(str(conversion_rate))
 
-    if earn_amount < 0:
-        raise ValueError("earn_amount must be greater than or equal to 0")
+    if earn_minutes < 0:
+        raise ValueError("earn_minutes must be greater than or equal to 0")
 
     if conversion_rate <= 0:
         raise ValueError("conversion_rate must be greater than 0")
 
-    converted_unit = earn_amount / conversion_rate
+    converted_unit = earn_minutes / conversion_rate
 
     return converted_unit.quantize(
         Decimal("0.01"),
