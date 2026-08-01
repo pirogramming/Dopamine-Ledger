@@ -30,7 +30,6 @@ INSTALLED_APPS = [
 
     # DRF
     "rest_framework",
-    "rest_framework.authtoken",
 
     # 소셜 로그인 (allauth)
     "django.contrib.sites",
@@ -136,14 +135,27 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 
 LOGIN_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "login-page"
-AUTH_USER_MODEL = "accounts.User"
+AUTH_USER_MODEL = "accounts.Users"
 
-# 카카오 키 읽어오기
+# ── DRF 인증 방식 설정 (세션 인증 적용) ──
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+}
+
+# ── Kakao API 설정 (KakaoCallbackView 전용) ──
+KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY", "")
+KAKAO_REDIRECT_URI = os.getenv(
+    "KAKAO_REDIRECT_URI", "http://localhost:8000/accounts/kakao/callback/"
+)
+KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET", "")
+
 SOCIALACCOUNT_PROVIDERS = {
     "kakao": {
         "APP": {
-            "client_id": os.environ.get("KAKAO_REST_API_KEY"),
-            "secret": os.environ.get("KAKAO_CLIENT_SECRET"),
+            "client_id": KAKAO_REST_API_KEY,
+            "secret": KAKAO_CLIENT_SECRET,
             "key": "",
         }
     }

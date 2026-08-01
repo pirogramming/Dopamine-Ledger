@@ -5,7 +5,7 @@
     <title>로그인 - 도파민 가계부</title>
 </head>
 <body>
-    <h2>로그인</h2>
+    <h2>도파민 가계부 - 로그인</h2>
 
     <form id="loginForm">
         <div>
@@ -23,18 +23,39 @@
         <button type="button" onclick="location.href='/accounts/kakao/login/'">카카오로 로그인</button>
     </form>
 
-    <p>계정이 없나요? <a href="/accounts/signup-page/">회원가입</a></p>
+    <p>계정이 없나요? <a href="/accounts/signup/">회원가입</a></p>
 
     <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
         async function handleLogin() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
+            if (!email || !password) {
+                alert('이메일과 비밀번호를 모두 입력해 주세요.');
+                return;
+            }
+
             try {
-                const response = await fetch('/accounts/login/', {
+                const response = await fetch('/accounts/api/login/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
                     },
                     body: JSON.stringify({
                         email: email,
@@ -45,10 +66,9 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    // 전달받은 토큰을 브라우저에 저장
-                    localStorage.setItem('userToken', data.token);
                     alert('로그인 성공! ' + data.user.nickname + '님 환영합니다.');
-                    // window.location.href = 'main.html'; 메인화면 페이지 연동 시 주석 해제
+                    
+                    window.location.href = '/ledger/';
                 } else {
                     alert('로그인 실패: ' + JSON.stringify(data));
                 }
