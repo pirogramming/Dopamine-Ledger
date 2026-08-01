@@ -1,7 +1,7 @@
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model, login, logout
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -92,6 +92,18 @@ class LogoutView(APIView):
 # ==========================================
 # Kakao Social Login API
 # ==========================================
+class KakaoLoginRedirectView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        url = (
+            "https://kauth.kakao.com/oauth/authorize"
+            f"?client_id={settings.KAKAO_REST_API_KEY}"
+            f"&redirect_uri={settings.KAKAO_REDIRECT_URI}"
+            "&response_type=code"
+        )
+        return redirect(url)
+    
 class KakaoCallbackView(APIView):
   """카카오 소셜 로그인 콜백 API"""
 
