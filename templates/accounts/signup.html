@@ -28,7 +28,7 @@
         <button type="button" onclick="location.href='/accounts/kakao/login/'">카카오로 시작하기</button>
     </form>
 
-    <p>이미 계정이 있나요? <a href="/accounts/login/">로그인</a></p>
+    <p>이미 계정이 있나요? <a href="/accounts/login-page/">로그인</a></p>
 
     <script>
         // 쿠키에서 CSRF 토큰 추출하는 함수
@@ -58,7 +58,7 @@
             }
 
             try {
-                const response = await fetch('/accounts/api/signup/', {
+                const response = await fetch('/accounts/signup/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
