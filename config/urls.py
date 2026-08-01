@@ -19,6 +19,10 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include("accounts.urls")),
     path('accounts/', include("allauth.urls")),
+    path('accounts/', include("accounts.urls")),
+    path('ledger/', include('ledger.urls')),
+    # 아래 둘은 urls.py 존재 확인 후 활성화
+    # path('budget/', include('budget.urls')),
+    # path('crew/', include('crew.urls')),
 ]
