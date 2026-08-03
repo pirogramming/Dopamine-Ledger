@@ -95,17 +95,16 @@ class UserResponseSerializer(serializers.ModelSerializer):
         fields = ('id', 'email', 'nickname', 'streak_days', 'credit_grade', 'weekly_budget_min')
 
 
+class ActivityInputSerializer(serializers.Serializer):
+    """
+    개별 활동 단위 검증 (활동명과 분 모두 필수)
+    """
+    activity_type = serializers.CharField(max_length=30, required=True)
+    minutes = serializers.IntegerField(min_value=1, max_value=1440, required=True)
+
+
 class OnboardingSerializer(serializers.ModelSerializer):
-    """
-    첫 로그인 시 나타낼 온보딩 정보 Serializer
-    - Users 모델 업데이트 + 단일 Activity 생성/수정
-    """
-    earned_minutes = serializers.IntegerField(
-        write_only=True,
-        min_value=1,
-        max_value=1440,
-        help_text="1시간당 정립되는 숏폼 분(min)"
-    )
+    activities = ActivityInputSerializer(many=True, write_only=True)
 
     class Meta:
         model = User
@@ -114,30 +113,37 @@ class OnboardingSerializer(serializers.ModelSerializer):
             'converting_activity',
             'conversion_base',
             'conversion_unit',
-            'earned_minutes',
+            'activities',
         ]
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        earned_minutes = validated_data.pop('earned_minutes', None)
+        activities_data = validated_data.pop('activities', [])
 
         instance = super().update(instance, validated_data)
 
-        if earned_minutes is not None and instance.converting_activity:
-            calculated_rate = round(Decimal(earned_minutes) / Decimal(60.0), 2)
+        if activities_data:
+            Activity.objects.filter(users=instance).delete()
 
-            if calculated_rate <= Decimal('0.00'):
-                calculated_rate = Decimal('0.01')
-            elif calculated_rate >= Decimal('1.00'):
-                calculated_rate = Decimal('0.99')
+            activities_to_create = []
+            for item in activities_data:
+                act_type = item['activity_type'].strip()
+                minutes = item['minutes']
 
-            # 단일 Activity 객체 생성 또는 갱신
-            Activity.objects.update_or_create(
-                users=instance,
-                defaults={
-                    'activity_type': instance.converting_activity,
-                    'rate': calculated_rate,
-                }
-            )
+                calculated_rate = round(Decimal(minutes) / Decimal(60.0), 2)
+                if calculated_rate <= Decimal('0.00'):
+                    calculated_rate = Decimal('0.01')
+                elif calculated_rate >= Decimal('1.00'):
+                    calculated_rate = Decimal('0.99')
+
+                activities_to_create.append(
+                    Activity(
+                        users=instance,
+                        activity_type=act_type,
+                        rate=calculated_rate
+                    )
+                )
+
+            Activity.objects.bulk_create(activities_to_create)
 
         return instance

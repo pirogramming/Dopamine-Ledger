@@ -8,6 +8,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import OnboardingSerializer
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 from .serializers import (
     UserLoginSerializer,
@@ -60,7 +62,7 @@ class SignupView(APIView):
 
 class LoginView(APIView):
   """로그인 API"""
-
+  authentication_classes = []
   permission_classes = [AllowAny]
 
   def post(self, request):
