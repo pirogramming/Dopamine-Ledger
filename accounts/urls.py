@@ -7,6 +7,7 @@ from .views import (
     LogoutView,
     KakaoLoginRedirectView,
     KakaoCallbackView,
+    OnboardingAPIView,
 )
 
 urlpatterns = [
@@ -18,6 +19,7 @@ urlpatterns = [
     path('signup/', SignupView.as_view(), name='signup'),
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
+    path('onboarding/', OnboardingAPIView.as_view(), name='onboarding'),
 
     # 카카오 소셜 로그인 콜백
     path('kakao/login/', KakaoLoginRedirectView.as_view(), name='kakao_login'),

@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from .serializers import OnboardingSerializer
 
 from .serializers import (
     UserLoginSerializer,
@@ -93,16 +94,16 @@ class LogoutView(APIView):
 # Kakao Social Login API
 # ==========================================
 class KakaoLoginRedirectView(APIView):
-    permission_classes = [AllowAny]
+  permission_classes = [AllowAny]
 
-    def get(self, request):
-        url = (
-            "https://kauth.kakao.com/oauth/authorize"
-            f"?client_id={settings.KAKAO_REST_API_KEY}"
-            f"&redirect_uri={settings.KAKAO_REDIRECT_URI}"
-            "&response_type=code"
-        )
-        return redirect(url)
+  def get(self, request):
+    url = (
+      "https://kauth.kakao.com/oauth/authorize"
+      f"?client_id={settings.KAKAO_REST_API_KEY}"
+      f"&redirect_uri={settings.KAKAO_REDIRECT_URI}"
+      "&response_type=code"
+    )
+    return redirect(url)
     
 class KakaoCallbackView(APIView):
   """카카오 소셜 로그인 콜백 API"""
@@ -183,3 +184,19 @@ class KakaoCallbackView(APIView):
         },
         status=status.HTTP_200_OK,
     )
+
+
+class OnboardingAPIView(APIView):
+  permission_classes = [IsAuthenticated]
+
+  def post(self, request):
+    serializer = OnboardingSerializer(request.user, data=request.data, partial=True)
+
+    if serializer.is_valid():
+      serializer.save()
+      return Response(
+        {"message": "온보딩 정보가 성공적으로 저장되었습니다."},
+        status=status.HTTP_200_OK
+      )
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
