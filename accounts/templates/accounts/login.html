@@ -67,8 +67,14 @@
 
                 if (response.ok) {
                     alert('로그인 성공! ' + data.user.nickname + '님 환영합니다.');
-                    
-                    window.location.href = '/ledger/';
+
+                    if (data.is_onboarded) {
+                        // 이미 온보딩을 완료한 유저 -> 바로 메인 가계부로 이동
+                        window.location.href = '/ledger/';
+                    } else {
+                        // 첫 로그인 유저 -> 온보딩 페이지로 이동
+                        window.location.href = '/accounts/onboarding-page/';
+                    }
                 } else {
                     alert('로그인 실패: ' + JSON.stringify(data));
                 }

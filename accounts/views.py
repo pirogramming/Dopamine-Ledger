@@ -34,8 +34,14 @@ def login_page(request):
   """로그인 페이지 화면 반환 (@ensure_csrf_cookie: 첫 진입 시 csrftoken 쿠키 보장)"""
   return render(request, "accounts/login.html")
 
-
+@ensure_csrf_cookie
 def onboarding_page(request):
+  if not request.user.is_authenticated:
+        return redirect("login_page")
+    
+  if request.user.is_onboarded:
+    return redirect("/ledger/")
+        
   return render(request, "accounts/onboarding.html")
 
 
@@ -79,6 +85,7 @@ class LoginView(APIView):
       response_data = {
           "message": "로그인에 성공하였습니다.",
           "user": UserResponseSerializer(user).data,
+          "is_onboarded": user.is_onboarded
       }
       return Response(response_data, status=status.HTTP_200_OK)
 
@@ -203,6 +210,10 @@ class OnboardingAPIView(APIView):
 
     if serializer.is_valid():
       serializer.save()
+
+      request.user.is_onboarded = True
+      request.user.save()
+
       return Response(
         {"message": "온보딩 정보가 성공적으로 저장되었습니다."},
         status=status.HTTP_200_OK
