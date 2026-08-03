@@ -1,4 +1,5 @@
 import requests
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.conf import settings
 from django.contrib.auth import get_user_model, login, logout
 from django.shortcuts import render, redirect
@@ -20,13 +21,15 @@ User = get_user_model()
 # ==========================================
 # Template Render Views (페이지 화면 반환)
 # ==========================================
+@ensure_csrf_cookie
 def signup_page(request):
-  """회원가입 페이지 화면 반환"""
+  """회원가입 페이지 화면 반환 (@ensure_csrf_cookie: 첫 진입 시 csrftoken 쿠키 보장)"""
   return render(request, "accounts/signup.html")
 
 
+@ensure_csrf_cookie
 def login_page(request):
-  """로그인 페이지 화면 반환"""
+  """로그인 페이지 화면 반환 (@ensure_csrf_cookie: 첫 진입 시 csrftoken 쿠키 보장)"""
   return render(request, "accounts/login.html")
 
 

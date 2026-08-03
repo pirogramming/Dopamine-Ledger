@@ -15,14 +15,11 @@ class Users(AbstractUser):
     kakao_id = models.CharField('카카오 ID', max_length=100, blank=True, null=True)
     converting_activity = models.CharField('환산활동', max_length=100, blank=True, null=True)
     conversion_base = models.DecimalField(
-        '환산 비율', max_digits=10, decimal_places=4, default=Decimal('0.0001'),
+        '환산 기준(분)', max_digits=10, decimal_places=2, default=Decimal('360'),
         validators=[
-            MinValueValidator(
-                Decimal('0.0001'),
-                message='값이 올바르지 않습니다.'
-            ),
+            MinValueValidator(Decimal('0.01'), message='값이 올바르지 않습니다.'),
         ],
-        help_text='지출 시간(분)을 금액·책 권수 등으로 변환할 때 곱하는 비율'
+        help_text='선택한 단위 1개를 얻는 데 필요한 분. 예: 책 1권=360, 운동 1회=40. 환산 = (분 ÷ 이 값)'
     )
     conversion_unit = models.CharField('환산단위', max_length=30, blank=True, null=True)
 
