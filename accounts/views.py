@@ -35,6 +35,10 @@ def login_page(request):
   return render(request, "accounts/login.html")
 
 
+def onboarding_page(request):
+  return render(request, "accounts/onboarding.html")
+
+
 # ==========================================
 # API Views (일반 로그인 / 회원가입 / 로그아웃)
 # ==========================================
@@ -205,6 +209,3 @@ class OnboardingAPIView(APIView):
       )
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-def onboarding_page(request):
-  return render(request, "accounts/onboarding.html")
