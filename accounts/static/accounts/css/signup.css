@@ -1,0 +1,169 @@
+/* ============================================
+   전역 리셋 + 기본 폰트 (login.css와 동일 규칙)
+   ============================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Pretendard", "Inter", -apple-system, sans-serif;
+  background: #f5f4f1;
+}
+
+/* ============================================
+   페이지 전체 래퍼 (모바일 노치 대비 safe-area 적용)
+   ============================================ */
+.page-wrapper {
+  max-width: 393px;
+  margin: 0 auto;
+  padding: max(40px, env(safe-area-inset-top)) 24px 24px;
+  min-height: 100vh;
+}
+
+/* 카드 밖 상단 제목 (회원가입만 있음 — 로그인은 카드 안 card-title 사용) */
+.page-title {
+  color: #70737c;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+/* ============================================
+   인증 카드 (로그인/회원가입 공통 컨테이너)
+   ============================================ */
+.auth-card {
+  background: #fdfcf9;
+  border-radius: 28px;
+  border: 1px solid #70737c;
+  min-height: 780px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 33px 40px;
+  position: relative;
+}
+
+/* 로고 이미지 — object-fit: contain으로 비율 유지, 잘림 방지 */
+.logo {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 30px;
+}
+
+/* ============================================
+   입력 폼 영역
+   ============================================ */
+.auth-form {
+  width: 100%;
+  max-width: 327px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* 입력창 높이 55px로 통일 (버튼보다 5px 큼) */
+.input-box {
+  background: #ffffff;
+  border-radius: 15px;
+  border: 1px solid #c7c7c7;
+  padding: 12px 20px;
+  height: 55px;
+  display: flex;
+  align-items: center;
+}
+
+.input-field {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  font-size: 16px;
+  font-family: inherit;
+  color: #000000;
+}
+
+.input-field::placeholder {
+  color: #c2c2c2;
+}
+
+/* ============================================
+   버튼 영역 — 높이 50px로 통일
+   ============================================ */
+.button-group {
+  width: 100%;
+  max-width: 327px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: auto;
+  padding-top: 60px;
+}
+
+.btn-primary {
+  background: #ff7a00;
+  border: none;
+  border-radius: 15px;
+  padding: 12px 20px;
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-primary__label {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.btn-kakao {
+  background: #ffe62d;
+  border: none;
+  border-radius: 15px;
+  padding: 12px 20px;
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.btn-kakao:hover {
+  opacity: 0.9;
+}
+
+.btn-kakao__label {
+  color: #000000;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.auth-footer {
+  text-align: center;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.auth-footer__text {
+  color: #000000;
+}
+
+.auth-footer__link {
+  color: #ff7a00;
+  text-decoration: none;
+  font-weight: 600;
+}
