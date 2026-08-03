@@ -1,9 +1,8 @@
-from decimal import Decimal, ROUND_HALF_UP
 from django import forms
 from django.utils import timezone
 from .models import SpendRecord, EarnRecord
 from budget.models import Activity
-# from .services import calculate_earn_minutes <- 환산함수 머지되면 주석해제
+from budget.services import calculate_earn_minutes   # 환산 로직 단일화
 
 class SpendRecordForm(forms.ModelForm):
     # 00:30처럼 시:분을 따로 입력받기 위해 별도 필드 두 개 사용
@@ -175,10 +174,9 @@ class EarnRecordForm(forms.ModelForm):
 
         instance.earn_date = instance.earn_end.date()
         instance.verify_method = entry_mode
-
-        # 적립분 계산은 환산 함수 사용
-        raw_earn_min = Decimal(duration_min) * activity.rate
-        instance.earn_min = raw_earn_min.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        
+        # 적립분 계산은 공용 환산 함수로 단일화 (budget/services.py)
+        instance.earn_min = calculate_earn_minutes(duration_min, activity.rate)
         
         if commit:
             instance.save()

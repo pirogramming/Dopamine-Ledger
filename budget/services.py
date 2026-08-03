@@ -22,6 +22,8 @@ def calculate_earn_minutes(duration_min, rate):
 
 
 def convert_earn_to_unit(earn_minutes, conversion_rate):
+    # conversion_rate = "1단위당 소요 분" (accounts.Users.conversion_base와 동일 의미)
+    # 결과 = earn_minutes ÷ conversion_rate. 예: 180 ÷ 360(책1권=360분) = 0.5권
     earn_minutes = Decimal(str(earn_minutes))
     conversion_rate = Decimal(str(conversion_rate))
 
