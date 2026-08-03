@@ -2,6 +2,7 @@ from django.urls import path
 from .views import (
     signup_page,
     login_page,
+    onboarding_page,
     SignupView,
     LoginView,
     LogoutView,
@@ -14,6 +15,7 @@ urlpatterns = [
     # HTML 페이지 경로
     path('signup-page/', signup_page, name="signup-page"),
     path('login-page/', login_page, name="login-page"),
+    path('onboarding-page/', onboarding_page, name="onboarding-page"),
 
     # 벡엔드 API 경로
     path('signup/', SignupView.as_view(), name='signup'),

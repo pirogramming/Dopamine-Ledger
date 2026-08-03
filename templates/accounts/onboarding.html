@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>도파민 가계부 - 온보딩</title>
+</head>
+<body>
+
+    <!-- ================= 온보딩 1 ================= -->
+    <div id="step-1" class="step">
+        <h2>온보딩 1: 환산 단위 선택</h2>
+        <div>
+            <label for="converting_activity">환산 활동 (예: 코딩 공부):</label><br>
+            <input type="text" id="converting_activity" placeholder="코딩 공부">
+        </div>
+        <div>
+            <label for="conversion_base">1시간당 양 (예: 20):</label>
+            <input type="number" id="conversion_base" placeholder="20">
+            <label for="conversion_unit">단위 (예: 페이지):</label>
+            <input type="text" id="conversion_unit" placeholder="페이지">
+        </div>
+        <div>
+            <label for="weekly_budget_hours">주간 숏폼 예산 (시간):</label><br>
+            <input type="number" id="weekly_budget_hours" value="5"> 시간
+        </div>
+        <button type="button" onclick="goToStep(2)">다음</button>
+    </div>
+
+    <!-- ================= 온보딩 2 ================= -->
+    <div id="step-2" class="step" style="display: none;">
+        <h2>온보딩 2: 초과 경고 사전안내</h2>
+        <p>1. 주간 예산을 다 쓰면 초과 경고를 보여드려요</p>
+        <p>2. 그 뒤 지출은 차단되지 않고 계속 기록되지만 "초과지출"로 표시돼요</p>
+        <p>3. 주간결산과 크루 피드에도 초과 여부가 표시돼요</p>
+        <button type="button" onclick="goToStep(1)">이전</button>
+        <button type="button" onclick="goToStep(3)">다음</button>
+    </div>
+
+    <!-- ================= 온보딩 3 ================= -->
+    <div id="step-3" class="step" style="display: none;">
+        <h2>온보딩 3: 활동 1시간당 숏폼 적립 (분)</h2>
+        
+        <!-- 고정 항목 3개 -->
+        <div>
+            <label for="reading_min">독서 1시간 당</label>
+            <input type="number" id="reading_min" placeholder="40"> 분
+        </div>
+        <div>
+            <label for="exercise_min">운동 1시간 당</label>
+            <input type="number" id="exercise_min" placeholder="60"> 분
+        </div>
+        <div>
+            <label for="study_min">공부 1시간 당</label>
+            <input type="number" id="study_min" placeholder="20"> 분
+        </div>
+
+        <!-- 커스텀 가변 입력란 -->
+        <div>
+            <input type="text" id="custom_activity_name" placeholder="활동 (예: 코딩 공부)">
+            <input type="number" id="custom_activity_min" placeholder="00"> 분
+        </div>
+
+        <button type="button" onclick="goToStep(2)">이전</button>
+        <button type="button" onclick="submitOnboarding()">시작하기</button>
+    </div>
+    <script>
+        // 1. 스텝 이동 함수
+        function goToStep(stepNumber) {
+            const step1 = document.getElementById('step-1');
+            const step2 = document.getElementById('step-2');
+            const step3 = document.getElementById('step-3');
+
+            if (step1) step1.style.display = 'none';
+            if (step2) step2.style.display = 'none';
+            if (step3) step3.style.display = 'none';
+
+            const target = document.getElementById(`step-${stepNumber}`);
+            if (target) {
+                target.style.display = 'block';
+            }
+        }
+
+        // 2. CSRF 토큰 가져오는 함수
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // 3. 온보딩 백엔드 제출 함수
+        async function submitOnboarding() {
+            // [1단계 데이터]
+            const convertingActivity = document.getElementById('converting_activity').value;
+            const conversionBase = parseFloat(document.getElementById('conversion_base').value) || 0.0001;
+            const conversionUnit = document.getElementById('conversion_unit').value;
+            
+            const budgetHours = parseFloat(document.getElementById('weekly_budget_hours').value) || 0;
+            const weeklyBudgetMin = Math.round(budgetHours * 60);
+
+            // [3단계 데이터 - 고정 3개]
+            const activities = [
+                {
+                    activity_type: "독서",
+                    minutes: parseInt(document.getElementById('reading_min').value) || 0
+                },
+                {
+                    activity_type: "운동",
+                    minutes: parseInt(document.getElementById('exercise_min').value) || 0
+                },
+                {
+                    activity_type: "공부",
+                    minutes: parseInt(document.getElementById('study_min').value) || 0
+                }
+            ];
+
+            // [3단계 데이터 - 커스텀 추가 항목]
+            const customName = document.getElementById('custom_activity_name').value.trim();
+            const customMin = parseInt(document.getElementById('custom_activity_min').value);
+
+            if (customName && !isNaN(customMin) && customMin > 0) {
+                activities.push({
+                    activity_type: customName,
+                    minutes: customMin
+                });
+            }
+
+            // [최종 요청 Body 조립]
+            const payload = {
+                converting_activity: convertingActivity,
+                conversion_base: conversionBase,
+                conversion_unit: conversionUnit,
+                weekly_budget_min: weeklyBudgetMin,
+                activities: activities
+            };
+
+            // [API 전송]
+            try {
+                const response = await fetch('/accounts/onboarding/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken') // CSRF 토큰
+                    },
+                    credentials: 'same-origin', // 세션 쿠키 함께 전송
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert("온보딩 정보가 성공적으로 저장되었습니다!");
+                    window.location.href = "/"; // 성공 시 메인/홈으로 이동
+                } else {
+                    const errData = await response.json();
+                    console.error("백엔드 에러 원인:", errData);
+                    alert("저장에 실패했습니다. F12 콘솔을 확인해주세요.");
+                }
+            } catch (error) {
+                console.error("네트워크 에러:", error);
+                alert("서버 통신 실패");
+            }
+        }
+    </script>
+</body>
+</html>

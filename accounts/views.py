@@ -205,3 +205,6 @@ class OnboardingAPIView(APIView):
       )
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+def onboarding_page(request):
+  return render(request, "accounts/onboarding.html")
