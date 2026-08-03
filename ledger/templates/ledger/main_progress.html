@@ -1,0 +1,148 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>도파민 가계부 - 홈</title>
+  <link rel="stylesheet" href="{% static 'ledger/css/main_progress.css' %}">
+</head>
+<body>
+
+<div class="main-progress">
+
+  <header class="app-header">
+    <img class="app-header__logo" src="{% static 'ledger/images/logo.png' %}" alt="도파민 가계부">
+    <img class="app-header__notification" src="{% static 'ledger/images/icons/icon-bell.svg' %}" alt="알림">
+  </header>
+
+  <main class="app-content">
+
+    <!-- 시간으로 보기 / 변환해서 보기 토글 -->
+    <div class="view-toggle">
+      <button type="button" class="view-toggle__option view-toggle__option--active">시간으로 보기</button>
+      <a href="{% url 'ledger:main_convert' %}" class="view-toggle__option">변환해서 보기</a>
+    </div>
+
+    <!-- 오늘 남은 시간 -->
+    <!-- TODO(view): context 'remaining_display'로 교체 (예: {{ remaining_display }}) -->
+    <section class="remaining-time">
+      <p class="remaining-time__label">오늘 남은 숏폼 시간</p>
+      <p class="remaining-time__value">2시간 30분</p>
+    </section>
+
+    <!-- 예산 진행률 -->
+    <!-- TODO(view): 'budget_desc', 'percent_used' context로 교체 -->
+    <section class="budget-progress">
+      <div class="budget-progress__header">
+        <span class="budget-progress__desc">오늘 예산 4시간 중 30분 사용</span>
+        <span class="budget-progress__percent">12%</span>
+      </div>
+      <div class="budget-progress__bar">
+        <!-- 게이지 바 너비: 나중에 style="width: min({{ percent_used }}%, 100%);" 형태로 교체 -->
+        <div class="budget-progress__bar-fill"></div>
+      </div>
+    </section>
+
+    <!-- 오늘 예산 / 사용 / 적립 요약 -->
+    <!-- TODO(view): 각각 context 값으로 교체 (daily_budget / total_spent / total_earned) -->
+    <section class="budget-summary">
+      <ul class="budget-summary__list">
+        <li class="budget-summary__item">
+          <span class="budget-summary__label">오늘 예산</span>
+          <span class="budget-summary__value">4시간</span>
+        </li>
+        <li class="budget-summary__item">
+          <span class="budget-summary__label">사용</span>
+          <span class="budget-summary__value budget-summary__value--negative">-30분</span>
+        </li>
+        <li class="budget-summary__item">
+          <span class="budget-summary__label">적립</span>
+          <span class="budget-summary__value budget-summary__value--positive">+33분</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- 오늘의 기록 -->
+    <!--
+      TODO(view): 오늘의 지출/수입 기록을 리스트로 순회하는 형태로 교체.
+      예시:
+        {% for record in records %}
+          <li class="record-list__item">...</li>
+        {% empty %}
+          <li>오늘 기록이 아직 없어요</li>
+        {% endfor %}
+    -->
+    <section class="today-record">
+      <div class="today-record__header">
+        <h2 class="today-record__title">오늘의 기록</h2>
+        <span class="today-record__count">2건</span>
+      </div>
+      <ul class="record-list">
+        <li class="record-list__item">
+          <div class="record-list__info">
+            <img class="record-list__icon" src="{% static 'ledger/images/icons/icon-book.svg' %}" alt="독서">
+            <span class="record-list__label">독서 40분</span>
+          </div>
+          <span class="record-list__value record-list__value--positive">+33분</span>
+        </li>
+        <li class="record-list__item">
+          <div class="record-list__info">
+            <img class="record-list__icon" src="{% static 'ledger/images/icons/icon-shortform.svg' %}" alt="숏폼">
+            <span class="record-list__label">숏폼 지출</span>
+          </div>
+          <span class="record-list__value record-list__value--negative">-30분</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- 예산 소진 경고 배너 -->
+    <!-- TODO(view): {% if is_budget_exhausted %} ... {% endif %}로 감싸서 조건부 표시 -->
+    <div class="alert-banner">
+      <img class="alert-banner__icon" src="{% static 'ledger/images/icons/icon-warning.svg' %}" alt="경고">
+      <p class="alert-banner__text">예산 시간을 다 썼어요</p>
+    </div>
+
+    <a href="{% url 'ledger:record_choice' %}" class="btn-record">기록하기</a>
+
+  </main>
+
+  <nav class="bottom-nav">
+    <ul class="bottom-nav__list">
+      <li class="nav-item nav-item--active">
+        <a class="nav-item__link" href="{% url 'ledger:main_progress' %}">
+          <img class="nav-item__icon" src="{% static 'ledger/images/icons/icon-home.svg' %}" alt="홈">
+          <span class="nav-item__label nav-item__label--active">홈</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-item__link" href="#">
+          <img class="nav-item__icon" src="{% static 'ledger/images/icons/icon-crew.svg' %}" alt="크루">
+          <span class="nav-item__label">크루</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-item__link" href="#">
+          <img class="nav-item__icon" src="{% static 'ledger/images/icons/icon-deadline.svg' %}" alt="마감">
+          <span class="nav-item__label">마감</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-item__link" href="#">
+          <img class="nav-item__icon" src="{% static 'ledger/images/icons/icon-settlement.svg' %}" alt="결산">
+          <span class="nav-item__label">결산</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-item__link" href="#">
+          <img class="nav-item__icon" src="{% static 'ledger/images/icons/icon-setting.svg' %}" alt="설정">
+          <span class="nav-item__label">설정</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+</div>
+
+</body>
+</html>

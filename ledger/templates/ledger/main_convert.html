@@ -1,0 +1,143 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>도파민 가계부 - 변환해서 보기</title>
+  <!-- 헤더·하단 네비·기록하기 버튼·경고 배너·예산 요약은 main_progress.css의 컴포넌트를 그대로 재사용 -->
+  <link rel="stylesheet" href="{% static 'ledger/css/main_progress.css' %}">
+  <link rel="stylesheet" href="{% static 'ledger/css/main_convert.css' %}">
+</head>
+<body>
+
+<div class="main-progress main-convert">
+
+  <header class="app-header">
+    <img class="app-header__logo" src="{% static 'ledger/images/logo.png' %}" alt="도파민 가계부">
+    <img class="app-header__notification" src="{% static 'ledger/images/icons/icon-bell.svg' %}" alt="알림">
+  </header>
+
+  <main class="app-content">
+
+        <!-- 시간으로 보기 / 변환해서 보기 토글 -->
+    <div class="view-toggle">
+      <a href="{% url 'ledger:main_progress' %}" class="view-toggle__option">시간으로 보기</a>
+      <button type="button" class="view-toggle__option view-toggle__option--active">변환해서 보기</button>
+    </div>
+
+    <!-- 환산 카드: 도넛 차트 + 환산 값 + 오늘 예산/사용/적립 요약 -->
+    <section class="donut-card">
+
+      <!-- 도넛 차트: 실제 비율 표시는 나중에 view 담당자가 채움 -->
+      <!-- TODO(view): 지금은 정적 이미지. 실제 사용률 반영하려면 conic-gradient 또는 SVG 동적 렌더링으로 교체 -->
+      <div class="donut-card__chart-wrap">
+        <img class="donut-card__chart" src="{% static 'ledger/images/donut-chart.svg' %}" alt="">
+        <div class="donut-card__center">
+          <!-- TODO(view): context 'converted_value'(예: "3.8권"), 'converted_unit_label'(예: "책으로 환산하면") -->
+          <p class="donut-card__value">3.8권</p>
+          <p class="donut-card__unit-label">책 몇 권</p>
+        </div>
+      </div>
+
+      <!-- 오늘 예산 / 사용 / 적립 요약: main_progress와 동일 컴포넌트(budget-summary) 재사용 -->
+      <!-- TODO(view): context 값으로 교체 (daily_budget_display / total_spent_display / total_earned_display) -->
+      <ul class="budget-summary__list">
+        <li class="budget-summary__item">
+          <span class="budget-summary__label">오늘 예산</span>
+          <span class="budget-summary__value">4시간 0분</span>
+        </li>
+        <li class="budget-summary__item">
+          <span class="budget-summary__label">사용</span>
+          <span class="budget-summary__value budget-summary__value--negative">-30분</span>
+        </li>
+        <li class="budget-summary__item">
+          <span class="budget-summary__label">적립</span>
+          <span class="budget-summary__value budget-summary__value--positive">+33분</span>
+        </li>
+      </ul>
+
+      <!-- 시간으로 보기 화면으로 돌아가는 링크 -->
+      <a href="{% url 'ledger:main_progress' %}" class="donut-card__switch">지출 시간으로 보기</a>
+
+    </section>
+
+    <!-- 오늘의 기록 헤더: main_progress와 동일 컴포넌트(today-record__header) 재사용 -->
+    <div class="today-record__header">
+      <h2 class="today-record__title">오늘의 기록</h2>
+      <span class="today-record__count">2건</span>
+    </div>
+
+    <!-- 환산된 기록 리스트: progress 페이지의 record-list와 달리 각각 박스 형태 -->
+    <!--
+      TODO(view): 오늘의 지출/수입 기록을 순회하는 형태로 교체.
+      예시:
+        {% for record in converted_records %}
+          <li class="converted-record-list__item">...</li>
+        {% empty %}
+          <li>오늘 기록이 아직 없어요</li>
+        {% endfor %}
+    -->
+    <ul class="converted-record-list">
+      <li class="converted-record-list__item">
+        <span class="converted-record-list__label">독서 40분 완료</span>
+        <span class="converted-record-list__value converted-record-list__value--positive">+33분</span>
+      </li>
+      <li class="converted-record-list__item">
+        <span class="converted-record-list__label">숏폼 지출</span>
+        <span class="converted-record-list__value converted-record-list__value--negative">-30분</span>
+      </li>
+    </ul>
+
+    <!-- 예산 소진 경고 배너: main_progress와 동일 컴포넌트(alert-banner) 재사용 -->
+    <!-- TODO(view): {% if is_budget_exhausted %} ... {% endif %}로 감싸서 조건부 표시 -->
+    <div class="alert-banner">
+      <img class="alert-banner__icon" src="{% static 'ledger/images/icons/icon-warning.svg' %}" alt="경고">
+      <p class="alert-banner__text">예산 시간을 다 썼어요</p>
+    </div>
+
+    <!-- 기록하기 버튼: main_progress와 동일 컴포넌트(btn-record) 재사용 -->
+    <a href="{% url 'ledger:record_choice' %}" class="btn-record">기록하기</a>
+
+  </main>
+
+  <!-- 하단 네비게이션: main_progress와 완전히 동일. '홈' 대신 활성 탭 없음(변환 화면은 홈의 하위 화면) -->
+  <nav class="bottom-nav">
+    <ul class="bottom-nav__list">
+      <li class="nav-item">
+        <a class="nav-item__link" href="{% url 'ledger:main_progress' %}">
+          <img class="nav-item__icon" src="{% static 'ledger/images/icons/icon-home.svg' %}" alt="홈">
+          <span class="nav-item__label">홈</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-item__link" href="#">
+          <img class="nav-item__icon" src="{% static 'ledger/images/icons/icon-crew.svg' %}" alt="크루">
+          <span class="nav-item__label">크루</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-item__link" href="#">
+          <img class="nav-item__icon" src="{% static 'ledger/images/icons/icon-deadline.svg' %}" alt="마감">
+          <span class="nav-item__label">마감</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-item__link" href="#">
+          <img class="nav-item__icon" src="{% static 'ledger/images/icons/icon-settlement.svg' %}" alt="결산">
+          <span class="nav-item__label">결산</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-item__link" href="#">
+          <img class="nav-item__icon" src="{% static 'ledger/images/icons/icon-setting.svg' %}" alt="설정">
+          <span class="nav-item__label">설정</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+</div>
+
+</body>
+</html>
