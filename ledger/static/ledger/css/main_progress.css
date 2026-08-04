@@ -1,0 +1,334 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #f5f5f5;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ===== 전체 컨테이너 ===== */
+.main-progress {
+  background: #fffefc;
+  border-radius: 28px;
+  border: 1px solid #70737c;
+  width: 393px;
+  min-height: 852px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ===== 상단 헤더 (로고 + 알림) ===== */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 20px;
+}
+
+.app-header__logo {
+  width: 134px;
+  height: 49px;
+  object-fit: cover;
+}
+
+.app-header__notification {
+  width: 24px;
+  height: 24px;
+}
+
+/* ===== 본문 영역 ===== */
+.app-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 10px 33px 20px;
+}
+
+/* ===== 보기 방식 토글 ===== */
+.view-toggle {
+  background: #f0e5d5;
+  border-radius: 30px;
+  padding: 3px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.view-toggle__option {
+  border: none;
+  background: none;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #70737c;
+  padding: 13px 37px;
+  border-radius: 30px;
+  cursor: pointer;
+}
+
+.view-toggle__option--active {
+  background: #ff7a00;
+  color: #ffffff;
+}
+
+/* ===== 오늘 남은 시간 ===== */
+.remaining-time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.remaining-time__label {
+  font-size: 13px;
+  font-weight: 400;
+  color: #000000;
+}
+
+.remaining-time__value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #000000;
+}
+
+/* ===== 예산 진행률 ===== */
+.budget-progress__bar-fill {
+  background: #ff7a00;
+  border-radius: 30px;
+  height: 8px;
+}
+
+.budget-progress__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.budget-progress__desc {
+  font-size: 13px;
+  font-weight: 400;
+  color: #70737c;
+}
+
+.budget-progress__percent {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ff7a00;
+}
+
+.budget-progress__bar {
+  background: #f0e5d5;
+  border-radius: 30px;
+  width: 100%;
+  height: 8px;
+}
+
+.budget-progress__bar-fill {
+  background: #ff7a00;
+  border-radius: 30px;
+  width: 50px; /* 사용률에 따라 JS로 동적 변경 예정 */
+  height: 8px;
+}
+
+/* ===== 오늘 예산 / 사용 / 적립 요약 ===== */
+.budget-summary {
+  border-top: 1px solid #c7c7c7;
+  border-bottom: 1px solid #c7c7c7;
+  padding: 10px 0;
+}
+
+.budget-summary__list {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  gap: 44px;
+}
+
+.budget-summary__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  width: 70px;
+}
+
+.budget-summary__label {
+  font-size: 13px;
+  font-weight: 400;
+  color: #70737c;
+}
+
+.budget-summary__value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #000000;
+}
+
+.budget-summary__value--negative {
+  color: #ff7a00;
+}
+
+.budget-summary__value--positive {
+  color: #51b747;
+}
+
+/* ===== 오늘의 기록 ===== */
+.today-record__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.today-record__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #000000;
+}
+
+.today-record__count {
+  font-size: 13px;
+  font-weight: 400;
+  color: #70737c;
+}
+
+.record-list {
+  list-style: none;
+}
+
+.record-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #c7c7c7;
+  padding: 15px 0;
+}
+
+.record-list__item:last-child {
+  border-bottom: none;
+}
+
+.record-list__info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.record-list__icon {
+  width: 24px;
+  height: 24px;
+}
+
+.record-list__label {
+  font-size: 16px;
+  font-weight: 400;
+  color: #000000;
+}
+
+.record-list__value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.record-list__value--positive {
+  color: #51b747;
+}
+
+.record-list__value--negative {
+  color: #ff7a00;
+}
+
+/* ===== 예산 소진 경고 배너 ===== */
+.alert-banner {
+  background: #fbe2df;
+  border-radius: 10px;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.alert-banner__icon {
+  width: 24px;
+  height: 24px;
+}
+
+.alert-banner__text {
+  font-size: 13px;
+  font-weight: 700;
+  color: #a23a2f;
+}
+
+/* ===== 기록하기 버튼 ===== */
+.btn-record {
+  background: #ff7a00;
+  border-radius: 15px;
+  padding: 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ===== 하단 네비게이션 ===== */
+.bottom-nav {
+  border-top: 1px solid #c7c7c7;
+  padding: 10px 30px;
+  position: sticky;
+  bottom: 0;
+  background: #ffffff;
+}
+
+.bottom-nav__list {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  gap: 45px;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 30px;
+}
+
+.nav-item__icon {
+  width: 24px;
+  height: 24px;
+  display: block;
+  overflow: hidden;
+  text-indent: 100%;
+  white-space: nowrap;
+  color: transparent; /* 일부 브라우저에서 alt 텍스트 색상에 영향 */
+}
+
+.nav-item__label {
+  font-size: 16px;
+  font-weight: 400;
+  color: #70737c;
+}
+
+.nav-item__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  color: inherit; /* 링크 기본 파란색 상속 차단 */
+}
+
+.nav-item--active .nav-item__label {
+  font-weight: 600;
+  color: #e2672a;
+}
