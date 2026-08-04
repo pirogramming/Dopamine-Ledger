@@ -1,34 +1,45 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>회원가입 - 도파민 가계부</title>
+    <link rel="stylesheet" href="{% static 'accounts/css/signup.css' %}">
 </head>
 <body>
-    <h2>도파민 가계부 - 회원가입</h2>
+    <div class="page-wrapper">
+        <div class="auth-card">
+            <img src="{% static 'accounts/images/logo.png' %}" alt="도파민 가계부" class="logo">
 
-    <form id="signupForm">
-        <div>
-            <label for="email">이메일</label><br>
-            <input type="email" id="email" placeholder="이메일" required>
-        </div>
-        <br>
-        <div>
-            <label for="password">비밀번호</label><br>
-            <input type="password" id="password" placeholder="비밀번호 (8자 이상)" required>
-        </div>
-        <br>
-        <div>
-            <label for="nickname">닉네임</label><br>
-            <input type="text" id="nickname" placeholder="닉네임" required>
-        </div>
-        <br>
-        <button type="button" onclick="handleSignup()">가입하기</button>
-        
-        <button type="button" onclick="location.href='/accounts/kakao/login/'">카카오로 시작하기</button>
-    </form>
+            <form id="signupForm" class="auth-form">
+                <div class="input-group">
+                    <div class="input-box">
+                        <input type="email" id="email" class="input-field" placeholder="이메일" required>
+                    </div>
+                    <div class="input-box">
+                        <input type="password" id="password" class="input-field" placeholder="비밀번호 (8자 이상)" required>
+                    </div>
+                    <div class="input-box">
+                        <input type="text" id="nickname" class="input-field" placeholder="닉네임" required>
+                    </div>
+                </div>
+            </form>
 
-    <p>이미 계정이 있나요? <a href="/accounts/login-page/">로그인</a></p>
+            <div class="button-group">
+                <button type="button" class="btn-primary" onclick="handleSignup()">
+                    <span class="btn-primary__label">가입하기</span>
+                </button>
+                <button type="button" class="btn-kakao" onclick="location.href='/accounts/kakao/login/'">
+                    <span class="btn-kakao__label">카카오로 시작하기</span>
+                </button>
+                <p class="auth-footer">
+                    <span class="auth-footer__text">이미 계정이 있나요? </span>
+                    <a href="/accounts/login-page/" class="auth-footer__link">로그인</a>
+                </p>
+            </div>
+        </div>
+    </div>
 
     <script>
         // 쿠키에서 CSRF 토큰 추출하는 함수
@@ -53,7 +64,7 @@
             const nickname = document.getElementById('nickname').value;
 
             if (!email || !password || !nickname) {
-                alert(' 모든 항목을 입력해 주세요.');
+                alert(' 모든 항목을 입력해 주세요: ');
                 return;
             }
 
