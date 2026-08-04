@@ -13,6 +13,13 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('nickname', 'kakao_id', 'streak_days',
                        'credit_grade', 'weekly_budget_min')
         }),
+        ('온보딩 및 환산 정보', {
+            'fields': (
+                'converting_activity',
+                'conversion_base',
+                'conversion_unit',
+            )
+        }),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
         ('추가 정보', {

@@ -38,6 +38,8 @@ class Users(AbstractUser):
         help_text='Specific permissions for this user.',
     )
 
+    is_onboarded = models.BooleanField(default=False)
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 

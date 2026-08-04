@@ -7,6 +7,9 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from .serializers import OnboardingSerializer
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 from .serializers import (
     UserLoginSerializer,
@@ -30,6 +33,16 @@ def signup_page(request):
 def login_page(request):
   """로그인 페이지 화면 반환 (@ensure_csrf_cookie: 첫 진입 시 csrftoken 쿠키 보장)"""
   return render(request, "accounts/login.html")
+
+@ensure_csrf_cookie
+def onboarding_page(request):
+  if not request.user.is_authenticated:
+        return redirect("login_page")
+    
+  if request.user.is_onboarded:
+    return redirect("/ledger/")
+        
+  return render(request, "accounts/onboarding.html")
 
 
 # ==========================================
@@ -59,7 +72,7 @@ class SignupView(APIView):
 
 class LoginView(APIView):
   """로그인 API"""
-
+  authentication_classes = []
   permission_classes = [AllowAny]
 
   def post(self, request):
@@ -72,6 +85,7 @@ class LoginView(APIView):
       response_data = {
           "message": "로그인에 성공하였습니다.",
           "user": UserResponseSerializer(user).data,
+          "is_onboarded": user.is_onboarded
       }
       return Response(response_data, status=status.HTTP_200_OK)
 
@@ -96,16 +110,16 @@ class LogoutView(APIView):
 # Kakao Social Login API
 # ==========================================
 class KakaoLoginRedirectView(APIView):
-    permission_classes = [AllowAny]
+  permission_classes = [AllowAny]
 
-    def get(self, request):
-        url = (
-            "https://kauth.kakao.com/oauth/authorize"
-            f"?client_id={settings.KAKAO_REST_API_KEY}"
-            f"&redirect_uri={settings.KAKAO_REDIRECT_URI}"
-            "&response_type=code"
-        )
-        return redirect(url)
+  def get(self, request):
+    url = (
+      "https://kauth.kakao.com/oauth/authorize"
+      f"?client_id={settings.KAKAO_REST_API_KEY}"
+      f"&redirect_uri={settings.KAKAO_REDIRECT_URI}"
+      "&response_type=code"
+    )
+    return redirect(url)
     
 class KakaoCallbackView(APIView):
   """카카오 소셜 로그인 콜백 API"""
@@ -186,3 +200,23 @@ class KakaoCallbackView(APIView):
         },
         status=status.HTTP_200_OK,
     )
+
+
+class OnboardingAPIView(APIView):
+  permission_classes = [IsAuthenticated]
+
+  def post(self, request):
+    serializer = OnboardingSerializer(request.user, data=request.data, partial=True)
+
+    if serializer.is_valid():
+      serializer.save()
+
+      request.user.is_onboarded = True
+      request.user.save()
+
+      return Response(
+        {"message": "온보딩 정보가 성공적으로 저장되었습니다."},
+        status=status.HTTP_200_OK
+      )
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

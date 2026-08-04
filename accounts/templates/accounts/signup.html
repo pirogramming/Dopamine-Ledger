@@ -2,12 +2,12 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>로그인 - 도파민 가계부</title>
+    <title>회원가입 - 도파민 가계부</title>
 </head>
 <body>
-    <h2>도파민 가계부 - 로그인</h2>
+    <h2>도파민 가계부 - 회원가입</h2>
 
-    <form id="loginForm">
+    <form id="signupForm">
         <div>
             <label for="email">이메일</label><br>
             <input type="email" id="email" placeholder="이메일" required>
@@ -18,14 +18,20 @@
             <input type="password" id="password" placeholder="비밀번호 (8자 이상)" required>
         </div>
         <br>
-        <button type="button" onclick="handleLogin()">로그인</button>
+        <div>
+            <label for="nickname">닉네임</label><br>
+            <input type="text" id="nickname" placeholder="닉네임" required>
+        </div>
+        <br>
+        <button type="button" onclick="handleSignup()">가입하기</button>
         
-        <button type="button" onclick="location.href='/accounts/kakao/login/'">카카오로 로그인</button>
+        <button type="button" onclick="location.href='/accounts/kakao/login/'">카카오로 시작하기</button>
     </form>
 
-    <p>계정이 없나요? <a href="/accounts/signup-page/">회원가입</a></p>
+    <p>이미 계정이 있나요? <a href="/accounts/login-page/">로그인</a></p>
 
     <script>
+        // 쿠키에서 CSRF 토큰 추출하는 함수
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -41,17 +47,18 @@
             return cookieValue;
         }
 
-        async function handleLogin() {
+        async function handleSignup() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const nickname = document.getElementById('nickname').value;
 
-            if (!email || !password) {
-                alert('이메일과 비밀번호를 모두 입력해 주세요.');
+            if (!email || !password || !nickname) {
+                alert(' 모든 항목을 입력해 주세요.');
                 return;
             }
 
             try {
-                const response = await fetch('/accounts/login/', {
+                const response = await fetch('/accounts/signup/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -59,18 +66,19 @@
                     },
                     body: JSON.stringify({
                         email: email,
-                        password: password
+                        password: password,
+                        nickname: nickname
                     })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert('로그인 성공! ' + data.user.nickname + '님 환영합니다.');
+                    alert('회원가입이 완료되었습니다!');
                     
-                    window.location.href = '/ledger/';
+                    window.location.href = '/accounts/login-page/'; 
                 } else {
-                    alert('로그인 실패: ' + JSON.stringify(data));
+                    alert('회원가입 실패: ' + JSON.stringify(data));
                 }
             } catch (error) {
                 console.error('Error:', error);
