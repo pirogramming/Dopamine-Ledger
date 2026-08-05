@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>크루 나가기</title>
+</head>
+<body>
+    <h1>크루 나가기</h1>
+
+    {% if is_last_member %}
+        <p>⚠️ 당신은 이 크루의 <strong>마지막 멤버</strong>예요.</p>
+        <p>지금 나가면 "<strong>{{ crew.name }}</strong>" 크루가 <strong>완전히 사라지고</strong>,
+           초대 코드도 더 이상 쓸 수 없어요.</p>
+        <p>정말 나가시겠어요?</p>
+    {% else %}
+        <p>정말 "<strong>{{ crew.name }}</strong>" 크루에서 나가시겠어요?</p>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">나가기</button>
+    </form>
+
+    <a href="{% url 'crew:detail' crew_id=crew.id %}">취소</a>
+</body>
+</html>
