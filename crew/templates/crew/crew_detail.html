@@ -1,15 +1,16 @@
+{% extends 'crew/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ crew.name }}</title>
-</head>
-<body>
+
+{% block title %}{{ crew.name }}{% endblock %}
+
+{% block content %}
     <div id="crew-data" data-crew-id="{{ crew.id }}"></div>
 
     <h1>{{ crew.name }}</h1>
+
+    {% if crew.owner == request.user %}
+        <a href="{% url 'crew:rename' crew_id=crew.id %}">✏️ 이름 수정</a>
+    {% endif %}
 
     <p>초대 코드: <strong>{{ crew.invite_code }}</strong></p>
     <p>초대 링크:
@@ -34,7 +35,8 @@
     <a href="{% url 'crew:leave' crew_id=crew.id %}">이 크루 나가기</a>
     <br><br>
     <a href="{% url 'crew:list' %}">← 내 크루 목록으로</a>
+{% endblock %}
 
+{% block extra_script %}
     <script src="{% static 'crew/crew_detail.js' %}"></script>
-</body>
-</html>
+{% endblock %}

@@ -26,3 +26,15 @@ class CrewJoinForm(forms.Form):
     def clean_invite_code(self):
         # 입력값을 대문자로 통일 (소문자로 쳐도 찾아지게)
         return self.cleaned_data['invite_code'].strip().upper()
+
+class CrewRenameForm(forms.ModelForm):
+    class Meta:
+        model = Crew
+        fields = ['name']
+        labels = {'name': '크루 이름'}
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'placeholder': '새 크루 이름',
+                'maxlength': 50,
+            }),
+        }

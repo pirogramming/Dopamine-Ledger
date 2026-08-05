@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.http import JsonResponse
 
-from .forms import CrewCreateForm, CrewJoinForm
+from .forms import CrewCreateForm, CrewJoinForm, CrewRenameForm
 from .models import Crew, CrewMember, generate_invite_code
 
 
@@ -193,3 +193,23 @@ def crew_members_api(request, crew_id):
         ],
     }
     return JsonResponse(data)
+
+@login_required
+def crew_rename(request, crew_id):
+    crew = get_object_or_404(Crew, id=crew_id)
+
+    # 크루장만 이름을 바꿀 수 있음
+    if crew.owner_id != request.user.id:
+        messages.error(request, '크루장만 이름을 바꿀 수 있어요.')
+        return redirect('crew:detail', crew_id=crew.id)
+
+    if request.method == 'POST':
+        form = CrewRenameForm(request.POST, instance=crew)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '크루 이름을 바꿨어요.')
+            return redirect('crew:detail', crew_id=crew.id)
+    else:
+        form = CrewRenameForm(instance=crew)
+
+    return render(request, 'crew/crew_rename.html', {'crew': crew, 'form': form})

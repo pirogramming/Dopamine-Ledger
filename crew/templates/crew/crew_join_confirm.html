@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>크루 참여</title>
-</head>
-<body>
+{% extends 'crew/base.html' %}
+
+{% block title %}크루 참여{% endblock %}
+
+{% block content %}
     <h1>크루 참여</h1>
 
     <p>아래 크루에 참여할까요?</p>
@@ -25,5 +22,4 @@
         </form>
         <a href="{% url 'crew:list' %}">취소</a>
     {% endif %}
-</body>
-</html>
+{% endblock %}
