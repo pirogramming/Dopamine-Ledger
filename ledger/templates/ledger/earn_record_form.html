@@ -7,6 +7,11 @@
 
 주의: activity <option>에 data-rate 속성을 심어서, JS에서 "예상 적립 분" 미리보기를 계산함.
     이건 화면 미리보기용이고, 실제 earn_min은 forms.py save()의 calculate_earn_minutes()가 계산함.
+
+[디자인 피드백 반영 - 8/5]
+    - 수동입력의 별도 미리보기 배너(.earn-preview)를 없애고 result-panel 하나로 통일 (중복 정보 제거)
+    - 인증 방식(.toggle-pill)은 사용자가 못 바꾸는 값이라 버튼처럼 안 보이게 읽기전용 스타일로 변경
+    - "인증 사진"/"인증 사진 URL" 라벨 중복 -> 필드가 photo_url 하나뿐이라 라벨 하나로 통일
 {% endcomment %}
 {% load static %}
 <!DOCTYPE html>
@@ -78,7 +83,7 @@
                     <button type="button" class="btn btn-ghost" id="timer-start-btn">시작</button>
                     <button type="button" class="btn btn-primary-earn" id="timer-stop-btn" disabled>종료</button>
                 </div>
-                <p class="time-caption" style="margin-top:16px;">시간을 직접 입력하려면 <a href="?mode=manual">여기</a></p>
+                <p class="time-caption" style="margin-top:12px;">시간을 직접 입력하려면 <a href="?mode=manual">여기</a></p>
 
                 {# 타이머로 계산된 시작/종료 시각이 여기에 JS로 채워짐 (forms.py timer_start/timer_end) #}
                 <input type="hidden" name="timer_start" id="id_timer_start">
@@ -110,9 +115,7 @@
                         {% endfor %}
                     </ul>
                 {% endif %}
-
-                <!-- 실시간 미리보기: "+운동 25분 적립 예정" (클라이언트 계산, 실제 값은 서버가 재계산) -->
-                <div class="earn-preview" id="manual-preview">+ 0분 적립 예정</div>
+                {# earn-preview 배너 삭제: result-panel이 같은 정보(적립 예정 분)를 이미 보여줘서 중복이었음 #}
             </div>
 
             <!-- ============ 공통: 종료 후 적립 확인 영역 ============ -->
@@ -123,25 +126,27 @@
                     <div class="result-rate-note" id="result-rate-note">환율 -분/시간 기준</div>
                 </div>
 
-                <div class="field-block">
+                {# 인증 방식: 사용자가 못 바꾸는 값 -> 버튼처럼 안 보이게 읽기전용 뱃지 스타일로 변경 #}
+                <div class="field-block field-block--readonly">
                     <span class="field-label">인증 방식</span>
-                    <div class="toggle-pair">
-                        <span class="toggle-pill" id="pill-timer">타이머</span>
-                        <span class="toggle-pill" id="pill-manual">수동입력</span>
+                    <div class="readonly-badge-row">
+                        <span class="readonly-badge" id="pill-timer">타이머</span>
+                        <span class="readonly-badge" id="pill-manual">수동입력</span>
                     </div>
-                    <p class="field-note">타이머/수동 중 실제 입력 경로에 따라 자동으로 선택돼요 (변경 불가)</p>
+                    <p class="field-note">입력 경로에 따라 자동으로 기록돼요 (변경 불가)</p>
                 </div>
 
+                {# photo_url 필드 하나뿐이라 라벨도 하나로 통일 #}
                 <div class="field-block">
-                    <span class="field-label">인증 사진 (선택)</span>
+                    <span class="field-label">인증 사진 URL (선택)</span>
                     <input type="url" name="photo_url" id="id_photo_url" class="photo-upload-input"
-                           placeholder="인증 사진 URL (선택)" value="{{ form.photo_url.value|default:'' }}">
+                           placeholder="https://..." value="{{ form.photo_url.value|default:'' }}">
                     {% if form.photo_url.errors %}
                         <p class="field-note" style="color:var(--warning-text);">{{ form.photo_url.errors.0 }}</p>
                     {% endif %}
                 </div>
 
-                <div class="button-row" style="margin-top: 24px;">
+                <div class="button-row" style="margin-top: 20px;">
                     <button type="submit" class="btn btn-primary-earn" id="submit-btn">적립하기</button>
                 </div>
                 <div class="button-row">
@@ -157,7 +162,7 @@
             1) entry_mode(hidden input)에 따라 타이머 패널 / 수동입력 패널 중 하나만 노출
             2) 활동 탭 클릭 -> 숨겨진 select(id_activity) 값 동기화 + rate 저장
             3) 타이머: 시작 누르면 현재 시각 기록 + 1초마다 화면 갱신, 종료 누르면 종료 시각 기록 후 result-panel 노출
-            4) 수동입력: 시/분 바뀔 때마다 "+N분 적립 예정" 미리보기 갱신, 값 있으면 result-panel도 같이 갱신
+            4) 수동입력: 시/분 바뀔 때마다 result-panel 갱신 (별도 미리보기 배너는 제거됨)
         */
         (function () {
             const entryMode = document.getElementById('id_entry_mode').value;
@@ -238,14 +243,11 @@
                 manualPanel.style.display = 'block';
                 const hoursInput = document.getElementById('id_hours');
                 const minutesInput = document.getElementById('id_minutes');
-                const preview = document.getElementById('manual-preview');
 
                 function updatePreview() {
                     const h = parseInt(hoursInput.value, 10) || 0;
                     const m = parseInt(minutesInput.value, 10) || 0;
                     const durationMin = h * 60 + m;
-                    const earnMin = Math.round(durationMin * currentRate * 100) / 100;
-                    preview.textContent = '+ ' + currentActivityName + ' ' + earnMin + '분 적립 예정';
                     if (durationMin > 0) {
                         updateResultPanel(durationMin);
                     } else {
