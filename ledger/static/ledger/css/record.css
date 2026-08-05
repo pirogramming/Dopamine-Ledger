@@ -60,7 +60,7 @@ body.ledger-page {
   width: 100%;
   max-width: 420px;
   min-height: 100vh;
-  background: var(--card-bg);
+  background: var(--bg);
   border-left: 1px solid var(--border);
   border-right: 1px solid var(--border);
   padding: 20px 20px 32px;
@@ -213,13 +213,14 @@ body.ledger-page {
 
 .timer-circle {
   width: 170px;
-  height: 200px;
+  height: 170px;
   border-radius: 50%;
   border: 2px solid var(--border);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .timer-circle-time {
