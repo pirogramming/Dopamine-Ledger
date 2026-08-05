@@ -72,4 +72,4 @@ class CrewMember(models.Model):
         unique_together = [['crew', 'users']]
 
     def __str__(self):
-        return f'{self.crew.name} - {self.user}'
+        return f'{self.crew.name} - {self.users}'

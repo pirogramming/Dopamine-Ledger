@@ -23,8 +23,8 @@
     <ul id="member-list">
         {% for member in members %}
             <li>
-                {{ member.user }}
-                {% if member.user == crew.owner %}👑 (크루장){% endif %}
+                {{ member.users }}
+                {% if member.users == crew.owner %}👑 (크루장){% endif %}
                 — {{ member.joined_date }} 가입
             </li>
         {% endfor %}
