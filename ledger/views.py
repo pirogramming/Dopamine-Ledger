@@ -1,8 +1,16 @@
+from decimal import Decimal, ROUND_HALF_UP
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .forms import SpendRecordForm, EarnRecordForm
 from .models import SpendRecord, EarnRecord
 
+from budget.services import (
+    get_week_summary,
+    get_today_records,
+    attach_value_displays,
+    format_minutes_display,
+    format_unit_display,
+)
 
 @login_required
 def spend_record_create(request):
@@ -73,3 +81,57 @@ def earn_record_list(request):
 def record_choice(request):
     """기록하기 진입 화면 - 지출/수입 선택만 보여주는 단순 뷰"""
     return render(request, 'ledger/record_choice.html')
+
+@login_required
+def main_progress(request):
+    """홈 — 시간으로 보기."""
+    summary = get_week_summary(request.user)
+    records = attach_value_displays(
+        get_today_records(request.user), mode='minutes',
+    )
+    context = {
+        **summary,
+        'balance_display':  format_minutes_display(summary['balance']),
+        'budget_display':   format_minutes_display(summary['budget']),
+        'spent_display':    format_minutes_display(summary['spent']),
+        'earned_display':   format_minutes_display(summary['earned']),
+        'budget_desc': (
+            f"이번 주 예산 {format_minutes_display(summary['budget'])} 중 "
+            f"{format_minutes_display(summary['spent'])} 사용"
+        ),
+        'today_records': records,
+        'today_record_count': len(records),
+    }
+    return render(request, 'ledger/main_progress.html', context)
+
+
+@login_required
+def main_convert(request):
+    """홈 — 변환해서 보기. 모든 시간값을 conversion_base로 환산."""
+    user = request.user
+    summary = get_week_summary(user)
+    base = user.conversion_base
+    unit = user.conversion_unit or ''
+    activity = user.converting_activity or '환산 활동'
+
+    records = attach_value_displays(
+        get_today_records(user), mode='unit',
+        conversion_base=base, unit_label=unit,
+    )
+    context = {
+        **summary,
+        'balance_display':  format_unit_display(summary['balance'], base, unit),
+        'budget_display':   format_unit_display(summary['budget'], base, unit),
+        'spent_display':    format_unit_display(summary['spent'], base, unit),
+        'earned_display':   format_unit_display(summary['earned'], base, unit),
+        'budget_desc': (
+            f"이번 주 예산 {format_unit_display(summary['budget'], base, unit)} 중 "
+            f"{format_unit_display(summary['spent'], base, unit)} 사용"
+        ),
+        # 도넛 중앙: 이번 주 적립 시간을 환산 단위로
+        'converted_value': format_unit_display(summary['earned'], base, unit),
+        'converted_unit_label': f"{activity} 몇 {unit}" if unit else activity,
+        'today_records': records,
+        'today_record_count': len(records),
+    }
+    return render(request, 'ledger/main_convert.html', context)

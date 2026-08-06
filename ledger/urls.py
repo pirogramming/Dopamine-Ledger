@@ -6,8 +6,8 @@ app_name = 'ledger'  # 템플릿에서 {% url 'ledger:xxx' %}로 부르려면 �
 
 urlpatterns = [
         # 메인 화면 (홈)
-    path('', TemplateView.as_view(template_name='ledger/main_progress.html'), name='main_progress'),
-    path('convert/', TemplateView.as_view(template_name='ledger/main_convert.html'), name='main_convert'),
+    path('', views.main_progress, name='main_progress'),
+    path('convert/', views.main_convert, name='main_convert'),
 
 
 

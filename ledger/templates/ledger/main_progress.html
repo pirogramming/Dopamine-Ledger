@@ -24,84 +24,70 @@
       <a href="{% url 'ledger:main_convert' %}" class="view-toggle__option">변환해서 보기</a>
     </div>
 
-    <!-- 오늘 남은 시간 -->
-    <!-- TODO(view): context 'remaining_display'로 교체 (예: {{ remaining_display }}) -->
+    <!-- 이번 주 남은 시간 (음수 가능) -->
     <section class="remaining-time">
-      <p class="remaining-time__label">오늘 남은 숏폼 시간</p>
-      <p class="remaining-time__value">2시간 30분</p>
+      <p class="remaining-time__label">이번 주 남은 숏폼 시간</p>
+      <p class="remaining-time__value">{{ balance_display }}</p>
     </section>
 
     <!-- 예산 진행률 -->
-    <!-- TODO(view): 'budget_desc', 'percent_used' context로 교체 -->
     <section class="budget-progress">
       <div class="budget-progress__header">
-        <span class="budget-progress__desc">오늘 예산 4시간 중 30분 사용</span>
-        <span class="budget-progress__percent">12%</span>
+        <span class="budget-progress__desc">{{ budget_desc }}</span>
+        <span class="budget-progress__percent">{{ percent_used }}%</span>
       </div>
       <div class="budget-progress__bar">
-        <!-- 게이지 바 너비: 나중에 style="width: min({{ percent_used }}%, 100%);" 형태로 교체 -->
-        <div class="budget-progress__bar-fill"></div>
+        <div class="budget-progress__bar-fill" data-percent="{{ percent_used_capped }}"></div>
       </div>
     </section>
 
-    <!-- 오늘 예산 / 사용 / 적립 요약 -->
-    <!-- TODO(view): 각각 context 값으로 교체 (daily_budget / total_spent / total_earned) -->
+    <!-- 이번 주 예산 / 사용 / 적립 -->
     <section class="budget-summary">
       <ul class="budget-summary__list">
         <li class="budget-summary__item">
-          <span class="budget-summary__label">오늘 예산</span>
-          <span class="budget-summary__value">4시간</span>
+          <span class="budget-summary__label">이번 주 예산</span>
+          <span class="budget-summary__value">{{ budget_display }}</span>
         </li>
         <li class="budget-summary__item">
           <span class="budget-summary__label">사용</span>
-          <span class="budget-summary__value budget-summary__value--negative">-30분</span>
+          <span class="budget-summary__value budget-summary__value--negative">-{{ spent_display }}</span>
         </li>
         <li class="budget-summary__item">
           <span class="budget-summary__label">적립</span>
-          <span class="budget-summary__value budget-summary__value--positive">+33분</span>
+          <span class="budget-summary__value budget-summary__value--positive">+{{ earned_display }}</span>
         </li>
       </ul>
     </section>
 
     <!-- 오늘의 기록 -->
-    <!--
-      TODO(view): 오늘의 지출/수입 기록을 리스트로 순회하는 형태로 교체.
-      예시:
-        {% for record in records %}
-          <li class="record-list__item">...</li>
-        {% empty %}
-          <li>오늘 기록이 아직 없어요</li>
-        {% endfor %}
-    -->
     <section class="today-record">
       <div class="today-record__header">
         <h2 class="today-record__title">오늘의 기록</h2>
-        <span class="today-record__count">2건</span>
+        <span class="today-record__count">{{ today_record_count }}건</span>
       </div>
       <ul class="record-list">
-        <li class="record-list__item">
-          <div class="record-list__info">
-            <img class="record-list__icon" src="{% static 'ledger/images/icons/icon-book.svg' %}" alt="독서">
-            <span class="record-list__label">독서 40분</span>
-          </div>
-          <span class="record-list__value record-list__value--positive">+33분</span>
-        </li>
-        <li class="record-list__item">
-          <div class="record-list__info">
-            <img class="record-list__icon" src="{% static 'ledger/images/icons/icon-shortform.svg' %}" alt="숏폼">
-            <span class="record-list__label">숏폼 지출</span>
-          </div>
-          <span class="record-list__value record-list__value--negative">-30분</span>
-        </li>
+        {% for record in today_records %}
+          <li class="record-list__item">
+            <div class="record-list__info">
+              <span class="record-list__label">{{ record.label }}</span>
+            </div>
+            <span class="record-list__value {% if record.is_positive %}record-list__value--positive{% else %}record-list__value--negative{% endif %}">{{ record.value_display }}</span>
+          </li>
+        {% empty %}
+          <li class="record-list__item">
+            <span class="record-list__label">오늘 기록이 아직 없어요</span>
+          </li>
+        {% endfor %}
       </ul>
     </section>
 
-    <!-- 예산 소진 경고 배너 -->
-    <!-- TODO(view): {% if is_budget_exhausted %} ... {% endif %}로 감싸서 조건부 표시 -->
-    <div class="alert-banner">
-      <img class="alert-banner__icon" src="{% static 'ledger/images/icons/icon-warning.svg' %}" alt="경고">
-      <p class="alert-banner__text">예산 시간을 다 썼어요</p>
-    </div>
+    <!-- 예산 소진 경고 배너: 잔액이 음수일 때만 -->
+    {% if is_overspent %}
+      <div class="alert-banner">
+        <img class="alert-banner__icon" src="{% static 'ledger/images/icons/icon-warning.svg' %}" alt="경고">
+        <p class="alert-banner__text">예산 시간을 다 썼어요. 초과분은 크루가 보고 있어요.</p>
+      </div>
+    {% endif %}
 
     <a href="{% url 'ledger:record_choice' %}" class="btn-record">기록하기</a>
 
