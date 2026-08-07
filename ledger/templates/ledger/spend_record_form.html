@@ -1,3 +1,4 @@
+{% extends "base.html" %}
 {% comment %}
 와이어프레임 "(MVP) 지출 선택 화면" 기준
 SpendRecordForm 필드 대응:
@@ -7,93 +8,97 @@ SpendRecordForm 필드 대응:
 
 주의: forms.CATEGORY_CHOICES의 첫 번째 값('short_form')과 아래 hidden input value가
 일치해야 함. 카테고리가 늘어나면 이 화면도 선택 UI로 바꿔야 함.
+
+프레임(크기·배경·중앙정렬)은 base.html + common.css가 담당하므로
+    이 파일엔 <html>/<head>/<body> 없이 content 블록만 채움.
 {% endcomment %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>숏폼 지출 기록 - 도파민 가계부</title>
-    <link rel="stylesheet" href="{% static 'ledger/css/record.css' %}">
-</head>
-<body class="ledger-page">
-    <main class="ledger-screen">
-        <div class="ledger-topbar">
-            <a href="javascript:history.back()" class="ledger-back" aria-label="뒤로가기">&lsaquo;</a>
-            <span class="ledger-title">숏폼 지출 기록</span>
-        </div>
 
-        {# 잔액 0 이하일 때 뷰에서 context로 내려주는 플래그 #}
-        {% if budget_exhausted %}
-            <div class="budget-warning">⚠ 이번 주 예산을 다 썼어요</div>
+{% block title %}숏폼 지출 기록 - 도파민 가계부{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'ledger/css/record.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="ledger-screen">
+    <div class="ledger-topbar">
+        <a href="javascript:history.back()" class="ledger-back" aria-label="뒤로가기">&lsaquo;</a>
+        <span class="ledger-title">숏폼 지출 기록</span>
+    </div>
+
+    {# 잔액 0 이하일 때 뷰에서 context로 내려주는 플래그 #}
+    {% if budget_exhausted %}
+        <div class="budget-warning">⚠ 이번 주 예산을 다 썼어요</div>
+    {% endif %}
+
+    <form method="post" action="{% url 'ledger:spend_record_create' %}" id="spend-form">
+        {% csrf_token %}
+
+        {# Django 폼 전체 에러(clean()에서 던지는 ValidationError 등) #}
+        {% if form.non_field_errors %}
+            <ul class="form-errors">
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
         {% endif %}
 
-        <form method="post" action="{% url 'ledger:spend_record_create' %}" id="spend-form">
-            {% csrf_token %}
+        {# MVP: 카테고리는 숏폼 고정. 실제 select UI 없이 hidden으로만 전송 #}
+        <input type="hidden" name="category" value="short_form">
 
-            {# Django 폼 전체 에러(clean()에서 던지는 ValidationError 등) #}
-            {% if form.non_field_errors %}
-                <ul class="form-errors">
-                    {% for error in form.non_field_errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-
-            {# MVP: 카테고리는 숏폼 고정. 실제 select UI 없이 hidden으로만 전송 #}
-            <input type="hidden" name="category" value="short_form">
-
-            <div class="time-display">
-                <div class="time-display-inputs">
-                    {# name 속성이 forms.py의 hours/minutes와 정확히 일치해야 폼이 파싱함 #}
-                    <input type="number" name="hours" id="id_hours" min="0" max="23"
-                           value="{{ form.hours.value|default:'00' }}" inputmode="numeric" aria-label="시간">
-                    <span class="colon">:</span>
-                    <input type="number" name="minutes" id="id_minutes" min="0" max="59"
-                           value="{{ form.minutes.value|default:'30' }}" inputmode="numeric" aria-label="분">
-                </div>
+        <div class="time-display">
+            <div class="time-display-inputs">
+                {# name 속성이 forms.py의 hours/minutes와 정확히 일치해야 폼이 파싱함 #}
+                <input type="number" name="hours" id="id_hours" min="0" max="23"
+                       value="{{ form.hours.value|default:'00' }}" inputmode="numeric" aria-label="시간">
+                <span class="colon">:</span>
+                <input type="number" name="minutes" id="id_minutes" min="0" max="59"
+                       value="{{ form.minutes.value|default:'30' }}" inputmode="numeric" aria-label="분">
             </div>
+        </div>
 
-            <p class="time-caption">
-                = 잔여 시간에서 <strong id="duration-caption">30분</strong> 차감
-            </p>
+        <p class="time-caption">
+            = 잔여 시간에서 <strong id="duration-caption">30분</strong> 차감
+        </p>
 
-            {% if form.hours.errors or form.minutes.errors %}
-                <ul class="form-errors">
-                    {% for error in form.hours.errors %}<li>{{ error }}</li>{% endfor %}
-                    {% for error in form.minutes.errors %}<li>{{ error }}</li>{% endfor %}
-                </ul>
-            {% endif %}
-
+        {% if form.hours.errors or form.minutes.errors %}
+            <ul class="form-errors">
+                {% for error in form.hours.errors %}<li>{{ error }}</li>{% endfor %}
+                {% for error in form.minutes.errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        {% endif %}
+        <div class="footer-actions">
             <div class="button-row" style="margin-top: 40px;">
                 <button type="submit" class="btn btn-primary-spend">기록하기</button>
             </div>
             <div class="button-row">
                 <a href="javascript:history.back()" class="btn btn-ghost" style="text-decoration:none;">기록 취소</a>
             </div>
-        </form>
-    </main>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block nav %}{% endblock %}
+{% block extra_js %}
+<script>
+    // 시:분 입력이 바뀔 때마다 "= 잔여 시간에서 N분 차감" 문구를 실시간으로 갱신
+    // (서버 계산과 별개로 화면 미리보기용. 실제 duration_min 계산은 forms.py clean()에서 처리)
+    (function () {
+        const hoursInput = document.getElementById('id_hours');
+        const minutesInput = document.getElementById('id_minutes');
+        const caption = document.getElementById('duration-caption');
 
-    <script>
-        // 시:분 입력이 바뀔 때마다 "= 잔여 시간에서 N분 차감" 문구를 실시간으로 갱신
-        // (서버 계산과 별개로 화면 미리보기용. 실제 duration_min 계산은 forms.py clean()에서 처리)
-        (function () {
-            const hoursInput = document.getElementById('id_hours');
-            const minutesInput = document.getElementById('id_minutes');
-            const caption = document.getElementById('duration-caption');
+        function updateCaption() {
+            const h = parseInt(hoursInput.value, 10) || 0;
+            const m = parseInt(minutesInput.value, 10) || 0;
+            const total = h * 60 + m;
+            caption.textContent = total + '분';
+        }
 
-            function updateCaption() {
-                const h = parseInt(hoursInput.value, 10) || 0;
-                const m = parseInt(minutesInput.value, 10) || 0;
-                const total = h * 60 + m;
-                caption.textContent = total + '분';
-            }
-
-            hoursInput.addEventListener('input', updateCaption);
-            minutesInput.addEventListener('input', updateCaption);
-            updateCaption();
-        })();
-    </script>
-</body>
-</html>
+        hoursInput.addEventListener('input', updateCaption);
+        minutesInput.addEventListener('input', updateCaption);
+        updateCaption();
+    })();
+</script>
+{% endblock %}

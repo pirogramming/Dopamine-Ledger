@@ -47,30 +47,30 @@
   box-sizing: border-box;
 }
 
-body.ledger-page {
-  margin: 0;
-  background: var(--bg);
-  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
-  color: var(--text-main);
-  display: flex;
-  justify-content: center;
-}
-
 .ledger-screen {
   width: 100%;
-  max-width: 420px;
-  min-height: 100vh;
-  background: var(--bg);
-  border-left: 1px solid var(--border);
-  border-right: 1px solid var(--border);
-  padding: 20px 20px 32px;
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
 }
 
 .ledger-topbar {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
   margin-bottom: 20px;
+  padding-top: 30px;
+  position: relative;
+}
+
+.ledger-title {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .ledger-back {
@@ -242,6 +242,17 @@ body.ledger-page {
   margin-top: 12px;
 }
 
+#earn-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+#result-panel {
+  flex-direction: column;
+  flex: 1;
+}
+
 .btn {
   flex: 1;
   padding: 15px 0;
@@ -334,6 +345,10 @@ body.ledger-page {
   border-radius: var(--radius-md);
   padding: 14px;
   margin-bottom: 12px;
+}
+
+.field-block + .footer-actions {
+    margin-top: 70px;
 }
 
 .field-label {

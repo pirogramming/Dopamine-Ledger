@@ -1,41 +1,44 @@
+{% extends "base.html" %}
 {% comment %}
 와이어프레임 "기록하기-지출/수입 선택 시트" 기준 화면.
 - 별도 폼 없이 링크 두 개만 있는 단순 진입 화면.
 - '지출' 클릭 시 spend_record_create(뷰)로, '수입' 클릭 시 earn_record_create(뷰)로 이동.
 - URL name은 프로젝트 urls.py 컨벤션(ledger:xxx)에 맞춰뒀으니 실제 이름 다르면 바꿔줘야 함.
+
+프레임(크기·배경·중앙정렬)은 base.html + common.css가 담당하므로
+    이 파일엔 <html>/<head>/<body> 없이 content 블록만 채움.
 {% endcomment %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>무엇을 기록할까요? - 도파민 가계부</title>
+
+{% block title %}무엇을 기록할까요? - 도파민 가계부{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{% static 'ledger/css/record.css' %}">
-</head>
-<body class="ledger-page">
-    <main class="ledger-screen">
-        <div class="ledger-topbar">
-            <a href="javascript:history.back()" class="ledger-back" aria-label="뒤로가기">&lsaquo;</a>
-        </div>
+{% endblock %}
 
-        <h1 class="ledger-heading">무엇을 기록할까요?</h1>
+{% block content %}
+<div class="ledger-screen">
+    <div class="ledger-topbar">
+        <a href="javascript:history.back()" class="ledger-back" aria-label="뒤로가기">&lsaquo;</a>
+    </div>
 
-        <div class="choice-grid">
-            <!-- 지출: 숏폼 사용 시간 기록 -->
-            <a href="{% url 'ledger:spend_record_create' %}" class="choice-card is-spend">
-                <div class="choice-icon" aria-hidden="true">📱</div>
-                <div class="choice-label">지출</div>
-                <div class="choice-sub">숏폼</div>
-            </a>
+    <h1 class="ledger-heading">무엇을 기록할까요?</h1>
 
-            <!-- 수입: 오프라인 활동(독서/운동/산책 등) 기록 -->
-            <a href="{% url 'ledger:earn_record_create' %}?mode=timer" class="choice-card is-earn">
-                <div class="choice-icon" aria-hidden="true">📖</div>
-                <div class="choice-label">수입</div>
-                <div class="choice-sub">독서 · 운동 · 산책</div>
-            </a>
-        </div>
-    </main>
-</body>
-</html>
+    <div class="choice-grid">
+        <!-- 지출: 숏폼 사용 시간 기록 -->
+        <a href="{% url 'ledger:spend_record_create' %}" class="choice-card is-spend">
+            <div class="choice-icon" aria-hidden="true">📱</div>
+            <div class="choice-label">지출</div>
+            <div class="choice-sub">숏폼</div>
+        </a>
+
+        <!-- 수입: 오프라인 활동(독서/운동/산책 등) 기록 -->
+        <a href="{% url 'ledger:earn_record_create' %}?mode=timer" class="choice-card is-earn">
+            <div class="choice-icon" aria-hidden="true">📖</div>
+            <div class="choice-label">수입</div>
+            <div class="choice-sub">독서 · 운동 · 산책</div>
+        </a>
+    </div>
+</div>
+{% endblock %}
+{% block nav %}{% endblock %}
