@@ -1,0 +1,240 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* 📱 모바일 컨테이너 프레임 (393px x 852px) */
+.mobile-container {
+    width: 393px;
+    height: 852px;
+    background: #fdfcf9;
+    border-radius: 28px;
+    border: 1px solid #70737c;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.step {
+    width: 100%;
+    height: 100%;
+    padding: 73px 33px 30px 33px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 🟢 상단 스텝 인디케이터 (점 3개) */
+.step-indicator {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #d9d9d9;
+}
+
+.dot.active {
+    background: #000000;
+}
+
+/* 📝 타이틀 */
+.title {
+    color: #000000;
+    font-size: 24px;
+    line-height: 30px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+/* 📥 공통 입력창 스타일 */
+input[type="text"],
+input[type="number"] {
+    background: #ffffff;
+    border: 1px solid #c7c7c7;
+    border-radius: 15px;
+    padding: 0 20px;
+    font-size: 16px;
+    color: #000000;
+    outline: none;
+    width: 100%;
+}
+
+input::placeholder {
+    color: #c7c7c7;
+}
+
+.section-label {
+    color: #70737c;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+/* ================= 스텝 1 전용 스타일 ================= */
+.step1-input-main {
+    height: 59px;
+    margin-bottom: 20px;
+}
+
+.step1-grid {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.step1-grid input {
+    height: 68px;
+}
+
+.step1-subtext {
+    color: #70737c;
+    font-size: 16px;
+    margin-bottom: 25px;
+}
+
+.step1-notice-box {
+    background: #fff7eb;
+    border-radius: 10px;
+    padding: 20px;
+    color: #70737c;
+    font-size: 13px;
+    line-height: 18px;
+    margin-top: 15px;
+}
+
+/* ================= 스텝 2 전용 스타일 (경고 안내) ================= */
+.step2-card-box {
+    background: #ffffff;
+    border: 1px solid #c7c7c7;
+    border-radius: 15px;
+    padding: 25px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.step2-notice-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.step2-badge {
+    background: #ffead1;
+    color: #ff7a00;
+    font-size: 16px;
+    font-weight: 700;
+    min-width: 27px;
+    height: 27px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step2-text {
+    color: #000000;
+    font-size: 16px;
+    line-height: 22px;
+}
+
+/* ================= 스텝 3 전용 스타일 (시급 환율 결정) ================= */
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.activity-item {
+    background: #ffffff;
+    border: 1px solid #c7c7c7;
+    border-radius: 15px;
+    padding: 15px 20px;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.activity-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000000;
+}
+
+.activity-input-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.minute-box {
+    border: 1px solid #c7c7c7;
+    border-radius: 10px;
+    width: 55px;
+    height: 35px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ff7a00;
+    padding: 0;
+}
+
+.unit-text {
+    color: #70737c;
+    font-size: 16px;
+}
+
+/* 🔘 하단 버튼 스타일 */
+.btn-group {
+    position: absolute;
+    bottom: 30px;
+    left: 33px;
+    width: 327px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-next, .btn-submit {
+    background: #ff7a00;
+    color: #ffffff;
+    border-radius: 15px;
+    height: 50px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+}
+
+.btn-prev {
+    background: #ffffff;
+    border: 1px solid #ff7a00;
+    color: #ff7a00;
+    border-radius: 15px;
+    height: 50px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+}

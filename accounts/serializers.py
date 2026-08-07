@@ -1,6 +1,9 @@
+from decimal import Decimal
 from rest_framework import serializers
+from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from budget.models import Activity
 
 User = get_user_model()
 
@@ -90,3 +93,57 @@ class UserResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'email', 'nickname', 'streak_days', 'credit_grade', 'weekly_budget_min')
+
+
+class ActivityInputSerializer(serializers.Serializer):
+    """
+    개별 활동 단위 검증 (활동명과 분 모두 필수)
+    """
+    activity_type = serializers.CharField(max_length=30, required=True)
+    minutes = serializers.IntegerField(min_value=1, max_value=1440, required=True)
+
+
+class OnboardingSerializer(serializers.ModelSerializer):
+    activities = ActivityInputSerializer(many=True, write_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'weekly_budget_min',
+            'converting_activity',
+            'conversion_base',
+            'conversion_unit',
+            'activities',
+        ]
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        activities_data = validated_data.pop('activities', [])
+
+        instance = super().update(instance, validated_data)
+
+        if activities_data:
+            Activity.objects.filter(users=instance).delete()
+
+            activities_to_create = []
+            for item in activities_data:
+                act_type = item['activity_type'].strip()
+                minutes = item['minutes']
+
+                calculated_rate = round(Decimal(minutes) / Decimal(60.0), 2)
+                if calculated_rate <= Decimal('0.00'):
+                    calculated_rate = Decimal('0.01')
+                elif calculated_rate >= Decimal('1.00'):
+                    calculated_rate = Decimal('0.99')
+
+                activities_to_create.append(
+                    Activity(
+                        users=instance,
+                        activity_type=act_type,
+                        rate=calculated_rate
+                    )
+                )
+
+            Activity.objects.bulk_create(activities_to_create)
+
+        return instance
