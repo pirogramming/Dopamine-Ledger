@@ -1,27 +1,3 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  background: #f5f5f5;
-  font-family: 'Inter', sans-serif;
-}
-
-/* ===== 전체 컨테이너 ===== */
-.main-progress {
-  background: #fffefc;
-  border-radius: 28px;
-  border: 1px solid #70737c;
-  width: 393px;
-  min-height: 852px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 /* ===== 상단 헤더 (로고 + 알림) ===== */
 .app-header {
   display: flex;
@@ -39,15 +15,6 @@ body {
 .app-header__notification {
   width: 24px;
   height: 24px;
-}
-
-/* ===== 본문 영역 ===== */
-.app-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  padding: 10px 33px 20px;
 }
 
 /* ===== 보기 방식 토글 ===== */
@@ -77,7 +44,7 @@ body {
   color: #ffffff;
 }
 
-/* ===== 오늘 남은 시간 ===== */
+/* ===== 이번 주 남은 시간 ===== */
 .remaining-time {
   display: flex;
   flex-direction: column;
@@ -98,16 +65,11 @@ body {
 }
 
 /* ===== 예산 진행률 ===== */
-.budget-progress__bar-fill {
-  background: #ff7a00;
-  border-radius: 30px;
-  height: 8px;
-}
-
 .budget-progress__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 8px;
 }
 
 .budget-progress__desc {
@@ -122,21 +84,24 @@ body {
   color: #ff7a00;
 }
 
+/* 바깥 트랙: 안 채워진 부분 */
 .budget-progress__bar {
   background: #f0e5d5;
   border-radius: 30px;
   width: 100%;
   height: 8px;
+  overflow: hidden;              /* fill이 혹시라도 넘쳐도 트랙 밖으로 안 삐져나옴 */
 }
 
+/* 안쪽 채움: width는 HTML에서 style="width: {{ percent_used_capped }}%"로 주입 */
 .budget-progress__bar-fill {
   background: #ff7a00;
   border-radius: 30px;
-  width: 50px; /* 사용률에 따라 JS로 동적 변경 예정 */
   height: 8px;
+  transition: width 0.4s ease;   /* 값이 바뀔 때 부드럽게 */
 }
 
-/* ===== 오늘 예산 / 사용 / 적립 요약 ===== */
+/* ===== 이번 주 예산 / 사용 / 적립 요약 ===== */
 .budget-summary {
   border-top: 1px solid #c7c7c7;
   border-bottom: 1px solid #c7c7c7;
@@ -277,58 +242,4 @@ body {
   color: #ffffff;
   font-size: 16px;
   font-weight: 700;
-}
-
-/* ===== 하단 네비게이션 ===== */
-.bottom-nav {
-  border-top: 1px solid #c7c7c7;
-  padding: 10px 30px;
-  position: sticky;
-  bottom: 0;
-  background: #ffffff;
-}
-
-.bottom-nav__list {
-  list-style: none;
-  display: flex;
-  justify-content: center;
-  gap: 45px;
-}
-
-.nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  width: 30px;
-}
-
-.nav-item__icon {
-  width: 24px;
-  height: 24px;
-  display: block;
-  overflow: hidden;
-  text-indent: 100%;
-  white-space: nowrap;
-  color: transparent; /* 일부 브라우저에서 alt 텍스트 색상에 영향 */
-}
-
-.nav-item__label {
-  font-size: 16px;
-  font-weight: 400;
-  color: #70737c;
-}
-
-.nav-item__link {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  text-decoration: none;
-  color: inherit; /* 링크 기본 파란색 상속 차단 */
-}
-
-.nav-item--active .nav-item__label {
-  font-weight: 600;
-  color: #e2672a;
 }
