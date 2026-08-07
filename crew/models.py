@@ -73,3 +73,21 @@ class CrewMember(models.Model):
 
     def __str__(self):
         return f'{self.crew.name} - {self.users}'
+
+class CrewGoal(models.Model):
+    crew = models.OneToOneField(
+        Crew, on_delete=models.CASCADE, related_name='goal'
+    )
+    target_minutes = models.PositiveIntegerField('목표 시간(분)', default=1200)  # 기본 20시간
+    reward_text = models.CharField('보상 문구', max_length=100, blank=True)
+
+    class Meta:
+        db_table = 'crew_goal'
+
+    def __str__(self):
+        return f'{self.crew.name} 목표'
+
+    @property
+    def target_hours(self):
+        """목표 시간을 '시간' 단위로 (화면 표시용)"""
+        return self.target_minutes // 60

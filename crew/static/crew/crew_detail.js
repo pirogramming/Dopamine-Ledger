@@ -16,11 +16,27 @@ async function refreshMembers() {
         const list = document.getElementById('member-list');
         list.innerHTML = '';
         data.members.forEach(m => {
-            const li = document.createElement('li');
-            const crown = m.is_owner ? ' ' + ownerLabel : '';
-            li.textContent = `${m.name}${crown} — ${m.joined} 가입`;
-            list.appendChild(li);
-        });
+            const row = document.createElement('a');
+            row.className = 'member-row';
+            row.href = `/crew/${crewId}/member/${m.id}/`;
+
+        const avatar = document.createElement('div');
+        avatar.className = 'member-avatar';
+
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'member-name';
+        nameDiv.textContent = m.name;
+        if (m.is_owner) {
+            const crown = document.createElement('span');
+            crown.className = 'member-crown';
+            crown.textContent = ' 👑 크루장';
+            nameDiv.appendChild(crown);
+        }
+
+        row.appendChild(avatar);
+        row.appendChild(nameDiv);
+        list.appendChild(row);
+    });
     } catch (e) {
         // 네트워크 오류 등은 무시하고 다음 주기에 재시도
     }

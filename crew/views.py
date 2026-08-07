@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 
 from .forms import CrewCreateForm, CrewJoinForm, CrewRenameForm
-from .models import Crew, CrewMember, generate_invite_code
+from .models import Crew, CrewMember, CrewGoal, generate_invite_code
 
 
 # ── 헬퍼 ──
@@ -42,7 +42,8 @@ def crew_create(request):
         form = CrewCreateForm(request.POST)
         if form.is_valid():
             crew = form.save(commit=False)
-            crew.invite_code = generate_invite_code()
+            # 화면에 보였던 코드를 그대로 사용 (없으면 새로 생성)
+            crew.invite_code = request.POST.get('invite_code') or generate_invite_code()
             crew.owner = request.user
             crew.save()
             CrewMember.objects.create(crew=crew, users=request.user)
@@ -50,7 +51,12 @@ def crew_create(request):
     else:
         form = CrewCreateForm()
 
-    return render(request, 'crew/crew_create.html', {'form': form})
+    # 만들기 화면 진입 시, 미리 보여줄 코드 생성
+    preview_code = generate_invite_code()
+    return render(request, 'crew/crew_create.html', {
+        'form': form,
+        'preview_code': preview_code,
+    })
 
 
 @login_required
@@ -62,9 +68,13 @@ def crew_detail(request, crew_id):
         return redirect('crew:list')
 
     members = crew.members.select_related('users')
+
+    goal = getattr(crew, 'goal', None)
+
     return render(request, 'crew/crew_detail.html', {
         'crew': crew,
         'members': members,
+        'goal': goal,
     })
 
 
@@ -89,16 +99,18 @@ def crew_join(request):
             crew = Crew.objects.filter(invite_code=code).first()
             if crew is None:
                 messages.error(request, '그런 초대 코드의 크루가 없어요.')
-                return render(request, 'crew/crew_join.html', {'form': form})
+                return redirect('crew:list')          # ← 목록으로
 
             ok = _process_join(request, crew)
             if ok:
                 return redirect('crew:detail', crew_id=crew.id)
-            return render(request, 'crew/crew_join.html', {'form': form})
-    else:
-        form = CrewJoinForm()
+            return redirect('crew:list')              # ← 실패해도 목록으로
+        else:
+            messages.error(request, '초대 코드를 입력해주세요.')
+            return redirect('crew:list')              # ← 빈 입력도 목록으로
 
-    return render(request, 'crew/crew_join.html', {'form': form})
+    # GET으로 직접 오면 그냥 목록으로 (이제 crew_join 페이지 안 씀)
+    return redirect('crew:list')
 
 
 @login_required
@@ -213,3 +225,120 @@ def crew_rename(request, crew_id):
         form = CrewRenameForm(instance=crew)
 
     return render(request, 'crew/crew_rename.html', {'crew': crew, 'form': form})
+
+@login_required
+def crew_create(request):
+    created_crew = None
+
+    if request.method == 'POST':
+        form = CrewCreateForm(request.POST)
+        if form.is_valid():
+            crew = form.save(commit=False)
+            crew.invite_code = generate_invite_code()
+            crew.owner = request.user
+            crew.save()
+            CrewMember.objects.create(crew=crew, users=request.user)
+
+            # 목표 생성 (시간 → 분 변환)
+            CrewGoal.objects.create(
+                crew=crew,
+                target_minutes=form.cleaned_data['target_hours'] * 60,
+                reward_text=form.cleaned_data['reward_text'],
+            )
+            created_crew = crew          # 만든 후 코드 보여주기용
+            form = CrewCreateForm()
+    else:
+        form = CrewCreateForm()
+
+    return render(request, 'crew/crew_create.html', {
+        'form': form,
+        'created_crew': created_crew,
+    })
+
+@login_required
+def crew_manage(request, crew_id):
+    crew = get_object_or_404(Crew, id=crew_id)
+
+    # 크루장만 접근 가능
+    if crew.owner_id != request.user.id:
+        messages.error(request, '크루장만 관리할 수 있어요.')
+        return redirect('crew:detail', crew_id=crew.id)
+
+    goal = getattr(crew, 'goal', None)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'rename':
+            new_name = request.POST.get('name', '').strip()
+            if new_name:
+                crew.name = new_name
+                crew.save(update_fields=['name'])
+                messages.success(request, '크루 이름을 바꿨어요.')
+
+        elif action == 'goal':
+            target_hours = request.POST.get('target_hours')
+            reward_text = request.POST.get('reward_text', '')
+            if goal:
+                goal.target_minutes = int(target_hours) * 60
+                goal.reward_text = reward_text
+                goal.save()
+            else:
+                CrewGoal.objects.create(
+                    crew=crew,
+                    target_minutes=int(target_hours) * 60,
+                    reward_text=reward_text,
+                )
+            messages.success(request, '목표를 저장했어요.')
+
+        return redirect('crew:manage', crew_id=crew.id)
+
+    members = crew.members.select_related('users')
+    return render(request, 'crew/crew_manage.html', {
+        'crew': crew,
+        'goal': goal,
+        'members': members,
+    })
+
+@login_required
+def crew_kick(request, crew_id, member_id):
+    crew = get_object_or_404(Crew, id=crew_id)
+
+    # 크루장만 내보낼 수 있음
+    if crew.owner_id != request.user.id:
+        messages.error(request, '크루장만 멤버를 내보낼 수 있어요.')
+        return redirect('crew:detail', crew_id=crew.id)
+
+    if request.method == 'POST':
+        membership = CrewMember.objects.filter(crew=crew, id=member_id).first()
+
+        # 없는 멤버거나, 크루장 자신을 내보내려 하면 막기
+        if not membership:
+            messages.error(request, '그런 멤버가 없어요.')
+        elif membership.users_id == crew.owner_id:
+            messages.error(request, '크루장은 내보낼 수 없어요.')
+        else:
+            kicked_name = str(membership.users)
+            membership.delete()
+            # 초대 코드 재발급 (내보낸 사람이 옛 코드로 다시 못 들어오게)
+            crew.invite_code = generate_invite_code()
+            crew.save(update_fields=['invite_code'])
+            messages.success(request, f'{kicked_name}님을 내보냈어요. 초대 코드가 새로 발급됐어요.')
+
+    return redirect('crew:manage', crew_id=crew.id)
+
+@login_required
+def crew_member_detail(request, crew_id, member_id):
+    crew = get_object_or_404(Crew, id=crew_id)
+
+    # 크루 멤버만 볼 수 있음
+    if not _is_member(request.user, crew):
+        messages.error(request, '그 크루의 멤버가 아니에요.')
+        return redirect('crew:list')
+
+    membership = get_object_or_404(CrewMember, id=member_id, crew=crew)
+
+    return render(request, 'crew/crew_member_detail.html', {
+        'crew': crew,
+        'membership': membership,
+    })

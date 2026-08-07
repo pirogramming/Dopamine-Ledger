@@ -1,0 +1,372 @@
+/* ── 디자인 토큰 ── */
+:root {
+    --bg: #FDFCF9;
+    --card: #FFFFFF;
+    --accent-bg: #FFF7EB;
+    --orange: #FF7A00;
+    --gray: #70737C;
+    --line: #C7C7C7;
+    --text: #000000;
+    --green: #4DAD44;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: #EEE;
+    display: flex;
+    justify-content: center;
+}
+
+/* 모바일 프레임 */
+.app-frame {
+    position: relative;
+    width: 393px;
+    min-height: 852px;
+    background: var(--bg);
+    border: 1px solid var(--gray);
+    border-radius: 28px;
+    padding: 51px 23px 100px;
+}
+
+/* 메시지 */
+.messages {
+    list-style: none;
+    padding: 12px;
+    margin: 0 0 16px;
+    background: var(--accent-bg);
+    border-radius: 12px;
+    font-size: 14px;
+    color: var(--text);
+}
+
+/* 제목 */
+.page-title {
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--text);
+    margin: 0 0 30px;
+}
+
+/* 크루 카드 목록 */
+.crew-card {
+    display: block;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 15px;
+    text-decoration: none;
+}
+.crew-card .name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 5px;
+}
+.crew-card .sub {
+    font-size: 13px;
+    color: var(--line);
+}
+
+.empty {
+    color: var(--gray);
+    text-align: center;
+    margin-top: 40px;
+}
+
+/* 하단 고정 영역 (초대코드 입력 + 만들기 버튼) */
+.bottom-area {
+    position: absolute;
+    left: 33px;
+    right: 33px;
+    bottom: 30px;
+}
+
+/* 초대코드 입력 줄 */
+.join-row {
+    display: flex;
+    gap: 13px;
+    margin-bottom: 15px;
+}
+.join-row input {
+    flex: 1;
+    height: 47px;
+    padding: 0 19px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 16px;
+    font-family: inherit;
+}
+.join-row button {
+    width: 75px;
+    background: var(--card);
+    border: 1px solid var(--orange);
+    border-radius: 10px;
+    color: var(--orange);
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* 주황 큰 버튼 */
+.btn-primary {
+    display: block;
+    width: 100%;
+    height: 50px;
+    background: var(--orange);
+    border: none;
+    border-radius: 15px;
+    color: #FFF;
+    font-weight: 700;
+    font-size: 16px;
+    text-align: center;
+    line-height: 50px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* ── 뒤로가기 화살표 ── */
+.back-link {
+    position: absolute;
+    left: 30px; top: 51px;
+    font-size: 20px;
+    text-decoration: none;
+    color: var(--text);
+    z-index: 10;
+}
+
+/* ── 입력 라벨 · 필드 (create) ── */
+.field-label {
+    font-size: 16px;
+    color: var(--gray);
+    margin-bottom: 10px;
+}
+.text-input {
+    width: 100%;
+    height: 59px;
+    padding: 0 20px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    font-size: 16px;
+    font-family: inherit;
+    margin-bottom: 30px;
+}
+
+/* 초대코드 강조 박스 */
+.code-box {
+    background: var(--accent-bg);
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 30px;
+}
+.code-box .label { font-size: 16px; color: var(--gray); margin-bottom: 8px; }
+.code-box .code { font-size: 24px; font-weight: 800; color: var(--orange); }
+
+/* 하단 고정 버튼 하나 */
+.bottom-btn {
+    position: absolute;
+    left: 33px; right: 33px; bottom: 30px;
+}
+
+/* 흰 배경 주황 테두리 버튼 */
+.btn-outline {
+    display: block;
+    width: 100%;
+    height: 50px;
+    background: var(--card);
+    border: 1px solid var(--orange);
+    border-radius: 15px;
+    color: var(--orange);
+    font-weight: 700;
+    font-size: 16px;
+    text-align: center;
+    line-height: 50px;
+    text-decoration: none;
+    cursor: pointer;
+    margin-top: 12px;
+}
+
+/* ── 멤버 (detail) ── */
+.section-label { font-size: 16px; color: var(--gray); margin-bottom: 10px; }
+.member-box {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+.member-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+}
+.member-avatar {
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    background: #D9D9D9;
+    flex-shrink: 0;
+}
+.member-name { font-size: 16px; color: var(--text); }
+.member-crown { color: var(--orange); font-size: 13px; }
+
+/* 상세 상단 크루명 + 수정 */
+.detail-title {
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    margin: 0 0 8px;
+}
+.rename-link {
+    display: block;
+    text-align: center;
+    font-size: 13px;
+    color: var(--gray);
+    margin-bottom: 30px;
+    text-decoration: none;
+}
+.invite-info { font-size: 14px; color: var(--gray); margin-bottom: 8px; }
+.invite-info strong { color: var(--text); }
+
+/* ── 팝업(모달) ── */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+    width: 320px;
+    background: var(--bg);
+    border-radius: 20px;
+    padding: 28px 24px;
+}
+.modal h2 {
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    margin: 0 0 16px;
+    color: var(--text);
+}
+.modal p {
+    font-size: 14px;
+    color: var(--text);
+    text-align: center;
+    margin: 8px 0;
+    line-height: 1.5;
+}
+.modal .warn { color: var(--orange); font-weight: 700; }
+.modal .text-input { margin: 16px 0; }
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+.modal-actions > * { flex: 1; margin: 0; }
+
+/* ── 크루 목표 박스 (더미) ── */
+.goal-box {
+    background: var(--accent-bg);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+.goal-box .goal-head {
+    font-size: 13px;
+    color: var(--gray);
+    margin-bottom: 8px;
+}
+.goal-box .goal-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+}
+.goal-box .goal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+}
+.goal-box .goal-percent {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--green);
+}
+.goal-bar {
+    height: 8px;
+    background: #E5E5E5;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+.goal-bar .fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 4px;
+}
+.goal-foot {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--gray);
+}
+
+/* 상세 헤더 (크루명 + 관리 아이콘) */
+.detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 30px;
+    margin-top: 10px;
+}
+.detail-header .detail-title {
+    margin: 0;
+}
+.detail-header .manage-icon {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    line-height: 0;
+}
+.detail-header .manage-icon img {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.kick-btn {
+    background: var(--card);
+    border: 1px solid var(--orange);
+    border-radius: 15px;
+    color: var(--orange);
+    font-size: 13px;
+    padding: 6px 14px;
+    cursor: pointer;
+}
+
+.member-row {
+    text-decoration: none;
+    color: inherit;
+}
+
+.today-box {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+}
+.today-col { flex: 1; text-align: center; }
+.today-label { font-size: 13px; color: var(--gray); margin-bottom: 6px; }
+.today-value { font-size: 22px; font-weight: 700; color: var(--text); }
+.today-sub { font-size: 12px; color: var(--gray); margin-top: 4px; }
+.today-divider { width: 1px; height: 50px; background: var(--line); }

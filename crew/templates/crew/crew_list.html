@@ -3,23 +3,25 @@
 {% block title %}내 크루{% endblock %}
 
 {% block content %}
-    <h1>내 크루</h1>
+    <h1 class="page-title">내 크루</h1>
 
     {% if crews %}
-        <ul>
-            {% for crew in crews %}
-                <li>
-                    <a href="{% url 'crew:detail' crew_id=crew.id %}">{{ crew.name }}</a>
-                    — {{ crew.get_status_display }}
-                    ({{ crew.member_count }}/{{ crew.MAX_MEMBERS }})
-                </li>
-            {% endfor %}
-        </ul>
+        {% for crew in crews %}
+            <a class="crew-card" href="{% url 'crew:detail' crew_id=crew.id %}">
+                <div class="name">{{ crew.name }}</div>
+                <div class="sub">{{ crew.member_count }}명 참여 중</div>
+            </a>
+        {% endfor %}
     {% else %}
-        <p>아직 속한 크루가 없어요. 새로 만들거나 초대 코드로 참여해보세요.</p>
+        <p class="empty">아직 속한 크루가 없어요.<br>새로 만들거나 초대 코드로 참여해보세요.</p>
     {% endif %}
 
-    <hr>
-    <a href="{% url 'crew:create' %}"><button>새 크루 만들기</button></a>
-    <a href="{% url 'crew:join' %}"><button>초대 코드로 참여</button></a>
+    <div class="bottom-area">
+        <form class="join-row" method="post" action="{% url 'crew:join' %}">
+            {% csrf_token %}
+            <input type="text" name="invite_code" placeholder="초대 코드 입력">
+            <button type="submit">참여</button>
+        </form>
+        <a class="btn-primary" href="{% url 'crew:create' %}">새 크루 만들기</a>
+    </div>
 {% endblock %}

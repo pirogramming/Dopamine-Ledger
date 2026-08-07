@@ -38,3 +38,21 @@ class CrewRenameForm(forms.ModelForm):
                 'maxlength': 50,
             }),
         }
+
+class CrewCreateForm(forms.ModelForm):
+    target_hours = forms.IntegerField(
+        label='목표 시간', min_value=1, initial=20,
+        widget=forms.NumberInput(attrs={'placeholder': '20'}),
+    )
+    reward_text = forms.CharField(
+        label='보상 문구', max_length=100, required=False,
+        widget=forms.TextInput(attrs={'placeholder': '예: 목표 달성 시 크루 회식🍗'}),
+    )
+
+    class Meta:
+        model = Crew
+        fields = ['name']
+        labels = {'name': '크루 이름'}
+        widgets = {
+            'name': forms.TextInput(attrs={'placeholder': '예: 새벽독서방', 'maxlength': 50}),
+        }

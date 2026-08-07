@@ -3,23 +3,32 @@
 {% block title %}크루 참여{% endblock %}
 
 {% block content %}
-    <h1>크루 참여</h1>
+    <a class="back-link" href="{% url 'crew:list' %}">‹</a>
+    <h1 class="page-title">크루 참여</h1>
 
-    <p>아래 크루에 참여할까요?</p>
-    <ul>
-        <li>크루 이름: <strong>{{ crew.name }}</strong></li>
-        <li>상태: {{ crew.get_status_display }}</li>
-        <li>인원: {{ crew.member_count }}/{{ crew.MAX_MEMBERS }}</li>
-    </ul>
+    <div class="goal-box" style="margin-top: 20px;">
+        <div class="goal-head">참여할 크루</div>
+        <div class="goal-main">
+            <span class="goal-title">{{ crew.name }}</span>
+        </div>
+        <div class="goal-foot">
+            <span>{{ crew.get_status_display }}</span>
+            <span>{{ crew.member_count }}/{{ crew.MAX_MEMBERS }}명</span>
+        </div>
+    </div>
 
     {% if already_member %}
-        <p>이미 이 크루의 멤버예요.</p>
-        <a href="{% url 'crew:detail' crew_id=crew.id %}">크루로 가기</a>
+        <p class="empty">이미 이 크루의 멤버예요.</p>
+        <div class="bottom-btn">
+            <a class="btn-primary" href="{% url 'crew:detail' crew_id=crew.id %}">크루로 가기</a>
+        </div>
     {% else %}
-        <form method="post">
-            {% csrf_token %}
-            <button type="submit">참여하기</button>
-        </form>
-        <a href="{% url 'crew:list' %}">취소</a>
+        <div class="bottom-btn">
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn-primary">참여하기</button>
+            </form>
+            <a class="btn-outline" href="{% url 'crew:list' %}">취소</a>
+        </div>
     {% endif %}
 {% endblock %}

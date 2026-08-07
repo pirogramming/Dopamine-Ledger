@@ -5,17 +5,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}도파민 크루{% endblock %}</title>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link rel="stylesheet" href="{% static 'crew/crew.css' %}">
 </head>
 <body>
-    {% if messages %}
-        <ul>
-            {% for message in messages %}
-                <li>{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+    <div class="app-frame">
+        {% block content %}{% endblock %}
+    </div>
 
-    {% block content %}{% endblock %}
+    {% if messages %}
+    <div class="modal-overlay" id="message-modal">
+        <div class="modal">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+            <div class="modal-actions">
+                <button type="button" class="btn-primary" onclick="closeMessageModal()">확인</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        function closeMessageModal() {
+            document.getElementById('message-modal').classList.remove('open');
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('message-modal').classList.add('open');
+        });
+    </script>
+    {% endif %}
 
     {% block extra_script %}{% endblock %}
 </body>

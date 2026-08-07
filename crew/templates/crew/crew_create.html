@@ -3,14 +3,35 @@
 {% block title %}크루 만들기{% endblock %}
 
 {% block content %}
-    <h1>크루 만들기</h1>
+    <a class="back-link" href="{% url 'crew:list' %}">‹</a>
+    <h1 class="page-title">크루 만들기</h1>
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">만들기</button>
-    </form>
+    {% if created_crew %}
+        <!-- 생성 완료 화면 -->
+        <p class="page-title" style="font-size:16px;">"{{ created_crew.name }}"이 만들어졌어요</p>
+        <div class="code-box">
+            <div class="label">초대 코드</div>
+            <div class="code">{{ created_crew.invite_code }}</div>
+        </div>
+        <div class="bottom-btn">
+            <a class="btn-primary" href="{% url 'crew:detail' crew_id=created_crew.id %}">크루로 이동</a>
+        </div>
+    {% else %}
+        <!-- 입력 화면 -->
+        <form method="post">
+            {% csrf_token %}
+            <div class="field-label">크루 이름</div>
+            <input class="text-input" type="text" name="name" placeholder="예: 새벽독서방" maxlength="50">
 
-    <br>
-    <a href="{% url 'crew:list' %}">← 내 크루 목록으로</a>
+            <div class="field-label">목표 시간</div>
+            <input class="text-input" type="number" name="target_hours" value="20" min="1">
+
+            <div class="field-label">보상 문구</div>
+            <input class="text-input" type="text" name="reward_text" placeholder="예: 목표 달성 시 크루 회식🍗">
+
+            <div class="bottom-btn">
+                <button class="btn-primary" type="submit">방 생성하기</button>
+            </div>
+        </form>
+    {% endif %}
 {% endblock %}
