@@ -8,6 +8,9 @@ from django.utils import timezone
 from django.db.models import Sum
 from django.http import JsonResponse
 
+from collections import defaultdict
+
+
 @login_required
 def spend_record_create(request):
     """
@@ -92,13 +95,15 @@ def weekly_report(request):
     last_end = this_start - timedelta(days=1)
 
     # 2. 숏폼 지출 집계
-    this_spend = SpendRecord.objects.filter(
+    this_spend_qs = SpendRecord.objects.filter(
         users=user, spend_date__range=[this_start, this_end]
-    ).aggregate(total=Sum('duration_min'))['total'] or 0
-
-    last_spend = SpendRecord.objects.filter(
+    )
+    last_spend_qs = SpendRecord.objects.filter(
         users=user, spend_date__range=[last_start, last_end]
-    ).aggregate(total=Sum('duration_min'))['total'] or 0
+    )
+
+    this_spend_total = this_spend_qs.aggregate(total=Sum('duration_min'))['total'] or 0
+    last_spend_total = last_spend_qs.aggregate(total=Sum('duration_min'))['total'] or 0
 
     # 3. 활동 적립 집계
     this_earn_qs = EarnRecord.objects.filter(
@@ -112,11 +117,11 @@ def weekly_report(request):
     last_earn_total = last_earn_qs.aggregate(total=Sum('earn_min'))['total'] or 0
 
     # 4. 차이 수치 계산
-    spend_diff = this_spend - last_spend
+    spend_diff = this_spend_total - last_spend_total
     earn_diff = this_earn_total - last_earn_total
 
     # 5. 수치 반올림 처리
-    this_spend_int = int(round(this_spend))
+    this_spend_int = int(round(this_spend_total))
     spend_diff_int = int(round(spend_diff))
     this_earn_total_int = int(round(this_earn_total))
     earn_diff_int = int(round(earn_diff))
@@ -144,7 +149,7 @@ def weekly_report(request):
     # --------------------------------------------------
     # 6. 칭찬 문구 조건 분기 (지난주 데이터 부재 시 예외 처리 최우선)
     # --------------------------------------------------
-    is_no_last_data = (last_spend == 0) and (last_earn_total == 0)
+    is_no_last_data = (last_spend_total == 0) and (last_earn_total == 0)
 
     if is_no_last_data:
         if this_earn_total_int > 0:
@@ -172,6 +177,75 @@ def weekly_report(request):
     else:
         praise_message = "꾸준히 기록하며 도파민을 관리해 보아요!"
 
+    # --------------------------------------------------
+    # 7. 이번 주 활동 내역 날짜별 그룹화 (history_by_date 생성)
+    # --------------------------------------------------
+    raw_items = []
+
+    # 1. 수입 레코드 수집
+    for earn in this_earn_qs.select_related('activity'):
+        earn_time = getattr(earn, 'earn_end', None) # 아직 기록 시간에 대해 정해진 필드가 없음 (model 수정 또는 방법 찾기) 
+
+        # 정렬에 사용할 기준 datetime 생성
+        if earn_time:
+            if isinstance(earn_time, timezone.datetime):
+                dt_key = earn_time
+            else:
+                dt_key = timezone.datetime.combine(earn.earn_date, earn_time)
+            time_str = earn_time.strftime("%p %H:%M").replace("AM", "오전").replace("PM", "오후")
+        else :
+            dt_key = timezone.datetime.combine(earn.earn_date, timezone.datetime.min.time())
+            time_str = ""
+
+            raw_items.append({
+                "dt_key": dt_key,
+                "date_str": earn.earn_date.strftime("%Y년 %m월 %d일"),
+                "data": {
+                    "type": "earn",
+                    "title": f"{earn.activity.activity_type} 완료",
+                    "time": time_str,
+                    "amount": int(round(earn.earn_min))
+                }
+            })
+
+    # 2. 지출 레코드 수집
+    for spend in this_spend_qs:
+        spend_time = getattr(spend, 'spend_end', None) # 모델 수정해야 할듯...
+        if spend_time:
+            if isinstance(spend_time, timezone.datetime):
+                dt_key = spend_time
+            else:
+                dt_key = timezone.datetime.combine(spend.spend_date, spend_time)
+            time_str = spend_time.strftime("%p %H:%M").replace("AM", "오전").replace("PM", "오후")
+        else:
+            dt_key = timezone.datetime.combine(spend.spend_date, timezone.datetime.min.time())
+            time_str = ""
+
+        raw_items.append({
+            "dt_key": dt_key,
+            "date_str": spend.spend_date.strftime("%Y년 %m월 %d일"),
+            "data": {
+                "type": "spend",
+                "title": "숏폼 지출",
+                "time": time_str,
+                "amount": int(round(spend.duration_min))
+            }
+        })
+
+    # 3. 전체 아이템 정렬화
+    raw_items.sort(key=lambda x: x["dt_key"], reverse=True)
+
+    date_grouped = defaultdict(list)
+    for item in raw_items:
+        date_grouped[item["date_str"]].append(item["data"])
+
+    history_by_date = [
+        {
+            "date": date_key,
+            "items": items
+        }
+        for date_key, items in date_grouped.items()
+    ]
 
     return JsonResponse(
         {
@@ -180,6 +254,7 @@ def weekly_report(request):
             "spend_diff_min": spend_diff_int,
             "this_earn_min": this_earn_total_int,
             "earn_diff_min": earn_diff_int,
+            "history_by_date": history_by_date,
         },
         json_dumps_params={'ensure_ascii': False}
     )
