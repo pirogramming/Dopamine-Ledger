@@ -54,23 +54,6 @@
         <button class="btn-outline" onclick="openModal('leave-modal')">크루 나가기</button>
     </div>
 
-    <!-- 이름 수정 팝업 -->
-    {% if crew.owner == request.user %}
-    <div class="modal-overlay" id="rename-modal">
-        <div class="modal">
-            <h2>크루 이름 수정</h2>
-            <form method="post" action="{% url 'crew:rename' crew_id=crew.id %}">
-                {% csrf_token %}
-                <input class="text-input" type="text" name="name" value="{{ crew.name }}" maxlength="50">
-                <div class="modal-actions">
-                    <button type="button" class="btn-outline" onclick="closeModal('rename-modal')">취소</button>
-                    <button type="submit" class="btn-primary">저장</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    {% endif %}
-
     <!-- 탈퇴 확인 팝업 -->
     <div class="modal-overlay" id="leave-modal">
         <div class="modal">
