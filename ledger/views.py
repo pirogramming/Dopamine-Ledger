@@ -184,45 +184,29 @@ def weekly_report(request):
 
     # 1. 수입 레코드 수집
     for earn in this_earn_qs.select_related('activity'):
-        earn_time = getattr(earn, 'earn_end', None) # 아직 기록 시간에 대해 정해진 필드가 없음 (model 수정 또는 방법 찾기) 
+        local_time = timezone.localtime(earn.created_at)
+        time_str = local_time.strftime("%p %I:%M").replace("AM" ,"오전").replace("PM", "오후")
+        earn_time = getattr(earn, 'created_at', None)
 
-        # 정렬에 사용할 기준 datetime 생성
-        if earn_time:
-            if isinstance(earn_time, timezone.datetime):
-                dt_key = earn_time
-            else:
-                dt_key = timezone.datetime.combine(earn.earn_date, earn_time)
-            time_str = earn_time.strftime("%p %H:%M").replace("AM", "오전").replace("PM", "오후")
-        else :
-            dt_key = timezone.datetime.combine(earn.earn_date, timezone.datetime.min.time())
-            time_str = ""
 
-            raw_items.append({
-                "dt_key": dt_key,
-                "date_str": earn.earn_date.strftime("%Y년 %m월 %d일"),
-                "data": {
-                    "type": "earn",
-                    "title": f"{earn.activity.activity_type} 완료",
-                    "time": time_str,
-                    "amount": int(round(earn.earn_min))
-                }
-            })
+        raw_items.append({
+            "dt_key": earn.created_at,
+            "date_str": earn.earn_date.strftime("%Y년 %m월 %d일"),
+            "data": {
+                "type": "earn",
+                "title": f"{earn.activity.activity_type} 완료",
+                "time": time_str,
+                "amount": int(round(earn.earn_min))
+            }
+        })
 
     # 2. 지출 레코드 수집
     for spend in this_spend_qs:
-        spend_time = getattr(spend, 'spend_end', None) # 모델 수정해야 할듯...
-        if spend_time:
-            if isinstance(spend_time, timezone.datetime):
-                dt_key = spend_time
-            else:
-                dt_key = timezone.datetime.combine(spend.spend_date, spend_time)
-            time_str = spend_time.strftime("%p %H:%M").replace("AM", "오전").replace("PM", "오후")
-        else:
-            dt_key = timezone.datetime.combine(spend.spend_date, timezone.datetime.min.time())
-            time_str = ""
+        local_time = timezone.localtime(spend.created_at)
+        time_str = local_time.strftime("%p %I:%M").replace("AM", "오전").replace("PM", "오후")
 
         raw_items.append({
-            "dt_key": dt_key,
+            "dt_key": spend.created_at,
             "date_str": spend.spend_date.strftime("%Y년 %m월 %d일"),
             "data": {
                 "type": "spend",
