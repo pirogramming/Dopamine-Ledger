@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import SpendRecordForm, EarnRecordForm
 from .models import SpendRecord, EarnRecord
 from .services import close_today, get_today_record_summary
+from budget.services import get_current_balance
 
 
 @login_required
@@ -81,6 +82,7 @@ def record_choice(request):
 def daily_close(request):
     """오늘 기록을 확인하고 하루 마감을 처리하는 뷰"""
     summary = get_today_record_summary(request.user)
+    balance = get_current_balance(request.user)
     error_message = None
 
     if request.method == "POST":
@@ -98,6 +100,7 @@ def daily_close(request):
 
     context = {
         **summary,
+        "balance": balance,
         "streak_days": request.user.streak_days,
         "error_message": error_message,
     }

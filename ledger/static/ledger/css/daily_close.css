@@ -1,0 +1,315 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+
+    background: #ffffff;
+    font-family: Inter, Arial, sans-serif;
+    color: #000000;
+}
+
+
+/* =========================
+   전체 하루 마감 프레임
+========================= */
+
+.daily-close {
+    position: relative;
+
+    width: 393px;
+    height: 852px;
+
+    background: #FDFCF9;
+
+    border: 1px solid #70737C;
+    border-radius: 28px;
+
+    overflow: hidden;
+}
+
+
+/* =========================
+   상단
+========================= */
+
+.daily-close__header {
+    position: absolute;
+
+    top: 58px;
+    left: 0;
+
+    width: 100%;
+
+    text-align: center;
+}
+
+.daily-close__streak-top {
+    margin: 0 0 7px;
+
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: 600;
+
+    color: #000000;
+}
+
+.daily-close__title {
+    margin: 0;
+
+    font-size: 20px;
+    line-height: 24px;
+    font-weight: 700;
+
+    color: #000000;
+}
+
+
+/* =========================
+   지출 / 수입 / 잔액 카드
+========================= */
+
+.daily-close__summary {
+    position: absolute;
+
+    top: 128px;
+    left: 23px;
+
+    width: 347px;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 13px;
+}
+
+.summary-card {
+    width: 347px;
+    height: 68px;
+
+    display: grid;
+    grid-template-columns: 24px 1fr auto;
+
+    align-items: center;
+
+    padding: 20px 30px;
+
+    gap: 30px;
+
+    background: #FFFFFF;
+
+    border: 1px solid #C7C7C7;
+    border-radius: 15px;
+}
+
+
+/* 체크 아이콘 */
+
+.summary-card__check {
+    width: 24px;
+    height: 24px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    flex-shrink: 0;
+
+    border: 2px solid #FF7A00;
+    border-radius: 50%;
+
+    color: #FF7A00;
+
+    font-size: 14px;
+    line-height: 1;
+    font-weight: 700;
+}
+
+
+/* 카드 제목 */
+
+.summary-card__title {
+    font-size: 16px;
+    line-height: 19px;
+    font-weight: 600;
+
+    color: #000000;
+
+    white-space: nowrap;
+}
+
+
+/* 카드 오른쪽 값 */
+
+.summary-card__value {
+    font-size: 16px;
+    line-height: 19px;
+    font-weight: 400;
+
+    color: #000000;
+
+    text-align: right;
+    white-space: nowrap;
+}
+
+
+/* =========================
+   연속 마감 안내 문구
+========================= */
+
+.daily-close__description {
+    position: absolute;
+
+    top: 382px;
+    left: 35px;
+
+    width: 327px;
+
+    margin: 0;
+
+    font-size: 13px;
+    line-height: 17px;
+    font-weight: 400;
+
+    color: #70737C;
+}
+
+
+/* =========================
+   에러 메시지
+========================= */
+
+.daily-close__error {
+    position: absolute;
+
+    top: 440px;
+    left: 35px;
+
+    width: 327px;
+
+    margin: 0;
+
+    font-size: 12px;
+    line-height: 16px;
+
+    color: #D32F2F;
+}
+
+
+/* =========================
+   하단 마감 영역
+========================= */
+
+.daily-close__action {
+    position: absolute;
+
+    top: 650px;
+    left: 35px;
+
+    width: 327px;
+}
+
+.daily-close__action form {
+    width: 327px;
+}
+
+
+/* 오늘 숏폼을 보지 않았어요 */
+
+.daily-close__no-spend {
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    gap: 7px;
+
+    margin: 0 0 14px;
+
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: 400;
+
+    color: #70737C;
+
+    cursor: pointer;
+}
+
+.daily-close__no-spend input {
+    width: 14px;
+    height: 14px;
+
+    margin: 0;
+
+    accent-color: #FF7A00;
+
+    cursor: pointer;
+}
+
+
+/* 버튼 위 연속 마감 */
+
+.daily-close__streak-bottom {
+    margin: 0 0 14px;
+
+    text-align: center;
+
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: 600;
+
+    color: #000000;
+}
+
+
+/* =========================
+   하루 마감 버튼
+========================= */
+
+.daily-close__button {
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    width: 327px;
+    height: 50px;
+
+    padding: 0;
+
+    border: none;
+    border-radius: 15px;
+
+    background: #FF7A00;
+    color: #FFFFFF;
+
+    font-size: 16px;
+    line-height: 19px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.daily-close__button:hover {
+    opacity: 0.9;
+}
+
+
+/* =========================
+    이미 마감한 상태
+========================= */
+
+.daily-close__button--completed {
+    opacity: 1;
+    cursor: default;
+}
+
+.daily-close__button--completed:hover {
+    opacity: 1;
+}

@@ -1,0 +1,113 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>하루 마감하기</title>
+
+    <link rel="stylesheet" href="{% static 'ledger/css/daily_close.css' %}">
+</head>
+
+<body>
+    <main class="daily-close">
+
+        <header class="daily-close__header">
+            {% if not is_closed %}
+                <p class="daily-close__streak-top">
+                    🔥 {{ streak_days }}일째
+                </p>
+            {% endif %}
+
+            <h1 class="daily-close__title">하루 마감하기</h1>
+        </header>
+
+
+        <section class="daily-close__summary">
+
+            <div class="summary-card">
+                <span class="summary-card__check">✓</span>
+                <strong class="summary-card__title">오늘의 지출</strong>
+                <span class="summary-card__value">
+                    {{ today_spend }}분
+                </span>
+            </div>
+
+            <div class="summary-card">
+                <span class="summary-card__check">✓</span>
+                <strong class="summary-card__title">오늘의 수입</strong>
+                <span class="summary-card__value">
+                    {{ today_earn }}분
+                </span>
+            </div>
+
+            <div class="summary-card">
+                <span class="summary-card__check">✓</span>
+                <strong class="summary-card__title">잔액 확인</strong>
+                <span class="summary-card__value">
+                    {{ balance }}분
+                </span>
+            </div>
+
+        </section>
+
+
+        <p class="daily-close__description">
+            연속 마감 {{ streak_days }}일째 -
+            오늘부터 다시 시작해도 괜찮아요,
+            기록이 없으면 마감 버튼이 비활성화돼요.
+        </p>
+
+
+        {% if error_message %}
+            <p class="daily-close__error">
+                {{ error_message }}
+            </p>
+        {% endif %}
+
+
+        <div class="daily-close__action">
+
+            {% if is_closed %}
+
+                <button
+                    type="button"
+                    class="daily-close__button daily-close__button--completed"
+                    disabled
+                >
+                    마감완료!
+                </button>
+
+            {% else %}
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if not has_spend_record %}
+                        <label class="daily-close__no-spend">
+                            <input type="checkbox" name="no_spend">
+                            오늘 숏폼을 보지 않았어요
+                        </label>
+                    {% endif %}
+
+                    <p class="daily-close__streak-bottom">
+                        🔥 {{ streak_days }}일째
+                    </p>
+
+                    <button
+                        type="submit"
+                        class="daily-close__button"
+                    >
+                        하루 마감하기
+                    </button>
+                </form>
+
+            {% endif %}
+
+        </div>
+
+    </main>
+</body>
+</html>
