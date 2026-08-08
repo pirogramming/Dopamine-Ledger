@@ -105,6 +105,7 @@ def daily_close(request):
         "can_close": can_close,
         "streak_days": request.user.streak_days,
         "error_message": error_message,
+        "active_tab": "deadline",
     }
 
     return render(

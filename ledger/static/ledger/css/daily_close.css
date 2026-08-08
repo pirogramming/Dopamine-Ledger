@@ -1,106 +1,86 @@
-* {
+/* =========================================
+   하루 마감 페이지
+   - phone-frame / app-content / bottom-nav는 common.css 사용
+   - 하루마감 내부 디자인은 Figma 기준
+========================================= */
+
+.daily-close-page,
+.daily-close-page * {
     box-sizing: border-box;
 }
 
-body {
-    margin: 0;
-    min-height: 100vh;
-
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-
-    background: #ffffff;
-
-    font-family: Inter, Arial, sans-serif;
-    color: #000000;
-}
-
-
-/* =========================
-   전체 하루 마감 프레임
-========================= */
-
-.daily-close {
+.daily-close-page {
     position: relative;
+    width: 100%;
+    min-height: 720px;
+    flex: 1;
 
-    width: 393px;
-    height: 852px;
-
-    background: #FDFCF9;
-
-    border: 1px solid #70737C;
-    border-radius: 28px;
-
-    overflow: hidden;
+    font-family: 'Inter', sans-serif;
 }
 
 
-/* =========================
-   상단
-========================= */
+/* =========================================
+   상단 제목 영역
+========================================= */
 
 .daily-close__header {
-    position: absolute;
-
-    top: 58px;
-    left: 0;
-
     width: 100%;
-
     text-align: center;
+    margin-top: 38px;
 }
 
 .daily-close__streak-top {
     margin: 0 0 7px;
 
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 600;
     font-size: 13px;
     line-height: 16px;
-    font-weight: 600;
 
+    text-align: center;
     color: #000000;
 }
 
 .daily-close__title {
     margin: 0;
 
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 700;
     font-size: 20px;
     line-height: 24px;
-    font-weight: 700;
 
+    text-align: center;
     color: #000000;
 }
 
 
-/* =========================
-   지출 / 수입 / 잔액 카드
-========================= */
+/* =========================================
+   오늘의 지출 / 오늘의 수입 / 잔액
+========================================= */
 
 .daily-close__summary {
-    position: absolute;
-
-    top: 128px;
-    left: 23px;
-
-    width: 347px;
+    width: 100%;
 
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
 
     gap: 13px;
+
+    margin-top: 28px;
 }
 
 .summary-card {
-    width: 347px;
+    width: 100%;
     height: 68px;
 
-    display: grid;
-    grid-template-columns: 24px 1fr auto;
-
+    display: flex;
+    flex-direction: row;
     align-items: center;
 
     padding: 20px 30px;
-
     gap: 30px;
 
     background: #FFFFFF;
@@ -110,7 +90,9 @@ body {
 }
 
 
-/* 체크 아이콘 */
+/* =========================================
+   체크 아이콘
+========================================= */
 
 .summary-card__check {
     width: 24px;
@@ -120,6 +102,7 @@ body {
     justify-content: center;
     align-items: center;
 
+    flex: none;
     flex-shrink: 0;
 
     border: 2px solid #FF7A00;
@@ -127,18 +110,30 @@ body {
 
     color: #FF7A00;
 
+    font-family: 'Inter', sans-serif;
     font-size: 14px;
-    line-height: 1;
     font-weight: 700;
+    line-height: 1;
 }
 
 
-/* 카드 제목 */
+/* =========================================
+   카드 제목
+   오늘의 지출 / 오늘의 수입 / 잔액 확인
+========================================= */
 
 .summary-card__title {
+    width: 78px;
+    flex-shrink: 0;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 600;
     font-size: 16px;
     line-height: 19px;
-    font-weight: 600;
+
+    display: flex;
+    align-items: center;
 
     color: #000000;
 
@@ -146,115 +141,137 @@ body {
 }
 
 
-/* 카드 값 */
+/* =========================================
+   카드 오른쪽 값
+
+   오늘은 안 봤어요 / 0분 / 230.00분
+   → 오른쪽 끝선 기준 정렬
+========================================= */
 
 .summary-card__value {
+    flex: 1;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
     font-size: 16px;
     line-height: 19px;
-    font-weight: 400;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    text-align: right;
 
     color: #000000;
 
-    text-align: right;
     white-space: nowrap;
 }
 
 
-/* 지출이 없는 경우 */
-
+/* 기록이 없을 때
+   "오늘은 안 봤어요"
+*/
 .summary-card__value--empty {
-    font-size: 13px;
-    color: #70737C;
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 19px;
+
+    color: #000000;
 }
 
 
-/* =========================
-   설명 문구
-========================= */
+/* =========================================
+   안내 문구
+========================================= */
 
 .daily-close__description {
-    position: absolute;
+    width: 100%;
 
-    top: 382px;
-    left: 35px;
+    margin: 22px 0 0;
 
-    width: 327px;
-
-    margin: 0;
-
-    font-size: 13px;
-    line-height: 17px;
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
     font-weight: 400;
+    font-size: 13px;
+    line-height: 16px;
+
+    display: flex;
+    align-items: center;
 
     color: #70737C;
 }
 
 
-/* =========================
+/* =========================================
    오류 메시지
-========================= */
+========================================= */
 
 .daily-close__error {
-    position: absolute;
+    width: 100%;
 
-    top: 440px;
-    left: 35px;
+    margin: 10px 0 0;
 
-    width: 327px;
-
-    margin: 0;
-
-    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 13px;
     line-height: 16px;
 
     color: #D32F2F;
 }
 
 
-/* =========================
+/* =========================================
    하단 마감 영역
-========================= */
+========================================= */
 
 .daily-close__action {
     position: absolute;
 
-    top: 650px;
-    left: 35px;
+    left: 2px;
+    bottom: 17px;
 
-    width: 327px;
+    width: calc(100% - 4px);
 }
 
 .daily-close__action form {
-    width: 327px;
+    width: 100%;
 }
 
 
-/* streak */
+/* 하단 🔥 n일째 */
 
 .daily-close__streak-bottom {
-    margin: 0 0 14px;
+    margin: 0 0 15px;
 
-    text-align: center;
-
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 600;
     font-size: 13px;
     line-height: 16px;
-    font-weight: 600;
+
+    text-align: center;
 
     color: #000000;
 }
 
 
-/* =========================
+/* =========================================
    하루 마감 버튼
-========================= */
+   기본 = 마감 가능 → 주황색
+========================================= */
 
 .daily-close__button {
+    width: 100%;
+    height: 50px;
+
     display: flex;
+    flex-direction: row;
     justify-content: center;
     align-items: center;
-
-    width: 327px;
-    height: 50px;
 
     padding: 0;
 
@@ -263,11 +280,13 @@ body {
 
     background: #FF7A00;
 
-    color: #FFFFFF;
-
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 700;
     font-size: 16px;
     line-height: 19px;
-    font-weight: 700;
+
+    color: #FFFFFF;
 
     cursor: pointer;
 }
@@ -277,7 +296,9 @@ body {
 }
 
 
-/* 기록이 없어 마감할 수 없는 경우 */
+/* =========================================
+   기록 없음 → 비활성 버튼
+========================================= */
 
 .daily-close__button--disabled {
     background: #C7C7C7;
@@ -290,10 +311,12 @@ body {
 }
 
 
-/* 이미 마감한 경우 */
+/* =========================================
+   마감 완료 → 주황색
+========================================= */
 
 .daily-close__button--completed {
-    opacity: 1;
+    background: #FF7A00;
 
     cursor: default;
 }
