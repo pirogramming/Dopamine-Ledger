@@ -92,7 +92,7 @@ def weekly_report(request):
     last_end = this_start - timedelta(days=1)
 
     # 2. 숏폼 지출 집계
-    this_spend_int = SpendRecord.objects.filter(
+    this_spend = SpendRecord.objects.filter(
         users=user, spend_date__range=[this_start, this_end]
     ).aggregate(total=Sum('duration_min'))['total'] or 0
 
@@ -112,11 +112,11 @@ def weekly_report(request):
     last_earn_total = last_earn_qs.aggregate(total=Sum('earn_min'))['total'] or 0
 
     # 4. 차이 수치 계산
-    spend_diff = this_spend_int - last_spend
+    spend_diff = this_spend - last_spend
     earn_diff = this_earn_total - last_earn_total
 
     # 5. 수치 반올림 처리
-    this_spend_int_int = int(round(this_spend_int))
+    this_spend_int = int(round(this_spend))
     spend_diff_int = int(round(spend_diff))
     this_earn_total_int = int(round(this_earn_total))
     earn_diff_int = int(round(earn_diff))
@@ -147,9 +147,9 @@ def weekly_report(request):
     is_no_last_data = (last_spend == 0) and (last_earn_total == 0)
 
     if is_no_last_data:
-        if this_earn_total > 0:
-            total_hrs = int(this_earn_total // 60)
-            total_mins = int(this_earn_total % 60)
+        if this_earn_total_int > 0:
+            total_hrs = int(this_earn_total_int // 60)
+            total_mins = int(this_earn_total_int % 60)
             earn_str = f"{total_hrs}시간 {total_mins}분" if total_hrs > 0 else f"{total_mins}분"
             praise_message = f"이번 주 총 {earn_str} 동안 멋지게 활동하며 시간을 벌었어요!"
         else:
@@ -166,8 +166,8 @@ def weekly_report(request):
         
         praise_message = f"이번 주 {best_activity} {this_str}, 지난주보다 {inc_str} 늘었어요!"
 
-    elif spend_diff < 0:
-        praise_message = f"이번 주는 지난주보다 숏폼을 {abs(spend_diff)}분 줄였어요!"
+    elif spend_diff_int < 0:
+        praise_message = f"이번 주는 지난주보다 숏폼을 {abs(spend_diff_int)}분 줄였어요!"
 
     else:
         praise_message = "꾸준히 기록하며 도파민을 관리해 보아요!"
@@ -176,9 +176,9 @@ def weekly_report(request):
     return JsonResponse(
         {
             "praise_message": praise_message,
-            "this_spend_int_min": this_spend_int,
+            "this_spend_min": this_spend_int,
             "spend_diff_min": spend_diff_int,
-            "this_earn_total_min": this_earn_total_int,
+            "this_earn_min": this_earn_total_int,
             "earn_diff_min": earn_diff_int,
         },
         json_dumps_params={'ensure_ascii': False}
