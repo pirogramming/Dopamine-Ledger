@@ -52,10 +52,10 @@
 
     <!-- 4. 하단 고정 네비게이션 바 (아직 url 설정 안함) -->
     <nav class="bottom-nav">
-      <a href="#" class="nav-item"><img src="frame0.svg" alt="홈"><span class="nav-label">홈</span></a>
+      <a href="{% url 'ledger:main_progress' %}" class="nav-item"><img src="frame0.svg" alt="홈"><span class="nav-label">홈</span></a>
       <a href="#" class="nav-item"><img src="frame1.svg" alt="크루"><span class="nav-label">크루</span></a>
       <a href="#" class="nav-item"><img src="frame2.svg" alt="마감"><span class="nav-label">마감</span></a>
-      <a href="#" class="nav-item active"><img src="frame3.svg" alt="결산"><span class="nav-label">결산</span></a>
+      <a href="{% url 'ledger:weekly_report' %}" class="nav-item active"><img src="frame3.svg" alt="결산"><span class="nav-label">결산</span></a>
       <a href="#" class="nav-item"><img src="frame4.svg" alt="설정"><span class="nav-label">설정</span></a>
     </nav>
 
