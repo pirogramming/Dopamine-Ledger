@@ -28,7 +28,7 @@
           </div>
           <div class="metric-item">
             <span class="metric-label">전 주 대비 사용</span>
-            <span id="spend-diff" class="metric-value diff-green">0분</span>
+            <span id="spend-diff" class="metric-value diff-green">0시간 0분</span>
           </div>
         </div>
       </div>
@@ -87,10 +87,10 @@
           const spendDiffEl = document.getElementById("spend-diff");
           const diffVal = data.spend_diff_min;
           if (diffVal <= 0) {
-            spendDiffEl.innerText = `${diffVal}분`;
+            spendDiffEl.innerText = `-${formatHoursMins(diffVal)}`;
             spendDiffEl.className = "metric-value diff-green";
           } else {
-            spendDiffEl.innerText = `+${diffVal}분`;
+            spendDiffEl.innerText = `+${formatHoursMins(diffVal)}`;
             spendDiffEl.className = "metric-value diff-orange";
           }
 
