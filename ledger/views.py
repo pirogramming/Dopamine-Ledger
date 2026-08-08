@@ -113,7 +113,7 @@ def weekly_report(request):
 
     # 4. 차이 수치 계산
     spend_diff = this_spend_int - last_spend
-    earn_diff = this_earn_total - last_earn_total  # 👈 차이값 정상 연산
+    earn_diff = this_earn_total - last_earn_total
 
     # 5. 수치 반올림 처리
     this_spend_int_int = int(round(this_spend_int))
