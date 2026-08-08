@@ -10,6 +10,8 @@ from django.http import JsonResponse
 
 from collections import defaultdict
 
+# 요일 변환용 튜플 (weekly_report)
+WEEKDAYS_KR = ("월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일")
 
 @login_required
 def spend_record_create(request):
@@ -186,12 +188,14 @@ def weekly_report(request):
     for earn in this_earn_qs.select_related('activity'):
         local_time = timezone.localtime(earn.created_at)
         time_str = local_time.strftime("%p %I:%M").replace("AM" ,"오전").replace("PM", "오후")
-        earn_time = getattr(earn, 'created_at', None)
 
+        record_date = local_time.date()
+        weekday_kr = WEEKDAYS_KR[record_date.weekday()]
+        date_str = f"{record_date.strftime('%Y년 %m월 %d일')} {weekday_kr}"
 
         raw_items.append({
             "dt_key": earn.created_at,
-            "date_str": earn.earn_date.strftime("%Y년 %m월 %d일"),
+            "date_str": date_str,
             "data": {
                 "type": "earn",
                 "title": f"{earn.activity.activity_type} 완료",
@@ -205,9 +209,13 @@ def weekly_report(request):
         local_time = timezone.localtime(spend.created_at)
         time_str = local_time.strftime("%p %I:%M").replace("AM", "오전").replace("PM", "오후")
 
+        record_date = local_time.date()
+        weekday_kr = WEEKDAYS_KR[record_date.weekday()]
+        date_str = f"{record_date.strftime('%Y년 %m월 %d일')} {weekday_kr}"
+        
         raw_items.append({
             "dt_key": spend.created_at,
-            "date_str": spend.spend_date.strftime("%Y년 %m월 %d일"),
+            "date_str": date_str,
             "data": {
                 "type": "spend",
                 "title": "숏폼 지출",
