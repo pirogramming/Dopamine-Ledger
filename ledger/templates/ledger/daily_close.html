@@ -21,31 +21,68 @@
                 </p>
             {% endif %}
 
-            <h1 class="daily-close__title">하루 마감하기</h1>
+            <h1 class="daily-close__title">
+                하루 마감하기
+            </h1>
         </header>
 
 
         <section class="daily-close__summary">
 
+            <!-- 오늘의 지출 -->
             <div class="summary-card">
-                <span class="summary-card__check">✓</span>
-                <strong class="summary-card__title">오늘의 지출</strong>
-                <span class="summary-card__value">
-                    {{ today_spend }}분
+                <span class="summary-card__check">
+                    ✓
                 </span>
+
+                <strong class="summary-card__title">
+                    오늘의 지출
+                </strong>
+
+                {% if has_spend_record %}
+                    <span class="summary-card__value">
+                        숏폼 {{ today_spend }}분
+                    </span>
+                {% else %}
+                    <span class="summary-card__value summary-card__value--empty">
+                        오늘은 안 봤어요
+                    </span>
+                {% endif %}
             </div>
 
+
+            <!-- 오늘의 수입 -->
             <div class="summary-card">
-                <span class="summary-card__check">✓</span>
-                <strong class="summary-card__title">오늘의 수입</strong>
-                <span class="summary-card__value">
-                    {{ today_earn }}분
+                <span class="summary-card__check">
+                    ✓
                 </span>
+
+                <strong class="summary-card__title">
+                    오늘의 수입
+                </strong>
+
+                {% if has_earn_record %}
+                    <span class="summary-card__value">
+                        {{ earn_activity }} {{ today_earn }}분
+                    </span>
+                {% else %}
+                    <span class="summary-card__value">
+                        0분
+                    </span>
+                    {% endif %}
             </div>
 
+
+            <!-- 현재 잔액 -->
             <div class="summary-card">
-                <span class="summary-card__check">✓</span>
-                <strong class="summary-card__title">잔액 확인</strong>
+                <span class="summary-card__check">
+                    ✓
+                </span>
+
+                <strong class="summary-card__title">
+                    잔액 확인
+                </strong>
+
                 <span class="summary-card__value">
                     {{ balance }}분
                 </span>
@@ -70,6 +107,7 @@
 
         <div class="daily-close__action">
 
+            <!-- 이미 오늘 마감한 경우 -->
             {% if is_closed %}
 
                 <button
@@ -80,17 +118,28 @@
                     마감완료!
                 </button>
 
+
+            <!-- 오늘 기록이 하나도 없는 경우 -->
+            {% elif not can_close %}
+
+                <p class="daily-close__streak-bottom">
+                    🔥 {{ streak_days }}일째
+                </p>
+
+                <button
+                    type="button"
+                    class="daily-close__button daily-close__button--disabled"
+                    disabled
+                >
+                    하루 마감하기
+                </button>
+
+
+            <!-- 마감 가능한 경우 -->
             {% else %}
 
                 <form method="post">
                     {% csrf_token %}
-
-                    {% if not has_spend_record %}
-                        <label class="daily-close__no-spend">
-                            <input type="checkbox" name="no_spend">
-                            오늘 숏폼을 보지 않았어요
-                        </label>
-                    {% endif %}
 
                     <p class="daily-close__streak-bottom">
                         🔥 {{ streak_days }}일째

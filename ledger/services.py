@@ -43,10 +43,15 @@ def get_today_record_summary(user):
         "has_earn_record": earn_records.exists(),
         "has_spend_record": spend_records.exists(),
         "is_closed": is_closed,
+        "earn_activity": (
+            earn_records.first().activity.activity_type
+            if earn_records.exists()
+            else None
+        ),
     }
 
 
-def close_today(user, no_spend_checked=False):
+def close_today(user):
     """
     하루 마감을 처리하고 연속 마감일을 갱신한다.
     """
@@ -68,10 +73,9 @@ def close_today(user, no_spend_checked=False):
         or summary["has_spend_record"]
     )
 
-    if not has_any_record and not no_spend_checked:
+    if not has_any_record:
         raise ValueError(
-            "오늘 기록이 없습니다. "
-            "'오늘 숏폼을 보지 않았어요'를 체크해주세요."
+            "오늘 기록이 없습니다."
         )
 
     yesterday = today - timedelta(days=1)

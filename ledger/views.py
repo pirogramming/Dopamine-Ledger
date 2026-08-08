@@ -83,16 +83,17 @@ def daily_close(request):
     """오늘 기록을 확인하고 하루 마감을 처리하는 뷰"""
     summary = get_today_record_summary(request.user)
     balance = get_current_balance(request.user)
+
+    can_close = (
+        summary["has_earn_record"]
+        or summary["has_spend_record"]
+    )
     error_message = None
 
     if request.method == "POST":
-        no_spend_checked = request.POST.get("no_spend") == "on"
 
         try:
-            close_today(
-                request.user,
-                no_spend_checked=no_spend_checked,
-            )
+            close_today(request.user)
             return redirect("ledger:daily_close")
 
         except ValueError as error:
@@ -101,6 +102,7 @@ def daily_close(request):
     context = {
         **summary,
         "balance": balance,
+        "can_close": can_close,
         "streak_days": request.user.streak_days,
         "error_message": error_message,
     }

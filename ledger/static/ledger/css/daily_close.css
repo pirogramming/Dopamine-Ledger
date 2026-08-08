@@ -11,6 +11,7 @@ body {
     align-items: flex-start;
 
     background: #ffffff;
+
     font-family: Inter, Arial, sans-serif;
     color: #000000;
 }
@@ -145,7 +146,7 @@ body {
 }
 
 
-/* 카드 오른쪽 값 */
+/* 카드 값 */
 
 .summary-card__value {
     font-size: 16px;
@@ -159,8 +160,16 @@ body {
 }
 
 
+/* 지출이 없는 경우 */
+
+.summary-card__value--empty {
+    font-size: 13px;
+    color: #70737C;
+}
+
+
 /* =========================
-   연속 마감 안내 문구
+   설명 문구
 ========================= */
 
 .daily-close__description {
@@ -182,7 +191,7 @@ body {
 
 
 /* =========================
-   에러 메시지
+   오류 메시지
 ========================= */
 
 .daily-close__error {
@@ -220,40 +229,7 @@ body {
 }
 
 
-/* 오늘 숏폼을 보지 않았어요 */
-
-.daily-close__no-spend {
-    display: flex;
-
-    justify-content: center;
-    align-items: center;
-
-    gap: 7px;
-
-    margin: 0 0 14px;
-
-    font-size: 13px;
-    line-height: 16px;
-    font-weight: 400;
-
-    color: #70737C;
-
-    cursor: pointer;
-}
-
-.daily-close__no-spend input {
-    width: 14px;
-    height: 14px;
-
-    margin: 0;
-
-    accent-color: #FF7A00;
-
-    cursor: pointer;
-}
-
-
-/* 버튼 위 연속 마감 */
+/* streak */
 
 .daily-close__streak-bottom {
     margin: 0 0 14px;
@@ -274,7 +250,6 @@ body {
 
 .daily-close__button {
     display: flex;
-
     justify-content: center;
     align-items: center;
 
@@ -287,6 +262,7 @@ body {
     border-radius: 15px;
 
     background: #FF7A00;
+
     color: #FFFFFF;
 
     font-size: 16px;
@@ -301,12 +277,24 @@ body {
 }
 
 
-/* =========================
-    이미 마감한 상태
-========================= */
+/* 기록이 없어 마감할 수 없는 경우 */
+
+.daily-close__button--disabled {
+    background: #C7C7C7;
+
+    cursor: not-allowed;
+}
+
+.daily-close__button--disabled:hover {
+    opacity: 1;
+}
+
+
+/* 이미 마감한 경우 */
 
 .daily-close__button--completed {
     opacity: 1;
+
     cursor: default;
 }
 
