@@ -5,9 +5,9 @@ from . import views
 app_name = 'ledger'
 
 urlpatterns = [
-    # 메인 화면 (홈) — 아직 뷰 없이 정적이라 TemplateView 유지 OK
-    path('', TemplateView.as_view(template_name='ledger/main_progress.html'), name='main_progress'),
-    path('convert/', TemplateView.as_view(template_name='ledger/main_convert.html'), name='main_convert'),
+        # 메인 화면 (홈)
+    path('', views.main_progress, name='main_progress'),
+    path('convert/', views.main_convert, name='main_convert'),
 
     # 기록하기 진입 화면 (정적이라 TemplateView OK)
     path('record/', TemplateView.as_view(template_name='ledger/record_choice.html'), name='record_choice'),
