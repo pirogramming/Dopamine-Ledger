@@ -22,7 +22,7 @@
                 <li class="nav-item {% if active_tab == 'home' %}nav-item--active{% endif %}">
                     <a class="nav-item__link" href="{% url 'ledger:main_progress' %}">
                         <img class="nav-item__icon"
-                             style="--icon-src: url('{% static "images/icon-home.svg" %}')"
+                             style="--icon-src: url('{% static 'images/icon-home.svg' %}')"
                              src="{% static 'images/icon-home.svg' %}" alt="홈">
                         <span class="nav-item__label">홈</span>
                     </a>
@@ -30,7 +30,7 @@
                 <li class="nav-item {% if active_tab == 'crew' %}nav-item--active{% endif %}">
                     <a class="nav-item__link" href="#">
                         <img class="nav-item__icon"
-                             style="--icon-src: url('{% static "images/icon-crew.svg" %}')"
+                             style="--icon-src: url('{% static 'images/icon-crew.svg' %}')"
                              src="{% static 'images/icon-crew.svg' %}" alt="크루">
                         <span class="nav-item__label">크루</span>
                     </a>
@@ -38,7 +38,7 @@
                 <li class="nav-item {% if active_tab == 'deadline' %}nav-item--active{% endif %}">
                     <a class="nav-item__link" href="#">
                         <img class="nav-item__icon"
-                             style="--icon-src: url('{% static "images/icon-deadline.svg" %}')"
+                             style="--icon-src: url('{% static 'images/icon-deadline.svg' %}')"
                              src="{% static 'images/icon-deadline.svg' %}" alt="마감">
                         <span class="nav-item__label">마감</span>
                     </a>
@@ -46,7 +46,7 @@
                 <li class="nav-item {% if active_tab == 'settlement' %}nav-item--active{% endif %}">
                     <a class="nav-item__link" href="#">
                         <img class="nav-item__icon"
-                             style="--icon-src: url('{% static "images/icon-settlement.svg" %}')"
+                             style="--icon-src: url('{% static 'images/icon-settlement.svg' %}')"
                              src="{% static 'images/icon-settlement.svg' %}" alt="결산">
                         <span class="nav-item__label">결산</span>
                     </a>
@@ -54,7 +54,7 @@
                 <li class="nav-item {% if active_tab == 'setting' %}nav-item--active{% endif %}">
                     <a class="nav-item__link" href="#">
                         <img class="nav-item__icon"
-                             style="--icon-src: url('{% static "images/icon-setting.svg" %}')"
+                             style="--icon-src: url('{% static 'images/icon-setting.svg' %}')"
                              src="{% static 'images/icon-setting.svg' %}" alt="설정">
                         <span class="nav-item__label">설정</span>
                     </a>
