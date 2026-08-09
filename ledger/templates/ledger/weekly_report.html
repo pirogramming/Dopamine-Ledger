@@ -1,67 +1,104 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>주간 결산 - 도파민 가계부</title>
-  <link rel="stylesheet" href="{% static 'ledger/weekly_report.css' %}">
-</head>
-<body>
-  <div class="report-container">
-    
-    <!-- 1. 상단 타이틀 & 칭찬 요약 카드 -->
-    <header class="report-header">
-      <h1 class="page-title">이번 주 결산</h1>
-      
-      <div class="summary-card">
-        <p id="praise-message" class="praise-text">로딩 중...</p>
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ledger/weekly_report.css' %}">
+{% endblock %}
+
+
+{% block content %}
+<div class="report-container">
+  <header class="report-header">
+    <h1 class="page-title">이번 주 결산</h1>
         
-        <div class="metrics-container">
-          <div class="metric-item">
-            <span class="metric-label">사용 시간</span>
-            <span id="this-spend" class="metric-value">0시간 0분</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">수입 시간</span>
-            <span id="this_earn" class="metric-value">0시간 0분</span> 
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">전 주 대비 사용</span>
-            <span id="spend-diff" class="metric-value diff-green">0시간 0분</span>
-          </div>
+    <div class="summary-card">
+      <p id="praise-message" class="praise-text">로딩 중...</p>
+          
+      <div class="metrics-container">
+        <div class="metric-item">
+          <span class="metric-label">사용 시간</span>
+          <span id="this-spend" class="metric-value">0시간 0분</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">수입 시간</span>
+          <span id="this_earn" class="metric-value">0시간 0분</span> 
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">전 주 대비 사용</span>
+          <span id="spend-diff" class="metric-value diff-green">0시간 0분</span>
         </div>
       </div>
-    </header>
-
-    <!-- 2. 하단 활동 내역 섹션 -->
-    <section class="history-section">
-      <h2 class="section-title">활동 내역</h2>
-      
-      <!-- 날짜별 리스트가 JS를 통해 동적으로 삽입되는 컨테이너 -->
-      <div id="history-list-container" class="history-list">
-        <!-- JS Fetch 이전 스켈레톤/로딩 표시 -->
-        <p class="loading-text">기록을 불러오는 중입니다...</p>
-      </div>
-    </section>
-
-    <!-- 3. 하단 주간결산 공유 버튼 -->
-    <div class="action-button-wrapper">
-      <button type="button" class="btn-primary">주간결산 공유하기</button>
     </div>
+  </header>
 
-    <!-- 4. 하단 고정 네비게이션 바 (아직 url 설정 안함) -->
-    <nav class="bottom-nav">
-      <a href="{% url 'ledger:main_progress' %}" class="nav-item"><img src="frame0.svg" alt="홈"><span class="nav-label">홈</span></a>
-      <a href="#" class="nav-item"><img src="frame1.svg" alt="크루"><span class="nav-label">크루</span></a>
-      <a href="#" class="nav-item"><img src="frame2.svg" alt="마감"><span class="nav-label">마감</span></a>
-      <a href="{% url 'ledger:weekly_report' %}" class="nav-item active"><img src="frame3.svg" alt="결산"><span class="nav-label">결산</span></a>
-      <a href="#" class="nav-item"><img src="frame4.svg" alt="설정"><span class="nav-label">설정</span></a>
-    </nav>
+  <section class="history-section">
+    <h2 class="section-title">활동 내역</h2>
+        
+    <!-- 날짜별 리스트가 JS를 통해 동적으로 삽입되는 컨테이너 -->
+    <div id="history-list-container" class="history-list">
+      <!-- JS Fetch 이전 스켈레톤/로딩 표시 -->
+      <p class="loading-text">기록을 불러오는 중입니다...</p>
+    </div>
+  </section>
 
+  <!-- 3. 하단 주간결산 공유 버튼 -->
+  <div class="action-button-wrapper">
+    <button type="button" class="btn-primary">주간결산 공유하기</button>
   </div>
+</div>
+{% endblock %}
 
-  <!-- 5. 백엔드 API 연동 JavaScript -->
+
+{% block nav %}
+<nav class="bottom-nav">
+    <ul class="bottom-nav__list">
+        <li class="nav-item {% if active_tab == 'home' %}nav-item--active{% endif %}">
+            <a class="nav-item__link" href="{% url 'ledger:main_progress' %}">
+                <img class="nav-item__icon"
+                     style="--icon-src: url('{% static 'images/icon-home.svg' %}')"
+                     src="{% static 'images/icon-home.svg' %}" alt="홈">
+                <span class="nav-item__label">홈</span>
+            </a>
+        </li>
+        <li class="nav-item {% if active_tab == 'crew' %}nav-item--active{% endif %}">
+            <a class="nav-item__link" href="#">
+                <img class="nav-item__icon"
+                     style="--icon-src: url('{% static 'images/icon-crew.svg' %}')"
+                     src="{% static 'images/icon-crew.svg' %}" alt="크루">
+                <span class="nav-item__label">크루</span>
+            </a>
+        </li>
+        <li class="nav-item {% if active_tab == 'deadline' %}nav-item--active{% endif %}">
+            <a class="nav-item__link" href="#">
+                <img class="nav-item__icon"
+                     style="--icon-src: url('{% static 'images/icon-deadline.svg' %}')"
+                     src="{% static 'images/icon-deadline.svg' %}" alt="마감">
+                <span class="nav-item__label">마감</span>
+            </a>
+        </li>
+        <li class="nav-item {% if active_tab == 'settlement' %}nav-item--active{% endif %}">
+            <a class="nav-item__link" href="#">
+                <img class="nav-item__icon"
+                    style="--icon-src: url('{% static 'images/icon-settlement.svg' %}')"
+                    src="{% static 'images/icon-settlement.svg' %}" alt="결산">
+                <span class="nav-item__label">결산</span>
+            </a>
+        </li>
+        <li class="nav-item {% if active_tab == 'setting' %}nav-item--active{% endif %}">
+            <a class="nav-item__link" href="#">
+                <img class="nav-item__icon"
+                     style="--icon-src: url('{% static 'images/icon-setting.svg' %}')"
+                     src="{% static 'images/icon-setting.svg' %}" alt="설정">
+                <span class="nav-item__label">설정</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+{% endblock %}
+
+
+{% block extra_js %}
+<!-- 5. 백엔드 API 연동 JavaScript -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       fetchWeeklyReport();
@@ -152,5 +189,4 @@
       });
     }
   </script>
-</body>
-</html>
+{% endblock %}
