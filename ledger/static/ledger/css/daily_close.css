@@ -317,6 +317,17 @@
     opacity: 1;
 }
 
+.daily-close__disabled-message {
+    margin: 0 0 10px;
+
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    line-height: 15px;
+    font-weight: 400;
+
+    text-align: center;
+    color: #70737C;
+}
 
 /* =========================================
     하루 마감 확인 모달

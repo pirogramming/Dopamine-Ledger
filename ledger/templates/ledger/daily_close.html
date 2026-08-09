@@ -102,10 +102,12 @@
 
     <div class="daily-close__action">
 
-        <p class="daily-close__streak-bottom">
-            🔥 연속 마감 <strong class="streak-number">{{ streak_days }}</strong>일째
-        </p>
-
+        {% if can_close %}
+            <p class="daily-close__streak-bottom">
+                🔥 연속 마감 <strong class="streak-number">{{ streak_days }}</strong>일째
+            </p>
+        {% endif %}
+        
         {% if is_closed %}
 
             <button
@@ -117,6 +119,11 @@
             </button>
 
         {% elif not can_close %}
+
+            <!-- 기록 없음 -->
+            <p class="daily-close__disabled-message">
+                기록이 없으면 버튼이 비활성화돼요.
+            </p>
 
             <button
                 type="button"
