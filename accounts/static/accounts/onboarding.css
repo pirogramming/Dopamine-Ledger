@@ -180,6 +180,7 @@ input::placeholder {
     font-size: 16px;
     font-weight: 600;
     color: #000000;
+    white-space: nowrap;
 }
 
 .activity-input-group {
@@ -191,18 +192,20 @@ input::placeholder {
 .minute-box {
     border: 1px solid #c7c7c7;
     border-radius: 10px;
-    width: 55px;
-    height: 35px;
+    width: 55px !important;
+    height: 35px !important;
     text-align: center;
     font-size: 16px;
     font-weight: 600;
     color: #ff7a00;
-    padding: 0;
+    padding: 0 !important;
+    flex-shrink: 0;
 }
 
 .unit-text {
     color: #70737c;
     font-size: 16px;
+    white-space: nowrap;
 }
 
 /* 🔘 하단 버튼 스타일 */
