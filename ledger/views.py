@@ -3,6 +3,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .forms import SpendRecordForm, EarnRecordForm
 from .models import SpendRecord, EarnRecord
+from .services import close_today, get_today_record_summary
+from budget.services import get_current_balance
 
 from datetime import timedelta
 from django.utils import timezone
@@ -85,6 +87,7 @@ def earn_record_list(request):
     """수입 기록 목록 조회 뷰, 본인 기록만 최신순으로"""
     records = EarnRecord.objects.filter(users=request.user).order_by('-earn_start')
     return render(request, 'ledger/earn_record_list.html', {'records': records})
+
 
 @login_required
 def record_choice(request):
@@ -257,6 +260,39 @@ def weekly_report(request):
             "history_by_date": history_by_date,
         },
         json_dumps_params={'ensure_ascii': False}
+def daily_close(request):
+    """오늘 기록을 확인하고 하루 마감을 처리하는 뷰"""
+    summary = get_today_record_summary(request.user)
+    balance = get_current_balance(request.user)
+
+    can_close = (
+        summary["has_earn_record"]
+        or summary["has_spend_record"]
+    )
+    error_message = None
+
+    if request.method == "POST":
+
+        try:
+            close_today(request.user)
+            return redirect("ledger:daily_close")
+
+        except ValueError as error:
+            error_message = str(error)
+
+    context = {
+        **summary,
+        "balance": balance,
+        "can_close": can_close,
+        "streak_days": request.user.streak_days,
+        "error_message": error_message,
+        "active_tab": "deadline",
+    }
+
+    return render(
+        request,
+        "ledger/daily_close.html",
+        context,
     )
 @login_required
 def main_progress(request):

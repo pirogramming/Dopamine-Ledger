@@ -1,4 +1,12 @@
 from decimal import Decimal, ROUND_HALF_UP
+from datetime import datetime, time, timedelta
+
+from django.db.models import Sum
+from django.utils import timezone
+import zoneinfo
+
+
+KST = zoneinfo.ZoneInfo("Asia/Seoul")
 
 from datetime import datetime, time, timedelta
 from django.db.models import Sum
