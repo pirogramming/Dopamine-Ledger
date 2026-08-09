@@ -1,0 +1,106 @@
+body.app-shell {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    background: #f4f4f4;
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
+}
+
+.phone-frame {
+    width: 393px;
+    min-height: 852px;     /* 852px 고정 대신 브라우저 창 높이만큼 */
+    background: #fdfcf9;
+    border: 1px solid #70737c;
+    border-radius: 28px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==========================================================================
+   하단바 아이콘 색상 통일
+   - SVG는 stroke="currentColor"라 <img> 태그로는 색 상속이 안 됨
+   - mask-image로 아이콘 모양만 따서 background-color로 색을 입히는 방식
+   - 기본색 #70737C, 활성 탭은 --spend-accent(#ff7a00)로 덮어씀
+   ========================================================================== */
+
+.nav-item__icon {
+    width: 24px;
+    height: 24px;
+    display: block;
+
+    background-color: #70737C;         /* 아이콘 기본 색 */
+
+    -webkit-mask-image: var(--icon-src);
+    mask-image: var(--icon-src);
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+
+.nav-item--active .nav-item__icon {
+    background-color: #ff7a00;         /* 활성 탭일 때 색 */
+}
+
+/* ===== 본문 영역 (헤더/네비 제외한 콘텐츠) ===== */
+.app-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 10px 33px 20px;
+
+}
+
+/* ===== 하단 네비게이션 ===== */
+.bottom-nav {
+    border-top: 1px solid #c7c7c7;
+    padding: 10px 30px;
+    position: sticky;
+    bottom: 0;
+    background: #fdfcf9;   /* main_progress.css엔 #ffffff였는데 --bg 토큰(#fdfcf9)으로 통일 */
+    border-radius: 0 0 28px 28px; 
+}
+
+.bottom-nav__list {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 45px;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 30px;
+}
+
+.nav-item__link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.nav-item__label {
+    font-size: 13px;
+    font-weight: 400;
+    color: #70737c;
+}
+
+.nav-item--active .nav-item__label {
+    font-weight: 600;
+    color: #ff7a00;
+}

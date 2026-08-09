@@ -1,3 +1,4 @@
+from decimal import Decimal, ROUND_HALF_UP
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .forms import SpendRecordForm, EarnRecordForm
@@ -5,6 +6,13 @@ from .models import SpendRecord, EarnRecord
 from .services import close_today, get_today_record_summary
 from budget.services import get_current_balance
 
+from budget.services import (
+    get_week_summary,
+    get_today_records,
+    attach_value_displays,
+    format_minutes_display,
+    format_unit_display,
+)
 
 @login_required
 def spend_record_create(request):
@@ -113,3 +121,55 @@ def daily_close(request):
         "ledger/daily_close.html",
         context,
     )
+@login_required
+def main_progress(request):
+    """홈 — 시간으로 보기."""
+    summary = get_week_summary(request.user)
+    records = attach_value_displays(
+        get_today_records(request.user), mode='minutes',
+    )
+    context = {
+        **summary,
+        'balance_display':  format_minutes_display(summary['balance']),
+        'budget_display':   format_minutes_display(summary['budget']),
+        'spent_display':    format_minutes_display(summary['spent']),
+        'earned_display':   format_minutes_display(summary['earned']),
+        'budget_desc': (
+            f"이번 주 예산 {format_minutes_display(summary['budget'])} 중 "
+            f"{format_minutes_display(summary['spent'])} 사용"
+        ),
+        'today_records': records,
+        'today_record_count': len(records),
+    }
+    return render(request, 'ledger/main_progress.html', context)
+
+@login_required
+def main_convert(request):
+    """홈 — 변환해서 보기.
+    큰 잔액만 conversion_base로 환산해서 크게 표시하고,
+    이번 주 예산/사용/적립 요약은 main_progress와 동일하게 분(시간) 포맷으로 표시.
+    오늘의 기록도 main_progress와 동일하게 분 단위로 표시."""
+    user = request.user
+    summary = get_week_summary(user)
+    base = user.conversion_base
+    unit = user.conversion_unit or ''
+    activity = user.converting_activity or '환산 활동'
+
+    records = attach_value_displays(
+        get_today_records(user), mode='minutes',   # 'unit' → 'minutes'
+    )
+    context = {
+        **summary,
+        'balance_display':  format_unit_display(summary['balance'], base, unit),
+        'budget_display':   format_minutes_display(summary['budget']),
+        'spent_display':    format_minutes_display(summary['spent']),
+        'earned_display':   format_minutes_display(summary['earned']),
+        'budget_desc': (
+            f"이번 주 예산 {format_minutes_display(summary['budget'])} 중 "
+            f"{format_minutes_display(summary['spent'])} 사용"
+        ),
+        'converted_unit_label': f"이번 주 남은 {activity} 시간",
+        'today_records': records,
+        'today_record_count': len(records),
+    }
+    return render(request, 'ledger/main_convert.html', context)
