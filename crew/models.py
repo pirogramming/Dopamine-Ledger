@@ -13,6 +13,16 @@ def generate_invite_code(length=6):
         if not Crew.objects.filter(invite_code=code).exists():
             return code
 
+def assign_character(crew):
+    """크루에서 안 쓰이는 가장 작은 캐릭터 번호를 반환 (1~6)."""
+    used = set(
+        CrewMember.objects.filter(crew=crew).values_list('character', flat=True)
+    )
+    for num in range(1, 7):   # 1~6
+        if num not in used:
+            return num
+    return 1   # 6명 다 찼으면(정원 초과 방지 로직이 있으니 실제론 안 옴) 안전값
+
 
 class Crew(models.Model):
     class Status(models.TextChoices):
@@ -65,6 +75,7 @@ class CrewMember(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name='crew_memberships'
     )
+    character = models.PositiveSmallIntegerField('캐릭터', default=1)
     joined_date = models.DateField('가입일', auto_now_add=True)
 
     class Meta:
@@ -73,6 +84,10 @@ class CrewMember(models.Model):
 
     def __str__(self):
         return f'{self.crew.name} - {self.users}'
+
+    @property
+    def character_image(self):
+        return f'images/char{self.character}.png'
 
 class CrewGoal(models.Model):
     crew = models.OneToOneField(

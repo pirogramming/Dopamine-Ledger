@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 
 from .forms import CrewCreateForm, CrewJoinForm, CrewRenameForm
-from .models import Crew, CrewMember, CrewGoal, generate_invite_code
+from .models import Crew, CrewMember, CrewGoal, generate_invite_code, assign_character
 
 
 # ── 헬퍼 ──
@@ -28,7 +28,11 @@ def _process_join(request, crew):
         return False
 
     # 통과 → 멤버 등록 + 활성 전환
-    CrewMember.objects.create(crew=crew, users=request.user)
+    CrewMember.objects.create(
+        crew=crew,
+        users=request.user,
+        character=assign_character(crew),   # ← 안 쓰이는 가장 작은 번호
+    )
     crew.refresh_status()
     messages.success(request, f'"{crew.name}" 크루에 참여했어요!')
     return True
@@ -46,7 +50,11 @@ def crew_create(request):
             crew.invite_code = request.POST.get('invite_code') or generate_invite_code()
             crew.owner = request.user
             crew.save()
-            CrewMember.objects.create(crew=crew, users=request.user)
+            CrewMember.objects.create(
+                crew=crew,
+                users=request.user,
+                character=assign_character(crew),   # ← 빈 번호 배정 (첫 멤버라 1)
+            )
             return redirect('crew:detail', crew_id=crew.id)
     else:
         form = CrewCreateForm()
@@ -197,9 +205,10 @@ def crew_members_api(request, crew_id):
         'owner_id': crew.owner_id,
         'members': [
             {
+                'id': m.id,
                 'name': str(m.users),
                 'is_owner': (m.users_id == crew.owner_id),
-                'joined': m.joined_date.strftime('%Y년 %m월 %d일'),
+                'character': m.character_image,
             }
             for m in members
         ],

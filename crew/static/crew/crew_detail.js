@@ -20,8 +20,10 @@ async function refreshMembers() {
             row.className = 'member-row';
             row.href = `/crew/${crewId}/member/${m.id}/`;
 
-        const avatar = document.createElement('div');
+        const avatar = document.createElement('img');
         avatar.className = 'member-avatar';
+        avatar.src = '/static/' + m.character;
+        avatar.alt = '캐릭터';
 
         const nameDiv = document.createElement('div');
         nameDiv.className = 'member-name';

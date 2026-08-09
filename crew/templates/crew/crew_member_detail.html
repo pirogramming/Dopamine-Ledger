@@ -1,4 +1,5 @@
 {% extends 'crew/base.html' %}
+{% load static %}
 
 {% block title %}{{ membership.users }}{% endblock %}
 
@@ -8,7 +9,7 @@
 
     <!-- 프로필 -->
     <div class="member-row" style="margin-bottom:30px;">
-        <div class="member-avatar"></div>
+        <img class="member-avatar" src="{% static membership.character_image %}" alt="캐릭터">
         <div>
             <div class="member-name">{{ membership.users }}</div>
             <div style="font-size:13px; color:var(--gray);">연속 마감 <span style="color:var(--orange);">4일째</span></div>

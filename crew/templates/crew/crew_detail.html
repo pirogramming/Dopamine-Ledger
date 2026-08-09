@@ -40,7 +40,7 @@
     <div class="member-box" id="member-list">
         {% for member in members %}
             <a class="member-row" href="{% url 'crew:member_detail' crew_id=crew.id member_id=member.id %}">
-                <div class="member-avatar"></div>
+                <img class="member-avatar" src="{% static member.character_image %}" alt="캐릭터">
                 <div class="member-name">
                     {{ member.users }}
                     {% if member.users == crew.owner %}<span class="member-crown">👑 크루장</span>{% endif %}
