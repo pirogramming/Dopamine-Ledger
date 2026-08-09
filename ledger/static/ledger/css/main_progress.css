@@ -27,6 +27,7 @@
   overflow: hidden;
 }
 
+
 .view-toggle__option {
   flex: 1;
   box-sizing: border-box;
@@ -68,19 +69,23 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 0
 }
 
 .remaining-time__label {
   font-size: 13px;
   font-weight: 400;
   color: #000000;
+  padding: 0;
+  margin : 10 0 0 0;
 }
 
 .remaining-time__value {
   font-size: 32px;
   font-weight: 700;
   color: #000000;
+  padding: 0;
+  margin: 10px
 }
 
 /* ===== 예산 진행률 ===== */
@@ -194,6 +199,7 @@
 
 .record-list {
   list-style: none;
+  padding: 0;
 }
 
 .record-list__item {
@@ -271,6 +277,7 @@
   color: #ffffff;
   font-size: 16px;
   font-weight: 700;
+  height: 13px;  /* 높이 고정: padding만으로는 높이가 일정하지 않을 수 있어서 */
 }
 
 /* ===== 진행률+요약 감싸는 흰 카드 (main_progress 전용) ===== */

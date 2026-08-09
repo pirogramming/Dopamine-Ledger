@@ -107,8 +107,9 @@ def main_progress(request):
 @login_required
 def main_convert(request):
     """홈 — 변환해서 보기.
-    큰 값은 잔액을 활동 단위로 환산해서 '활동명 + 수치' 형태로.
-    진행률 위 설명은 2줄(둘째 줄 강조). 예산/사용/적립 요약은 표시하지 않음."""
+    큰 잔액만 conversion_base로 환산해서 크게 표시하고,
+    이번 주 예산/사용/적립 요약은 main_progress와 동일하게 분(시간) 포맷으로 표시.
+    오늘의 기록도 main_progress와 동일하게 분 단위로 표시."""
     user = request.user
     summary = get_week_summary(user)
     base = user.conversion_base
@@ -116,21 +117,19 @@ def main_convert(request):
     activity = user.converting_activity or '환산 활동'
 
     records = attach_value_displays(
-        get_today_records(user), mode='unit',
-        conversion_base=base, unit_label=unit,
+        get_today_records(user), mode='minutes',   # 'unit' → 'minutes'
     )
-
-    balance_converted = format_unit_display(summary['balance'], base, unit)
-    spent_converted   = format_unit_display(summary['spent'],   base, unit)
-
     context = {
         **summary,
-        # 큰 값 (도넛 중앙 승격) — "독서 50페이지"
-        'converted_unit_label': "남은 숏폼 시간을 활동으로 바꾸면",
-        'balance_display':      f"{activity} {balance_converted}",
-        # 진행률 상단 설명 (2줄, 둘째 줄 강조)
-        'desc_line1': f"이번 주 사용한 {format_minutes_display(summary['spent'])}은",
-        'desc_line2': f"{activity} {spent_converted}에 해당해요",
+        'balance_display':  format_unit_display(summary['balance'], base, unit),
+        'budget_display':   format_minutes_display(summary['budget']),
+        'spent_display':    format_minutes_display(summary['spent']),
+        'earned_display':   format_minutes_display(summary['earned']),
+        'budget_desc': (
+            f"이번 주 예산 {format_minutes_display(summary['budget'])} 중 "
+            f"{format_minutes_display(summary['spent'])} 사용"
+        ),
+        'converted_unit_label': f"이번 주 남은 {activity} 시간",
         'today_records': records,
         'today_record_count': len(records),
     }

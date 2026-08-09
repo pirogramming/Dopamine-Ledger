@@ -127,7 +127,6 @@ def get_week_summary(user, reference_dt=None):
  #   강성훈이 지출 저장 로직에서 호출."""
  #   return get_current_balance(user, reference_dt) < 0
 
-
 # ---------- 표시 헬퍼 ----------
 
 def format_minutes_display(m):
@@ -154,6 +153,19 @@ def format_unit_display(minutes, conversion_base, unit_label):
     return f"{sign}{val}{unit_label or ''}"
 
 
+# ---------- 표시용 카테고리 매핑 ----------
+# category에 실제 저장되는 영문 값 → 화면에 보여줄 한글 이름
+CATEGORY_DISPLAY_NAMES = {
+    'short_form': '숏폼',
+    # 다른 카테고리 값이 더 있으면 여기에 추가해주세요.
+}
+
+
+def get_category_display(category):
+    """매핑에 없는 값은 원래 값 그대로 반환(누락 방지용 안전장치)."""
+    return CATEGORY_DISPLAY_NAMES.get(category, category)
+
+
 # ---------- 오늘 기록 ----------
 
 def get_today_records(user):
@@ -168,17 +180,16 @@ def get_today_records(user):
 
     records = []
     for e in earns:
-        duration_min = max(0, int((e.earn_end - e.earn_start).total_seconds() / 60))
         records.append({
-            'label': f"{e.activity.activity_type} {duration_min}분",
-            'signed_min': e.earn_min,  # 양수
+            'label': e.activity.activity_type,          # "독서 30분" → "독서"
+            'signed_min': e.earn_min,
             'is_positive': True,
             'started_at': e.earn_start,
         })
     for s in spends:
         records.append({
-            'label': f"{s.category} 지출",
-            'signed_min': Decimal(-s.duration_min),  # 음수
+            'label': get_category_display(s.category),  # "short_form 지출" → "숏폼"
+            'signed_min': Decimal(-s.duration_min),
             'is_positive': False,
             'started_at': s.spend_start,
         })
