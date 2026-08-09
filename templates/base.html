@@ -28,7 +28,7 @@
                     </a>
                 </li>
                 <li class="nav-item {% if active_tab == 'crew' %}nav-item--active{% endif %}">
-                    <a class="nav-item__link" href="#">
+                    <a class="nav-item__link" href="{% url 'crew:list' %}">
                         <img class="nav-item__icon"
                              style="--icon-src: url('{% static 'images/icon-crew.svg' %}')"
                              src="{% static 'images/icon-crew.svg' %}" alt="크루">
@@ -36,7 +36,7 @@
                     </a>
                 </li>
                 <li class="nav-item {% if active_tab == 'deadline' %}nav-item--active{% endif %}">
-                    <a class="nav-item__link" href="#">
+                    <a class="nav-item__link" href="{% url 'ledger:daily_close' %}">
                         <img class="nav-item__icon"
                              style="--icon-src: url('{% static 'images/icon-deadline.svg' %}')"
                              src="{% static 'images/icon-deadline.svg' %}" alt="마감">
@@ -44,7 +44,7 @@
                     </a>
                 </li>
                 <li class="nav-item {% if active_tab == 'settlement' %}nav-item--active{% endif %}">
-                    <a class="nav-item__link" href="#">
+                    <a class="nav-item__link" href="{% url 'ledger:weekly_report' %}">
                         <img class="nav-item__icon"
                              style="--icon-src: url('{% static 'images/icon-settlement.svg' %}')"
                              src="{% static 'images/icon-settlement.svg' %}" alt="결산">
