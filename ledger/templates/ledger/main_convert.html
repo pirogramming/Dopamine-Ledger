@@ -23,18 +23,26 @@
     <button type="button" class="view-toggle__option view-toggle__option--active">변환해서 보기</button>
   </div>
 
-  <!-- 환산 카드 -->
-  <section class="donut-card">
+  <!-- 환산된 적립값 (도넛 중앙 텍스트를 그대로 승격) -->
+  <section class="remaining-time">
+    <p class="remaining-time__label">{{ converted_unit_label }}</p>
+    <p class="remaining-time__value">{{ converted_value }}</p>
+  </section>
 
-    <div class="donut-card__chart-wrap">
-      <img class="donut-card__chart" src="{% static 'images/donut-chart.svg' %}" alt="">
-      <div class="donut-card__center">
-        <p class="donut-card__value">{{ converted_value }}</p>
-        <p class="donut-card__unit-label">{{ converted_unit_label }}</p>
-      </div>
+  <!-- 예산 진행률 (main_progress와 동일 구조) -->
+  <section class="budget-progress">
+    <div class="budget-progress__header">
+      <span class="budget-progress__desc">{{ budget_desc }}</span>
+      <span class="budget-progress__percent">{{ percent_used }}%</span>
     </div>
+    <div class="budget-progress__bar">
+      {# percent_used_capped: services.get_week_summary()에서 min(percent, 100)으로 캡핑된 값 #}
+      <div class="budget-progress__bar-fill" style="width: {{ percent_used_capped }}%"></div>
+    </div>
+  </section>
 
-    <!-- 이번 주 예산 / 사용 / 적립 (환산 단위) -->
+  <!-- 이번 주 예산 / 사용 / 적립 (환산 단위) -->
+  <section class="budget-summary">
     <ul class="budget-summary__list">
       <li class="budget-summary__item">
         <span class="budget-summary__label">이번 주 예산</span>
@@ -49,17 +57,14 @@
         <span class="budget-summary__value budget-summary__value--positive">+{{ earned_display }}</span>
       </li>
     </ul>
-
-    <a href="{% url 'ledger:main_progress' %}" class="donut-card__switch">지출 시간으로 보기</a>
-
   </section>
 
+  <!-- 오늘의 기록 -->
   <div class="today-record__header">
     <h2 class="today-record__title">오늘의 기록</h2>
     <span class="today-record__count">{{ today_record_count }}건</span>
   </div>
 
-  <!-- 환산된 기록 리스트 -->
   <ul class="converted-record-list">
     {% for record in today_records %}
       <li class="converted-record-list__item">

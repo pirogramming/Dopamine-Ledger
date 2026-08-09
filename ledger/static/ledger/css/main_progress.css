@@ -94,13 +94,16 @@
 }
 
 /* 안쪽 채움: width는 HTML에서 style="width: {{ percent_used_capped }}%"로 주입 */
+/* 안쪽 채움: width는 HTML에서 style="width: {{ percent_used_capped }}%"로 주입 */
+/* 안쪽 채움: width는 extra_js의 스크립트가 data-percent를 읽어서 주입 */
+/* 안쪽 채움: width는 HTML의 인라인 style로 주입됨 */
 .budget-progress__bar-fill {
   background: #ff7a00;
   border-radius: 30px;
   height: 8px;
+  width: 0;                      /* 기본값. 인라인 style이 덮어씀 */
   transition: width 0.4s ease;   /* 값이 바뀔 때 부드럽게 */
 }
-
 /* ===== 이번 주 예산 / 사용 / 적립 요약 ===== */
 .budget-summary {
   border-top: 1px solid #c7c7c7;

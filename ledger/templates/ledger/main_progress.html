@@ -35,24 +35,10 @@
       <span class="budget-progress__percent">{{ percent_used }}%</span>
     </div>
     <div class="budget-progress__bar">
-      {# percent_used_capped: services.get_week_summary()에서 min(percent, 100)으로 이미 캡핑됨 #}
-      <div class="budget-progress__bar-fill" data-percent="{{ percent_used_capped }}"></div>
+      {# percent_used_capped: services.get_week_summary()에서 min(percent, 100)으로 캡핑된 값 #}
+      <div class="budget-progress__bar-fill" style="width: {{ percent_used_capped }}%"></div>
     </div>
   </section>
-
-
-  <!-- 예산 진행률 -->
-  <section class="budget-progress">
-    <div class="budget-progress__header">
-      <span class="budget-progress__desc">{{ budget_desc }}</span>
-      <span class="budget-progress__percent">{{ percent_used }}%</span>
-    </div>
-    <div class="budget-progress__bar">
-      <div class="budget-progress__bar-fill" data-percent="{{ percent_used_capped }}"></div>
-    </div>
-  </section>
-
-
 
   <!-- 이번 주 예산 / 사용 / 적립 -->
   <section class="budget-summary">
