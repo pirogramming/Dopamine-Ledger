@@ -1,0 +1,89 @@
+{% extends 'crew/base.html' %}
+
+{% block title %}크루 관리{% endblock %}
+
+{% block content %}
+    <a class="back-link" href="{% url 'crew:detail' crew_id=crew.id %}">‹</a>
+    <h1 class="page-title">크루 관리</h1>
+    <p class="section-label" style="text-align:center;">방장만 볼 수 있어요</p>
+
+    <!-- 이름 수정 -->
+    <div class="field-label">크루 이름</div>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="rename">
+        <div class="join-row">
+            <input class="text-input" type="text" name="name" value="{{ crew.name }}" maxlength="50" style="margin-bottom:0;">
+            <button type="submit" style="background:var(--card); border:1px solid var(--orange); border-radius:10px; color:var(--orange); font-weight:700; padding:0 16px; cursor:pointer;">저장</button>
+        </div>
+    </form>
+
+    <!-- 목표 설정 -->
+    <div class="field-label" style="margin-top:20px;">이번 주 목표</div>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="goal">
+        <div class="code-box" style="text-align:left;">
+            <div class="label" style="text-align:left;">목표 시간</div>
+            <input class="text-input" type="number" name="target_hours" min="1"
+                   value="{% if goal %}{{ goal.target_hours }}{% else %}20{% endif %}" style="margin:8px 0 16px;">
+            <div class="label" style="text-align:left;">보상 문구</div>
+            <input class="text-input" type="text" name="reward_text"
+                   value="{% if goal %}{{ goal.reward_text }}{% endif %}" placeholder="예: 목표 달성 시 크루 회식🍗" style="margin-top:8px;">
+        </div>
+        <button class="btn-primary" type="submit">목표 저장</button>
+    </form>
+
+    <!-- 멤버 관리 -->
+    <div class="section-label" style="margin-top:30px;">멤버 {{ members.count }}명</div>
+    <div class="member-box">
+        {% for member in members %}
+            <div class="member-row" style="justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div class="member-avatar"></div>
+                    <div class="member-name">
+                        {{ member.users }}
+                        {% if member.users == crew.owner %}<span class="member-crown">👑 크루장</span>{% endif %}
+                    </div>
+                </div>
+                {% if member.users != crew.owner %}
+                    <button type="button" class="kick-btn"
+                            data-member-id="{{ member.id }}"
+                            data-member-name="{{ member.users }}"
+                            onclick="openKickModal(this)">내보내기</button>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- 내보내기 확인 팝업 -->
+    <div class="modal-overlay" id="kick-modal">
+        <div class="modal">
+            <h2>멤버 내보내기</h2>
+            <p><strong id="kick-name"></strong>님을 크루에서 내보낼까요?</p>
+            <p class="warn">내보내면 초대 코드가 새로 발급돼요.</p>
+            <form method="post" id="kick-form">
+                {% csrf_token %}
+                <div class="modal-actions">
+                    <button type="button" class="btn-outline" onclick="closeModal('kick-modal')">취소</button>
+                    <button type="submit" class="btn-primary">내보내기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    function openKickModal(btn) {
+        const memberId = btn.dataset.memberId;
+        const memberName = btn.dataset.memberName;
+        document.getElementById('kick-name').textContent = memberName;
+        document.getElementById('kick-form').action = `/crew/{{ crew.id }}/kick/${memberId}/`;
+        openModal('kick-modal');
+    }
+</script>
+{% endblock %}

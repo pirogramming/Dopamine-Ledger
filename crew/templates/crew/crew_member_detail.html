@@ -1,0 +1,94 @@
+{% extends 'crew/base.html' %}
+
+{% block title %}{{ membership.users }}{% endblock %}
+
+{% block content %}
+    <a class="back-link" href="{% url 'crew:detail' crew_id=crew.id %}">‹</a>
+    <h1 class="page-title">{{ membership.users }}</h1>
+
+    <!-- 프로필 -->
+    <div class="member-row" style="margin-bottom:30px;">
+        <div class="member-avatar"></div>
+        <div>
+            <div class="member-name">{{ membership.users }}</div>
+            <div style="font-size:13px; color:var(--gray);">연속 마감 <span style="color:var(--orange);">4일째</span></div>
+        </div>
+    </div>
+
+    <!-- 오늘 (더미) -->
+    <div class="field-label">오늘</div>
+    <div class="today-box">
+        <div class="today-col">
+            <div class="today-label">↘ 지출</div>
+            <div class="today-value">22분</div>
+            <div class="today-sub">숏폼</div>
+        </div>
+        <div class="today-divider"></div>
+        <div class="today-col">
+            <div class="today-label">↗ 수입</div>
+            <div class="today-value">40분</div>
+            <div class="today-sub">독서 40분</div>
+        </div>
+    </div>
+
+    <!-- 이번 주 잔액 (더미) -->
+    <div class="field-label" style="margin-top:24px;">이번 주</div>
+    <div class="goal-box">
+        <div class="goal-main">
+            <span class="goal-title" style="font-size:14px; color:var(--gray);">잔액</span>
+            <span class="goal-percent">+1시간 12분</span>
+        </div>
+        <div class="goal-bar"><div class="fill" style="width: 60%;"></div></div>
+        <div class="goal-foot">
+            <span>예산 5시간</span>
+            <span>수입 2시간 40분 · 지출 1시간 30분</span>
+        </div>
+    </div>
+
+    <!-- 응원 보내기 (모양만) -->
+    <div class="bottom-btn">
+        <button class="btn-outline" onclick="openModal('cheer-modal')">응원 보내기</button>
+    </div>
+
+    <!-- 더미 데이터 안내 -->
+    <p style="text-align:center; font-size:12px; color:var(--gray); margin-top:12px;">
+        ※ 활동 데이터는 준비 중입니다 (예시)
+    </p>
+
+    <!-- 응원 보내기 팝업 -->
+    <div class="modal-overlay" id="cheer-modal">
+        <div class="modal">
+            <h2>응원 보내기</h2>
+            <p><strong>{{ membership.users }}</strong>님에게<br>응원을 보낼까요?</p>
+            <p class="warn">응원 기능은 준비 중이에요.</p>
+            <div class="modal-actions">
+                <button type="button" class="btn-outline" onclick="closeModal('cheer-modal')">닫기</button>
+                <button type="button" class="btn-primary" onclick="sendCheer()">응원 보내기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 응원 완료 팝업 -->
+    <div class="modal-overlay" id="cheer-done-modal">
+        <div class="modal">
+            <h2>응원 완료</h2>
+            <p><strong>{{ membership.users }}</strong>님에게 응원을 보냈어요!</p>
+            <p class="warn">응원 기능은 준비 중이에요.</p>
+            <div class="modal-actions">
+                <button type="button" class="btn-primary" onclick="closeModal('cheer-done-modal')">확인</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    function sendCheer() {
+        closeModal('cheer-modal');
+        openModal('cheer-done-modal');
+    }
+</script>
+{% endblock %}
