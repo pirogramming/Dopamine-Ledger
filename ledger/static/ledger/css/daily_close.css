@@ -1,7 +1,7 @@
 /* =========================================
-   하루 마감 페이지
-   - phone-frame / app-content / bottom-nav는 common.css 사용
-   - 하루마감 내부 디자인은 Figma 기준
+    하루 마감 페이지
+    - phone-frame / app-content / bottom-nav는 common.css 사용
+    - 하루마감 내부 디자인은 Figma 기준
 ========================================= */
 
 .daily-close-page,
@@ -14,13 +14,12 @@
     width: 100%;
     min-height: 720px;
     flex: 1;
-
     font-family: 'Inter', sans-serif;
 }
 
 
 /* =========================================
-   상단 제목 영역
+    상단 제목 영역
 ========================================= */
 
 .daily-close__header {
@@ -39,7 +38,13 @@
     line-height: 16px;
 
     text-align: center;
-    color: #000000;
+    color: #FF7A00;
+}
+
+.streak-number {
+    font-size: 24px;
+    font-weight: 700;
+    color: #FF7A00;
 }
 
 .daily-close__title {
@@ -57,7 +62,7 @@
 
 
 /* =========================================
-   오늘의 지출 / 오늘의 수입 / 잔액
+    오늘의 지출 / 오늘의 수입 / 잔액
 ========================================= */
 
 .daily-close__summary {
@@ -68,7 +73,6 @@
     align-items: flex-start;
 
     gap: 13px;
-
     margin-top: 28px;
 }
 
@@ -91,7 +95,7 @@
 
 
 /* =========================================
-   체크 아이콘
+    체크 아이콘
 ========================================= */
 
 .summary-card__check {
@@ -118,8 +122,7 @@
 
 
 /* =========================================
-   카드 제목
-   오늘의 지출 / 오늘의 수입 / 잔액 확인
+    카드 제목
 ========================================= */
 
 .summary-card__title {
@@ -136,16 +139,13 @@
     align-items: center;
 
     color: #000000;
-
     white-space: nowrap;
 }
 
 
 /* =========================================
-   카드 오른쪽 값
-
-   오늘은 안 봤어요 / 0분 / 230.00분
-   → 오른쪽 끝선 기준 정렬
+    카드 오른쪽 값
+    → 오른쪽 끝선 기준 정렬
 ========================================= */
 
 .summary-card__value {
@@ -164,14 +164,9 @@
     text-align: right;
 
     color: #000000;
-
     white-space: nowrap;
 }
 
-
-/* 기록이 없을 때
-   "오늘은 안 봤어요"
-*/
 .summary-card__value--empty {
     font-family: 'Inter', sans-serif;
     font-style: normal;
@@ -179,12 +174,15 @@
     font-size: 16px;
     line-height: 19px;
 
-    color: #000000;
+    color: #AEB0B6;
 }
 
+.summary-card__check--empty {
+    color: transparent;
+}
 
 /* =========================================
-   안내 문구
+    안내 문구
 ========================================= */
 
 .daily-close__description {
@@ -206,7 +204,7 @@
 
 
 /* =========================================
-   오류 메시지
+    오류 메시지
 ========================================= */
 
 .daily-close__error {
@@ -225,7 +223,7 @@
 
 
 /* =========================================
-   하단 마감 영역
+    하단 마감 영역
 ========================================= */
 
 .daily-close__action {
@@ -255,13 +253,13 @@
 
     text-align: center;
 
-    color: #000000;
+    color: #FF7A00;
 }
 
 
 /* =========================================
-   하루 마감 버튼
-   기본 = 마감 가능 → 주황색
+    하루 마감 버튼
+    기본 = 마감 가능 → 주황색
 ========================================= */
 
 .daily-close__button {
@@ -296,13 +294,10 @@
 }
 
 
-/* =========================================
-   기록 없음 → 비활성 버튼
-========================================= */
+/* 기록 없음 → 비활성 버튼 */
 
 .daily-close__button--disabled {
     background: #C7C7C7;
-
     cursor: not-allowed;
 }
 
@@ -311,16 +306,219 @@
 }
 
 
-/* =========================================
-   마감 완료 → 주황색
-========================================= */
+/* 마감 완료 → 주황색 */
 
 .daily-close__button--completed {
     background: #FF7A00;
-
     cursor: default;
 }
 
 .daily-close__button--completed:hover {
     opacity: 1;
+}
+
+
+/* =========================================
+    하루 마감 확인 모달
+    Figma 기준
+========================================= */
+
+.close-modal {
+    display: none;
+
+    position: fixed;
+    top: 0;
+    left: 50%;
+
+    width: 393px;
+    height: 852px;
+
+    transform: translateX(-50%);
+
+    z-index: 9999;
+
+    border-radius: 28px;
+    overflow: hidden;
+}
+
+
+/* 모달 열림 */
+.close-modal--open {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+
+    padding-top: 208px;
+}
+
+
+/* 폰 프레임 전체 딤 처리 */
+.close-modal__overlay {
+    position: absolute;
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.4);
+}
+
+
+/* =========================================
+    흰색 모달 박스
+========================================= */
+
+.close-modal__content {
+    position: relative;
+    z-index: 1;
+
+    width: 327px;
+
+    padding: 28px 14px 16px;
+
+    background: #FFFFFF;
+    border-radius: 15px;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================
+    느낌표 아이콘
+========================================= */
+
+.close-modal__icon {
+    width: 28px;
+    height: 28px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    margin-bottom: 22px;
+
+    border-radius: 50%;
+
+    background: #FFF0E3;
+    color: #FF7A00;
+
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+
+/* =========================================
+    모달 제목
+========================================= */
+
+.close-modal__title {
+    margin: 0 0 10px;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 20px;
+
+    color: #000000;
+}
+
+
+/* =========================================
+    설명
+========================================= */
+
+.close-modal__description {
+    margin: 0 0 20px;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 16px;
+
+    color: #70737C;
+}
+
+
+/* =========================================
+    + 추가 기록하기
+========================================= */
+
+.close-modal__add-button {
+    width: 100%;
+    height: 48px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    margin-bottom: 7px;
+
+    background: #FFFFFF;
+
+    border: 1px solid #C7C7C7;
+    border-radius: 12px;
+
+    box-sizing: border-box;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+
+    color: #70737C;
+    text-decoration: none;
+}
+
+
+/* =========================================
+    실제 마감 form
+========================================= */
+
+.close-modal__form {
+    width: 100%;
+}
+
+
+/* =========================================
+    모달 안 하루 마감하기
+========================================= */
+
+.close-modal__close-button {
+    width: 100%;
+    height: 48px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 0;
+
+    background: #FF7A00;
+
+    border: none;
+    border-radius: 12px;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 14px;
+
+    color: #FFFFFF;
+
+    cursor: pointer;
+}
+
+.close-modal__close-button:hover {
+    opacity: 0.9;
+}
+
+/* 하루 마감 페이지 하단 모서리 보정 */
+.phone-frame {
+    overflow: hidden;
+}
+
+.bottom-nav {
+    border-bottom-left-radius: 28px;
+    border-bottom-right-radius: 28px;
 }

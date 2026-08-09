@@ -4,8 +4,9 @@
 {% block title %}하루 마감하기{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'ledger/css/daily_close.css' %}">
+<link rel="stylesheet" href="{% static 'ledger/css/daily_close.css' %}?v=2">
 {% endblock %}
+
 
 {% block content %}
 
@@ -13,7 +14,7 @@
 
     <header class="daily-close__header">
         <p class="daily-close__streak-top">
-            🔥 {{ streak_days }}일째
+            🔥 연속 마감 <strong class="streak-number">{{ streak_days }}</strong>일째
         </p>
 
         <h1 class="daily-close__title">
@@ -26,8 +27,8 @@
 
         <!-- 오늘의 지출 -->
         <div class="summary-card">
-            <span class="summary-card__check">
-                ✓
+            <span class="summary-card__check {% if not has_spend_record %}summary-card__check--empty{% endif %}">
+                {% if has_spend_record %}✓{% endif %}
             </span>
 
             <strong class="summary-card__title">
@@ -48,8 +49,8 @@
 
         <!-- 오늘의 수입 -->
         <div class="summary-card">
-            <span class="summary-card__check">
-                ✓
+            <span class="summary-card__check {% if not has_earn_record %}summary-card__check--empty{% endif %}">
+                {% if has_earn_record %}✓{% endif %}
             </span>
 
             <strong class="summary-card__title">
@@ -61,8 +62,8 @@
                     {{ earn_activity }} {{ today_earn }}분
                 </span>
             {% else %}
-                <span class="summary-card__value">
-                    0분
+                <span class="summary-card__value summary-card__value--empty">
+                    아직 활동 없음
                 </span>
             {% endif %}
         </div>
@@ -88,8 +89,7 @@
 
     <p class="daily-close__description">
         연속 마감 {{ streak_days }}일째 -
-        오늘부터 다시 시작해도 괜찮아요,
-        기록이 없으면 마감 버튼이 비활성화돼요.
+        연속 마감이 깨지고 기록이 없으면 마감 버튼이 비활성화돼요.
     </p>
 
 
@@ -103,7 +103,7 @@
     <div class="daily-close__action">
 
         <p class="daily-close__streak-bottom">
-            🔥 {{ streak_days }}일째
+            🔥 연속 마감 <strong class="streak-number">{{ streak_days }}</strong>일째
         </p>
 
         {% if is_closed %}
@@ -128,21 +128,122 @@
 
         {% else %}
 
-            <form method="post">
-                {% csrf_token %}
-
-                <button
-                    type="submit"
-                    class="daily-close__button"
-                >
-                    하루 마감하기
-                </button>
-            </form>
+            <button
+                type="button"
+                class="daily-close__button"
+                id="openCloseModal"
+            >
+                하루 마감하기
+            </button>
 
         {% endif %}
 
     </div>
 
+
+    <!-- 하루 마감 확인 모달 -->
+    {% if not is_closed and can_close %}
+
+        <div
+            class="close-modal"
+            id="closeModal"
+            aria-hidden="true"
+        >
+
+            <div class="close-modal__overlay"></div>
+
+            <div
+                class="close-modal__content"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="closeModalTitle"
+            >
+
+                <div class="close-modal__icon">
+                    !
+                </div>
+
+                <h2
+                    class="close-modal__title"
+                    id="closeModalTitle"
+                >
+                    진짜 더 기록할 거 없어요?
+                </h2>
+
+                <p class="close-modal__description">
+                    마감하면 오늘 지출 수입은 더 추가할 수 없어요.<br>
+                    잊은 활동이 있는지 한 번 더 확인해보세요.
+                </p>
+
+
+                <a
+                    href="{% url 'ledger:record_choice' %}"
+                    class="close-modal__add-button"
+                >
+                    + 추가 기록하기
+                </a>
+
+
+                <form
+                    method="post"
+                    class="close-modal__form"
+                >
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="close-modal__close-button"
+                    >
+                        하루 마감하기
+                    </button>
+                </form>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
 </section>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+{% if not is_closed and can_close %}
+
+<script>
+    const openCloseModalButton =
+        document.getElementById("openCloseModal");
+
+    const closeModal =
+        document.getElementById("closeModal");
+
+    const closeModalOverlay =
+        closeModal.querySelector(".close-modal__overlay");
+
+
+    openCloseModalButton.addEventListener("click", function () {
+        closeModal.classList.add("close-modal--open");
+        closeModal.setAttribute("aria-hidden", "false");
+    });
+
+
+    closeModalOverlay.addEventListener("click", function () {
+        closeModal.classList.remove("close-modal--open");
+        closeModal.setAttribute("aria-hidden", "true");
+    });
+
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeModal.classList.remove("close-modal--open");
+            closeModal.setAttribute("aria-hidden", "true");
+        }
+    });
+</script>
+
+{% endif %}
 
 {% endblock %}
