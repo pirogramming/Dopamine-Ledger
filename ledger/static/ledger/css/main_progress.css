@@ -17,31 +17,50 @@
   height: 24px;
 }
 
-/* ===== 보기 방식 토글 ===== */
+/* ===== 보기 방식 토글 (카드 + 언더라인) ===== */
 .view-toggle {
-  background: #f0e5d5;
-  border-radius: 30px;
-  padding: 3px 4px;
+  background: #ffffff;
+  border: 1px solid #c7c7c7;
+  border-radius: 10px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: stretch;
+  overflow: hidden;
 }
 
 .view-toggle__option {
+  flex: 1;
+  box-sizing: border-box;
   border: none;
   background: none;
   text-decoration: none;
   font-size: 13px;
   font-weight: 600;
   color: #70737c;
-  padding: 13px 37px;
-  border-radius: 30px;
+  padding: 15px 10px;
+  text-align: center;
   cursor: pointer;
+  position: relative;
+}
+
+/* 두 번째 옵션 앞에 세로 구분선 (line-4 대체) */
+.view-toggle__option + .view-toggle__option {
+  border-left: 1px solid #c7c7c7;
 }
 
 .view-toggle__option--active {
+  color: #ff7a00;
+}
+
+/* 활성 옵션 하단 언더라인 (rectangle-27 대체) */
+.view-toggle__option--active::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 2px;
   background: #ff7a00;
-  color: #ffffff;
+  border-radius: 10px;
 }
 
 /* ===== 이번 주 남은 시간 ===== */
@@ -69,12 +88,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   margin-bottom: 8px;
 }
 
 .budget-progress__desc {
   font-size: 13px;
   font-weight: 400;
+  color: #70737c;
+  line-height: 1.45;
+}
+
+/* convert의 둘째 줄 강조 */
+.budget-progress__desc-strong {
+  font-weight: 700;
   color: #70737c;
 }
 
@@ -106,16 +133,14 @@
 }
 /* ===== 이번 주 예산 / 사용 / 적립 요약 ===== */
 .budget-summary {
-  border-top: 1px solid #c7c7c7;
-  border-bottom: 1px solid #c7c7c7;
-  padding: 10px 0;
+  padding: 0;
 }
 
 .budget-summary__list {
   list-style: none;
   display: flex;
-  justify-content: center;
-  gap: 44px;
+  justify-content: space-evenly;   /* 모든 간격(양쪽 끝 포함)이 동일하게 */
+  padding: 0;
 }
 
 .budget-summary__item {
@@ -123,13 +148,14 @@
   flex-direction: column;
   align-items: center;
   gap: 7px;
-  width: 70px;
+  width: auto; /* 고정 70px 제거 */
 }
 
 .budget-summary__label {
   font-size: 13px;
   font-weight: 400;
   color: #70737c;
+  white-space: nowrap; 
 }
 
 .budget-summary__value {
@@ -245,4 +271,20 @@
   color: #ffffff;
   font-size: 16px;
   font-weight: 700;
+}
+
+/* ===== 진행률+요약 감싸는 흰 카드 (main_progress 전용) ===== */
+.budget-card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.25);
+}
+
+.app-header__notification-link {
+  display: inline-flex;   /* 이미지 크기에 딱 맞춰서 불필요한 클릭 영역/여백 방지 */
+  line-height: 0;         /* 인라인 요소 특유의 하단 여백 제거 */
 }

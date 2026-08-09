@@ -104,10 +104,11 @@ def main_progress(request):
     }
     return render(request, 'ledger/main_progress.html', context)
 
-
 @login_required
 def main_convert(request):
-    """홈 — 변환해서 보기. 모든 시간값을 conversion_base로 환산."""
+    """홈 — 변환해서 보기.
+    큰 값은 잔액을 활동 단위로 환산해서 '활동명 + 수치' 형태로.
+    진행률 위 설명은 2줄(둘째 줄 강조). 예산/사용/적립 요약은 표시하지 않음."""
     user = request.user
     summary = get_week_summary(user)
     base = user.conversion_base
@@ -118,19 +119,18 @@ def main_convert(request):
         get_today_records(user), mode='unit',
         conversion_base=base, unit_label=unit,
     )
+
+    balance_converted = format_unit_display(summary['balance'], base, unit)
+    spent_converted   = format_unit_display(summary['spent'],   base, unit)
+
     context = {
         **summary,
-        'balance_display':  format_unit_display(summary['balance'], base, unit),
-        'budget_display':   format_unit_display(summary['budget'], base, unit),
-        'spent_display':    format_unit_display(summary['spent'], base, unit),
-        'earned_display':   format_unit_display(summary['earned'], base, unit),
-        'budget_desc': (
-            f"이번 주 예산 {format_unit_display(summary['budget'], base, unit)} 중 "
-            f"{format_unit_display(summary['spent'], base, unit)} 사용"
-        ),
-        # 도넛 중앙: 이번 주 적립 시간을 환산 단위로
-        'converted_value': format_unit_display(summary['earned'], base, unit),
-        'converted_unit_label': f"{activity} 몇 {unit}" if unit else activity,
+        # 큰 값 (도넛 중앙 승격) — "독서 50페이지"
+        'converted_unit_label': "남은 숏폼 시간을 활동으로 바꾸면",
+        'balance_display':      f"{activity} {balance_converted}",
+        # 진행률 상단 설명 (2줄, 둘째 줄 강조)
+        'desc_line1': f"이번 주 사용한 {format_minutes_display(summary['spent'])}은",
+        'desc_line2': f"{activity} {spent_converted}에 해당해요",
         'today_records': records,
         'today_record_count': len(records),
     }

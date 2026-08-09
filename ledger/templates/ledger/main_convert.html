@@ -5,13 +5,14 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'ledger/css/main_progress.css' %}">
-  <link rel="stylesheet" href="{% static 'ledger/css/main_convert.css' %}">
 {% endblock %}
 
 {% block header %}
   <header class="app-header">
-    <img class="app-header__logo" src="{% static 'images/logo.png' %}" alt="도파민 가계부">
-    <img class="app-header__notification" src="{% static 'images/icon-bell.svg' %}" alt="알림">
+    <img class="app-header__logo" src="{% static 'ledger/images/logo.png' %}" alt="도파민 가계부">
+    <a class="app-header__notification-link" href="#" aria-label="알림 보기">
+      <img class="app-header__notification" src="{% static 'ledger/images/icon-bell.svg' %}" alt="">
+    </a>
   </header>
 {% endblock %}
 
@@ -23,64 +24,58 @@
     <button type="button" class="view-toggle__option view-toggle__option--active">변환해서 보기</button>
   </div>
 
-  <!-- 환산된 적립값 (도넛 중앙 텍스트를 그대로 승격) -->
+  <!-- 큰 값: 남은 시간의 활동 환산 (예: "독서 50페이지") -->
   <section class="remaining-time">
     <p class="remaining-time__label">{{ converted_unit_label }}</p>
-    <p class="remaining-time__value">{{ converted_value }}</p>
+    <p class="remaining-time__value">{{ balance_display }}</p>
   </section>
 
-  <!-- 예산 진행률 (main_progress와 동일 구조) -->
+  <!-- 진행률 (카드 없음, 설명은 2줄 + 둘째 줄 강조) -->
   <section class="budget-progress">
     <div class="budget-progress__header">
-      <span class="budget-progress__desc">{{ budget_desc }}</span>
+      <div class="budget-progress__desc">
+        <div>{{ desc_line1 }}</div>
+        <div class="budget-progress__desc-strong">{{ desc_line2 }}</div>
+      </div>
       <span class="budget-progress__percent">{{ percent_used }}%</span>
     </div>
     <div class="budget-progress__bar">
-      {# percent_used_capped: services.get_week_summary()에서 min(percent, 100)으로 캡핑된 값 #}
       <div class="budget-progress__bar-fill" style="width: {{ percent_used_capped }}%"></div>
     </div>
   </section>
 
-  <!-- 이번 주 예산 / 사용 / 적립 (환산 단위) -->
-  <section class="budget-summary">
-    <ul class="budget-summary__list">
-      <li class="budget-summary__item">
-        <span class="budget-summary__label">이번 주 예산</span>
-        <span class="budget-summary__value">{{ budget_display }}</span>
-      </li>
-      <li class="budget-summary__item">
-        <span class="budget-summary__label">사용</span>
-        <span class="budget-summary__value budget-summary__value--negative">-{{ spent_display }}</span>
-      </li>
-      <li class="budget-summary__item">
-        <span class="budget-summary__label">적립</span>
-        <span class="budget-summary__value budget-summary__value--positive">+{{ earned_display }}</span>
-      </li>
+  {# 예산/사용/적립 요약은 convert에서는 표시 안 함 (디자인 변경) #}
+
+  <!-- 오늘의 기록 (progress와 동일 구조) -->
+  <section class="today-record">
+    <div class="today-record__header">
+      <h2 class="today-record__title">오늘의 기록</h2>
+      <span class="today-record__count">{{ today_record_count }}건</span>
+    </div>
+    <ul class="record-list">
+      {% for record in today_records %}
+        <li class="record-list__item">
+          <div class="record-list__info">
+            {% if record.is_positive %}
+              <img class="record-list__icon" src="{% static 'ledger/images/icon-earn.svg' %}" alt="">
+            {% else %}
+              <img class="record-list__icon" src="{% static 'ledger/images/icon-spend.svg' %}" alt="">
+            {% endif %}
+            <span class="record-list__label">{{ record.label }}</span>
+          </div>
+          <span class="record-list__value {% if record.is_positive %}record-list__value--positive{% else %}record-list__value--negative{% endif %}">{{ record.value_display }}</span>
+        </li>
+      {% empty %}
+        <li class="record-list__item">
+          <span class="record-list__label">오늘 기록이 아직 없어요</span>
+        </li>
+      {% endfor %}
     </ul>
   </section>
 
-  <!-- 오늘의 기록 -->
-  <div class="today-record__header">
-    <h2 class="today-record__title">오늘의 기록</h2>
-    <span class="today-record__count">{{ today_record_count }}건</span>
-  </div>
-
-  <ul class="converted-record-list">
-    {% for record in today_records %}
-      <li class="converted-record-list__item">
-        <span class="converted-record-list__label">{{ record.label }}</span>
-        <span class="converted-record-list__value {% if record.is_positive %}converted-record-list__value--positive{% else %}converted-record-list__value--negative{% endif %}">{{ record.value_display }}</span>
-      </li>
-    {% empty %}
-      <li class="converted-record-list__item">
-        <span class="converted-record-list__label">오늘 기록이 아직 없어요</span>
-      </li>
-    {% endfor %}
-  </ul>
-
   {% if is_overspent %}
     <div class="alert-banner">
-      <img class="alert-banner__icon" src="{% static 'images/icon-warning.svg' %}" alt="경고">
+      <img class="alert-banner__icon" src="{% static 'ledger/images/icon-warning.svg' %}" alt="경고">
       <p class="alert-banner__text">예산 시간을 다 썼어요. 초과분은 크루가 보고 있어요.</p>
     </div>
   {% endif %}
