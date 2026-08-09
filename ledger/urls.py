@@ -20,6 +20,9 @@ urlpatterns = [
     path('record/earn/', views.earn_record_create, name='earn_record_create'),
     path('earn/', views.earn_record_list, name='earn_record_list'),
 
+    # 주간 결산 (URL 분리)
+    path('report/', TemplateView.as_view(template_name='ledger/weekly_report.html'), name='weekly_report'),  # 화면 요청 시 진입 URL
+    path('api/weekly-report/', views.weekly_report, name='weekly_report_api'),  # HTML 내부 JS가 JSON 데이터를 뽑아가는 API URL
     # 하루 마감
     path('daily-close/', views.daily_close, name='daily_close'),
 ]

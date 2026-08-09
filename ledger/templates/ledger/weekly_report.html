@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ledger/weekly_report.css' %}">
+{% endblock %}
+
+
+{% block content %}
+<div class="report-container">
+  <header class="report-header">
+    <h1 class="page-title">이번 주 결산</h1>
+        
+    <div class="summary-card">
+      <p id="praise-message" class="praise-text">로딩 중...</p>
+          
+      <div class="metrics-container">
+        <div class="metric-item">
+          <span class="metric-label">사용 시간</span>
+          <span id="this-spend" class="metric-value">0시간 0분</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">수입 시간</span>
+          <span id="this_earn" class="metric-value">0시간 0분</span> 
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">전 주 대비 사용</span>
+          <span id="spend-diff" class="metric-value diff-green">0시간 0분</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="history-section">
+    <h2 class="section-title">활동 내역</h2>
+        
+    <!-- 날짜별 리스트가 JS를 통해 동적으로 삽입되는 컨테이너 -->
+    <div id="history-list-container" class="history-list">
+      <!-- JS Fetch 이전 스켈레톤/로딩 표시 -->
+      <p class="loading-text">기록을 불러오는 중입니다...</p>
+    </div>
+  </section>
+
+  <!-- 3. 하단 주간결산 공유 버튼 -->
+  <div class="action-button-wrapper">
+    <button type="button" class="btn-primary">주간결산 공유하기</button>
+  </div>
+</div>
+{% endblock %}
+
+
+{% block nav %}
+<nav class="bottom-nav">
+    <ul class="bottom-nav__list">
+        <li class="nav-item {% if active_tab == 'home' %}nav-item--active{% endif %}">
+            <a class="nav-item__link" href="{% url 'ledger:main_progress' %}">
+                <img class="nav-item__icon"
+                     style="--icon-src: url('{% static 'images/icon-home.svg' %}')"
+                     src="{% static 'images/icon-home.svg' %}" alt="홈">
+                <span class="nav-item__label">홈</span>
+            </a>
+        </li>
+        <li class="nav-item {% if active_tab == 'crew' %}nav-item--active{% endif %}">
+            <a class="nav-item__link" href="#">
+                <img class="nav-item__icon"
+                     style="--icon-src: url('{% static 'images/icon-crew.svg' %}')"
+                     src="{% static 'images/icon-crew.svg' %}" alt="크루">
+                <span class="nav-item__label">크루</span>
+            </a>
+        </li>
+        <li class="nav-item {% if active_tab == 'deadline' %}nav-item--active{% endif %}">
+            <a class="nav-item__link" href="#">
+                <img class="nav-item__icon"
+                     style="--icon-src: url('{% static 'images/icon-deadline.svg' %}')"
+                     src="{% static 'images/icon-deadline.svg' %}" alt="마감">
+                <span class="nav-item__label">마감</span>
+            </a>
+        </li>
+        <li class="nav-item {% if active_tab == 'settlement' %}nav-item--active{% endif %}">
+            <a class="nav-item__link" href="#">
+                <img class="nav-item__icon"
+                    style="--icon-src: url('{% static 'images/icon-settlement.svg' %}')"
+                    src="{% static 'images/icon-settlement.svg' %}" alt="결산">
+                <span class="nav-item__label">결산</span>
+            </a>
+        </li>
+        <li class="nav-item {% if active_tab == 'setting' %}nav-item--active{% endif %}">
+            <a class="nav-item__link" href="#">
+                <img class="nav-item__icon"
+                     style="--icon-src: url('{% static 'images/icon-setting.svg' %}')"
+                     src="{% static 'images/icon-setting.svg' %}" alt="설정">
+                <span class="nav-item__label">설정</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+{% endblock %}
+
+
+{% block extra_js %}
+<!-- 5. 백엔드 API 연동 JavaScript -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      fetchWeeklyReport();
+    });
+
+    function fetchWeeklyReport() {
+      // 백엔드 API 호출 (Django Url Pattern)
+      fetch("/ledger/api/weekly-report/")
+        .then(response => {
+          if (!response.ok) throw new Error("네트워크 응답 오류");
+          return response.json();
+        })
+        .then(data => {
+          // A. 칭찬 문구 세팅
+          document.getElementById("praise-message").innerText = data.praise_message;
+
+          // B. 수치 데이터 세팅 (시간/분 환산)
+          document.getElementById("this-spend").innerText = formatHoursMins(data.this_spend_min);
+          document.getElementById("this_earn").innerText = formatHoursMins(data.this_earn_min);
+          // css에서 색 바꿔야 함 (그냥 검은색으로)
+          
+          // 전주 대비 숏폼 사용량 표현 (-면 줄임: 초록색 / +면 늘음: 주황색)
+          const spendDiffEl = document.getElementById("spend-diff");
+          const diffVal = data.spend_diff_min;
+          if (diffVal <= 0) {
+            spendDiffEl.innerText = `-${formatHoursMins(diffVal)}`;
+            spendDiffEl.className = "metric-value diff-green";
+          } else {
+            spendDiffEl.innerText = `+${formatHoursMins(diffVal)}`;
+            spendDiffEl.className = "metric-value diff-orange";
+          }
+
+          // C. 활동 내역 세부 데이터가 있을 경우 동적 HTML 렌더링
+          if (data.history_by_date) {
+            renderHistoryList(data.history_by_date);
+          }
+        })
+        .catch(err => {
+          console.error("데이터 연동 실패:", err);
+          document.getElementById("praise-message").innerText = "리포트 데이터를 불러오지 못했습니다.";
+        });
+    }
+
+    // 분 단위 데이터를 X시간 Y분 문맥으로 변환하는 함수
+    function formatHoursMins(totalMins) {
+      const hrs = Math.floor(totalMins / 60);
+      const mins = Math.round(totalMins % 60);
+      if (hrs > 0) {
+        return `${hrs}시간 ${mins}분`;
+      }
+      return `${mins}분`;
+    }
+
+    // 일자별 활동 내역 동적 HTML 생성 함수
+    function renderHistoryList(historyData) {
+      const container = document.getElementById("history-list-container");
+      container.innerHTML = ""; // 기존 로딩 문구 제거
+
+      historyData.forEach(dayGroup => {
+        // 날짜 구분선 블록 생성
+        const groupEl = document.createElement("div");
+        groupEl.className = "day-group";
+
+        let itemsHtml = "";
+        dayGroup.items.forEach(item => {
+          const isEarn = item.type === "earn";
+          const amountClass = isEarn ? "amount-earn" : "amount-spend";
+          const amountPrefix = isEarn ? "+" : "-";
+
+          itemsHtml += `
+            <div class="activity-card">
+              <span class="activity-title">${item.title}</span>
+              <span class="activity-time">${item.time}</span>
+              <span class="activity-amount ${amountClass}">${amountPrefix}${item.amount}분</span>
+            </div>
+          `;
+        });
+
+        groupEl.innerHTML = `
+          <div class="activity-cards-wrapper">${itemsHtml}</div>
+          <div class="date-header">
+            <span class="date-text">${dayGroup.date}</span>
+            <div class="date-line"></div>
+          </div>
+        `;
+
+        container.appendChild(groupEl);
+      });
+    }
+  </script>
+{% endblock %}

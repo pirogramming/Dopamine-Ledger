@@ -6,6 +6,15 @@ from .models import SpendRecord, EarnRecord
 from .services import close_today, get_today_record_summary
 from budget.services import get_current_balance
 
+from datetime import timedelta
+from django.utils import timezone
+from django.db.models import Sum
+from django.http import JsonResponse
+
+from collections import defaultdict
+
+# 요일 변환용 튜플 (weekly_report)
+WEEKDAYS_KR = ("월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일")
 from budget.services import (
     get_week_summary,
     get_today_records,
@@ -87,6 +96,171 @@ def record_choice(request):
 
 
 @login_required
+def weekly_report(request):
+    user = request.user
+    today = timezone.now().date()
+
+    # 1. 날짜 범위 산출
+    this_start = today - timedelta(days=today.weekday())
+    this_end = this_start + timedelta(days=6)
+
+    last_start = this_start - timedelta(days=7)
+    last_end = this_start - timedelta(days=1)
+
+    # 2. 숏폼 지출 집계
+    this_spend_qs = SpendRecord.objects.filter(
+        users=user, spend_date__range=[this_start, this_end]
+    )
+    last_spend_qs = SpendRecord.objects.filter(
+        users=user, spend_date__range=[last_start, last_end]
+    )
+
+    this_spend_total = this_spend_qs.aggregate(total=Sum('duration_min'))['total'] or 0
+    last_spend_total = last_spend_qs.aggregate(total=Sum('duration_min'))['total'] or 0
+
+    # 3. 활동 적립 집계
+    this_earn_qs = EarnRecord.objects.filter(
+        users=user, earn_date__range=[this_start, this_end]
+    )
+    last_earn_qs = EarnRecord.objects.filter(
+        users=user, earn_date__range=[last_start, last_end]
+    )
+
+    this_earn_total = this_earn_qs.aggregate(total=Sum('earn_min'))['total'] or 0
+    last_earn_total = last_earn_qs.aggregate(total=Sum('earn_min'))['total'] or 0
+
+    # 4. 차이 수치 계산
+    spend_diff = this_spend_total - last_spend_total
+    earn_diff = this_earn_total - last_earn_total
+
+    # 5. 수치 반올림 처리
+    this_spend_int = int(round(this_spend_total))
+    spend_diff_int = int(round(spend_diff))
+    this_earn_total_int = int(round(this_earn_total))
+    earn_diff_int = int(round(earn_diff))
+
+    # 5. 활동별 집계
+    this_activity_map = {
+        item['activity__activity_type']: int(round(item['total'] or 0))
+        for item in this_earn_qs.values('activity__activity_type').annotate(total=Sum('earn_min'))
+    }
+    last_activity_map = {
+        item['activity__activity_type']: int(round(item['total'] or 0))
+        for item in last_earn_qs.values('activity__activity_type').annotate(total=Sum('earn_min'))
+    }
+
+    best_activity = None
+    max_increase = 0
+
+    for act_name, this_min in this_activity_map.items():
+        last_min = last_activity_map.get(act_name, 0)
+        increase = this_min - last_min
+        if increase > max_increase:
+            max_increase = increase
+            best_activity = act_name
+
+    # --------------------------------------------------
+    # 6. 칭찬 문구 조건 분기 (지난주 데이터 부재 시 예외 처리 최우선)
+    # --------------------------------------------------
+    is_no_last_data = (last_spend_total == 0) and (last_earn_total == 0)
+
+    if is_no_last_data:
+        if this_earn_total_int > 0:
+            total_hrs = int(this_earn_total_int // 60)
+            total_mins = int(this_earn_total_int % 60)
+            earn_str = f"{total_hrs}시간 {total_mins}분" if total_hrs > 0 else f"{total_mins}분"
+            praise_message = f"이번 주 총 {earn_str} 동안 멋지게 활동하며 시간을 벌었어요!"
+        else:
+            praise_message = "꾸준히 기록하며 도파민을 관리해 보아요!"
+
+    elif best_activity and max_increase > 0:
+        this_hrs = int(this_activity_map[best_activity] // 60)
+        this_mins = int(this_activity_map[best_activity] % 60)
+        inc_hrs = int(max_increase // 60)
+        inc_mins = int(max_increase % 60)
+        
+        this_str = f"{this_hrs}시간 {this_mins}분" if this_hrs > 0 else f"{this_mins}분"
+        inc_str = f"{inc_hrs}시간 {inc_mins}분" if inc_hrs > 0 else f"{inc_mins}분"
+        
+        praise_message = f"이번 주 {best_activity} {this_str}, 지난주보다 {inc_str} 늘었어요!"
+
+    elif spend_diff_int < 0:
+        praise_message = f"이번 주는 지난주보다 숏폼을 {abs(spend_diff_int)}분 줄였어요!"
+
+    else:
+        praise_message = "꾸준히 기록하며 도파민을 관리해 보아요!"
+
+    # --------------------------------------------------
+    # 7. 이번 주 활동 내역 날짜별 그룹화 (history_by_date 생성)
+    # --------------------------------------------------
+    raw_items = []
+
+    # 1. 수입 레코드 수집
+    for earn in this_earn_qs.select_related('activity'):
+        local_time = timezone.localtime(earn.created_at)
+        time_str = local_time.strftime("%p %I:%M").replace("AM" ,"오전").replace("PM", "오후")
+
+        record_date = local_time.date()
+        weekday_kr = WEEKDAYS_KR[record_date.weekday()]
+        date_str = f"{record_date.strftime('%Y년 %m월 %d일')} {weekday_kr}"
+
+        raw_items.append({
+            "dt_key": earn.created_at,
+            "date_str": date_str,
+            "data": {
+                "type": "earn",
+                "title": f"{earn.activity.activity_type} 완료",
+                "time": time_str,
+                "amount": int(round(earn.earn_min))
+            }
+        })
+
+    # 2. 지출 레코드 수집
+    for spend in this_spend_qs:
+        local_time = timezone.localtime(spend.created_at)
+        time_str = local_time.strftime("%p %I:%M").replace("AM", "오전").replace("PM", "오후")
+
+        record_date = local_time.date()
+        weekday_kr = WEEKDAYS_KR[record_date.weekday()]
+        date_str = f"{record_date.strftime('%Y년 %m월 %d일')} {weekday_kr}"
+        
+        raw_items.append({
+            "dt_key": spend.created_at,
+            "date_str": date_str,
+            "data": {
+                "type": "spend",
+                "title": "숏폼 지출",
+                "time": time_str,
+                "amount": int(round(spend.duration_min))
+            }
+        })
+
+    # 3. 전체 아이템 정렬화
+    raw_items.sort(key=lambda x: x["dt_key"], reverse=True)
+
+    date_grouped = defaultdict(list)
+    for item in raw_items:
+        date_grouped[item["date_str"]].append(item["data"])
+
+    history_by_date = [
+        {
+            "date": date_key,
+            "items": items
+        }
+        for date_key, items in date_grouped.items()
+    ]
+
+    return JsonResponse(
+        {
+            "praise_message": praise_message,
+            "this_spend_min": this_spend_int,
+            "spend_diff_min": spend_diff_int,
+            "this_earn_min": this_earn_total_int,
+            "earn_diff_min": earn_diff_int,
+            "history_by_date": history_by_date,
+        },
+        json_dumps_params={'ensure_ascii': False}
+    )
 def daily_close(request):
     """오늘 기록을 확인하고 하루 마감을 처리하는 뷰"""
     summary = get_today_record_summary(request.user)

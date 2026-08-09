@@ -13,6 +13,8 @@ class SpendRecord(models.Model):
     spend_start = models.DateTimeField('시작 시각')
     spend_end = models.DateTimeField('종료 시각')
 
+    created_at = models.DateTimeField('생성 시각', auto_now_add=True)
+
     class Meta:
         db_table = 'spend_record'
         indexes = [models.Index(fields=['users', 'spend_date'])]
@@ -33,6 +35,8 @@ class EarnRecord(models.Model):
     earn_date = models.DateField('적립 날짜')
     earn_start = models.DateTimeField('시작 시각')
     earn_end = models.DateTimeField('종료 시각')
+
+    created_at = models.DateTimeField('생성 시각', auto_now_add=True)
 
     class Meta:
         db_table = 'earn_record'

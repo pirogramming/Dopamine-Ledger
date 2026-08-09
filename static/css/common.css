@@ -65,7 +65,7 @@ body.app-shell {
     position: sticky;
     bottom: 0;
     background: #fdfcf9;   /* main_progress.css엔 #ffffff였는데 --bg 토큰(#fdfcf9)으로 통일 */
-    border-radius: 0 0 28px 28px; 
+    border-radius: 0 0 28px 28px;
 }
 
 .bottom-nav__list {
