@@ -37,7 +37,7 @@ def spend_record_create(request):
             instance.users = request.user  # 모델 필드명이 user -> users로 바뀐 것 반영
             instance.save()
             # Post-Redirect-Get: 새로고침 시 중복 저장 방지
-            return redirect('ledger:record_choice')
+            return redirect('ledger:main_progress')
         # form.is_valid()가 False면 여기서 form을 새로 안 만들고
         # 에러가 담긴 form 그대로 아래 render로 넘어감 (에러 메시지 보존)
     else:
@@ -73,7 +73,7 @@ def earn_record_create(request):
             instance = form.save(commit=False)
             instance.users = request.user  # user -> users
             instance.save()
-            return redirect('ledger:record_choice')
+            return redirect('ledger:main_progress')
         # 검증 실패 시 새 폼으로 덮어쓰지 않고 에러 담긴 form 그대로 유지
     else:
         entry_mode = request.GET.get('mode', 'manual')
