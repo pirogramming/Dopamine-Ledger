@@ -19,4 +19,7 @@ urlpatterns = [
     # 수입 기록
     path('record/earn/', views.earn_record_create, name='earn_record_create'),
     path('earn/', views.earn_record_list, name='earn_record_list'),
+
+    # 하루 마감
+    path('daily-close/', views.daily_close, name='daily_close'),
 ]

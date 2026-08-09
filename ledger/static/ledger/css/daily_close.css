@@ -1,0 +1,535 @@
+/* =========================================
+    하루 마감 페이지
+    - phone-frame / app-content / bottom-nav는 common.css 사용
+    - 하루마감 내부 디자인은 Figma 기준
+========================================= */
+
+.daily-close-page,
+.daily-close-page * {
+    box-sizing: border-box;
+}
+
+.daily-close-page {
+    position: relative;
+    width: 100%;
+    min-height: 720px;
+    flex: 1;
+    font-family: 'Inter', sans-serif;
+}
+
+
+/* =========================================
+    상단 제목 영역
+========================================= */
+
+.daily-close__header {
+    width: 100%;
+    text-align: center;
+    margin-top: 38px;
+}
+
+.daily-close__streak-top {
+    margin: 0 0 7px;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 16px;
+
+    text-align: center;
+    color: #FF7A00;
+}
+
+.streak-number {
+    font-size: 24px;
+    font-weight: 700;
+    color: #FF7A00;
+}
+
+.daily-close__title {
+    margin: 0;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 24px;
+
+    text-align: center;
+    color: #000000;
+}
+
+
+/* =========================================
+    오늘의 지출 / 오늘의 수입 / 잔액
+========================================= */
+
+.daily-close__summary {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    gap: 13px;
+    margin-top: 28px;
+}
+
+.summary-card {
+    width: 100%;
+    height: 68px;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    padding: 20px 30px;
+    gap: 30px;
+
+    background: #FFFFFF;
+
+    border: 1px solid #C7C7C7;
+    border-radius: 15px;
+}
+
+
+/* =========================================
+    체크 아이콘
+========================================= */
+
+.summary-card__check {
+    width: 24px;
+    height: 24px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    flex: none;
+    flex-shrink: 0;
+
+    border: 2px solid #FF7A00;
+    border-radius: 50%;
+
+    color: #FF7A00;
+
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+
+/* =========================================
+    카드 제목
+========================================= */
+
+.summary-card__title {
+    width: 78px;
+    flex-shrink: 0;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 19px;
+
+    display: flex;
+    align-items: center;
+
+    color: #000000;
+    white-space: nowrap;
+}
+
+
+/* =========================================
+    카드 오른쪽 값
+    → 오른쪽 끝선 기준 정렬
+========================================= */
+
+.summary-card__value {
+    flex: 1;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 19px;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    text-align: right;
+
+    color: #000000;
+    white-space: nowrap;
+}
+
+.summary-card__value--empty {
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 19px;
+
+    color: #AEB0B6;
+}
+
+.summary-card__check--empty {
+    color: transparent;
+}
+
+/* =========================================
+    안내 문구
+========================================= */
+
+.daily-close__description {
+    width: 100%;
+
+    margin: 22px 0 0;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 16px;
+
+    display: flex;
+    align-items: center;
+
+    color: #70737C;
+}
+
+
+/* =========================================
+    오류 메시지
+========================================= */
+
+.daily-close__error {
+    width: 100%;
+
+    margin: 10px 0 0;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 16px;
+
+    color: #D32F2F;
+}
+
+
+/* =========================================
+    하단 마감 영역
+========================================= */
+
+.daily-close__action {
+    position: absolute;
+
+    left: 2px;
+    bottom: 17px;
+
+    width: calc(100% - 4px);
+}
+
+.daily-close__action form {
+    width: 100%;
+}
+
+
+/* 하단 🔥 n일째 */
+
+.daily-close__streak-bottom {
+    margin: 0 0 15px;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 16px;
+
+    text-align: center;
+
+    color: #FF7A00;
+}
+
+
+/* =========================================
+    하루 마감 버튼
+    기본 = 마감 가능 → 주황색
+========================================= */
+
+.daily-close__button {
+    width: 100%;
+    height: 50px;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    padding: 0;
+
+    border: none;
+    border-radius: 15px;
+
+    background: #FF7A00;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 19px;
+
+    color: #FFFFFF;
+
+    cursor: pointer;
+}
+
+.daily-close__button:hover {
+    opacity: 0.9;
+}
+
+
+/* 기록 없음 → 비활성 버튼 */
+
+.daily-close__button--disabled {
+    background: #C7C7C7;
+    cursor: not-allowed;
+}
+
+.daily-close__button--disabled:hover {
+    opacity: 1;
+}
+
+
+/* 마감 완료 → 주황색 */
+
+.daily-close__button--completed {
+    background: #FF7A00;
+    cursor: default;
+}
+
+.daily-close__button--completed:hover {
+    opacity: 1;
+}
+
+.daily-close__disabled-message {
+    margin: 0 0 10px;
+
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    line-height: 15px;
+    font-weight: 400;
+
+    text-align: center;
+    color: #70737C;
+}
+
+/* =========================================
+    하루 마감 확인 모달
+    Figma 기준
+========================================= */
+
+.close-modal {
+    display: none;
+
+    position: fixed;
+    top: 0;
+    left: 50%;
+
+    width: 393px;
+    height: 852px;
+
+    transform: translateX(-50%);
+
+    z-index: 9999;
+
+    border-radius: 28px;
+    overflow: hidden;
+}
+
+
+/* 모달 열림 */
+.close-modal--open {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+
+    padding-top: 208px;
+}
+
+
+/* 폰 프레임 전체 딤 처리 */
+.close-modal__overlay {
+    position: absolute;
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.4);
+}
+
+
+/* =========================================
+    흰색 모달 박스
+========================================= */
+
+.close-modal__content {
+    position: relative;
+    z-index: 1;
+
+    width: 327px;
+
+    padding: 28px 14px 16px;
+
+    background: #FFFFFF;
+    border-radius: 15px;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================
+    느낌표 아이콘
+========================================= */
+
+.close-modal__icon {
+    width: 28px;
+    height: 28px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    margin-bottom: 22px;
+
+    border-radius: 50%;
+
+    background: #FFF0E3;
+    color: #FF7A00;
+
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+
+/* =========================================
+    모달 제목
+========================================= */
+
+.close-modal__title {
+    margin: 0 0 10px;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 20px;
+
+    color: #000000;
+}
+
+
+/* =========================================
+    설명
+========================================= */
+
+.close-modal__description {
+    margin: 0 0 20px;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 16px;
+
+    color: #70737C;
+}
+
+
+/* =========================================
+    + 추가 기록하기
+========================================= */
+
+.close-modal__add-button {
+    width: 100%;
+    height: 48px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    margin-bottom: 7px;
+
+    background: #FFFFFF;
+
+    border: 1px solid #C7C7C7;
+    border-radius: 12px;
+
+    box-sizing: border-box;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+
+    color: #70737C;
+    text-decoration: none;
+}
+
+
+/* =========================================
+    실제 마감 form
+========================================= */
+
+.close-modal__form {
+    width: 100%;
+}
+
+
+/* =========================================
+    모달 안 하루 마감하기
+========================================= */
+
+.close-modal__close-button {
+    width: 100%;
+    height: 48px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 0;
+
+    background: #FF7A00;
+
+    border: none;
+    border-radius: 12px;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 14px;
+
+    color: #FFFFFF;
+
+    cursor: pointer;
+}
+
+.close-modal__close-button:hover {
+    opacity: 0.9;
+}
+
+/* 하루 마감 페이지 하단 모서리 보정 */
+.phone-frame {
+    overflow: hidden;
+}
+
+.bottom-nav {
+    border-bottom-left-radius: 28px;
+    border-bottom-right-radius: 28px;
+}
