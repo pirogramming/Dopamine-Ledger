@@ -321,9 +321,9 @@ def main_progress(request):
 @login_required
 def main_convert(request):
     """홈 — 변환해서 보기.
-    큰 잔액만 conversion_base로 환산해서 크게 표시하고,
-    이번 주 예산/사용/적립 요약은 main_progress와 동일하게 분(시간) 포맷으로 표시.
-    오늘의 기록도 main_progress와 동일하게 분 단위로 표시."""
+    이번 주 지출 시간을 conversion_base로 환산해서 크게 표시.
+    (예: 숏폼 60분 사용 → "독서 10페이지")
+    이번 주 예산/사용/적립 요약과 오늘의 기록은 main_progress와 동일하게 분 단위로 표시."""
     user = request.user
     summary = get_week_summary(user)
     base = user.conversion_base
@@ -331,11 +331,13 @@ def main_convert(request):
     activity = user.converting_activity or '환산 활동'
 
     records = attach_value_displays(
-        get_today_activity_summary(request.user), mode='minutes'
+        get_today_activity_summary(user), mode='minutes',
     )
     context = {
         **summary,
-        'balance_display':  format_unit_display(summary['balance'], base, unit),
+        # 큰 값(도넛 중앙): 이번 주 지출을 환산 단위로.
+        # 예: 숏폼 60분 사용 & 독서 1페이지=6분 이면 "독서 10페이지"
+        'balance_display':  format_unit_display(summary['spent'], base, unit),
         'budget_display':   format_minutes_display(summary['budget']),
         'spent_display':    format_minutes_display(summary['spent']),
         'earned_display':   format_minutes_display(summary['earned']),
@@ -343,8 +345,9 @@ def main_convert(request):
             f"이번 주 예산 {format_minutes_display(summary['budget'])} 중 "
             f"{format_minutes_display(summary['spent'])} 사용"
         ),
-        'converted_unit_label': f"이번 주 남은 {activity} 시간",
+        # 큰 값 위 라벨: 지출 시간을 환산했다는 의미로 문구 변경
+        'converted_unit_label': f"이번 주 사용한 시간을 {activity}(으)로 바꾸면",
         'today_records': records,
-        'today_record_count': get_today_record_count(request.user),
+        'today_record_count': get_today_record_count(user),
     }
     return render(request, 'ledger/main_convert.html', context)

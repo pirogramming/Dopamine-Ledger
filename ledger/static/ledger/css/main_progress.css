@@ -200,8 +200,10 @@
 .record-list {
   list-style: none;
   padding: 0;
-  max-height: 240px;
-  overflow-y: auto;
+  margin: 0;
+  max-height: 100px;      /* 대략 아이템 3.5개 정도 높이. 원하는 값으로 조정 */
+  overflow-y: auto;       /* 세로 넘치면 리스트 내부에서만 스크롤 */
+  overflow-x: hidden;
 }
 
 .record-list__item {
@@ -275,6 +277,7 @@
   background: #ff7a00;
   border-radius: 15px;
   padding: 20px 0;
+  margin-bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -233,3 +233,68 @@ def attach_value_displays(records, mode='minutes', conversion_base=None, unit_la
             val = '+' + val
         r['value_display'] = val
     return records
+
+def get_today_activity_summary(user):
+    """오늘의 활동별 총합 요약.
+    사용자의 모든 지출 카테고리 & 적립 활동을 미리 다 포함하고,
+    각각의 오늘 총 시간을 계산해서 반환. 기록 없는 활동은 0분으로 표시."""
+    from ledger.models import EarnRecord, SpendRecord
+    from budget.models import Activity  # 경로는 실제 위치에 맞게
+
+    today = get_today_kst()
+
+    # 오늘 카테고리별 지출 총합
+    spend_totals = {
+        row['category']: row['total']
+        for row in SpendRecord.objects
+            .filter(users=user, spend_date=today)
+            .values('category')
+            .annotate(total=Sum('duration_min'))
+    }
+
+    # 오늘 활동별 적립 총합
+    earn_totals = {
+        row['activity__activity_type']: row['total']
+        for row in EarnRecord.objects
+            .filter(users=user, earn_date=today)
+            .values('activity__activity_type')
+            .annotate(total=Sum('earn_min'))
+    }
+
+    records = []
+
+    # 1) 지출 카테고리 — SPEND_CATEGORY_ICONS에 등록된 것 모두
+    for category, icon_path in SPEND_CATEGORY_ICONS.items():
+        total = spend_totals.get(category, 0) or 0
+        records.append({
+            'label': get_category_display(category),
+            'icon': icon_path,
+            'signed_min': Decimal(-total),   # 지출은 음수
+            'is_positive': False,
+            'has_record': total > 0,
+        })
+
+    # 2) 적립 활동 — 사용자에게 등록된 활동들
+    activities = Activity.objects.filter(users=user)  # ← 실제 관계에 맞게 수정
+    for activity in activities:
+        activity_type = activity.activity_type
+        total = earn_totals.get(activity_type, 0) or Decimal(0)
+        records.append({
+            'label': activity_type,
+            'icon': EARN_ACTIVITY_ICONS.get(activity_type, DEFAULT_ICON),
+            'signed_min': Decimal(total),
+            'is_positive': True,
+            'has_record': Decimal(total) > 0,
+        })
+
+    return records
+
+
+def get_today_record_count(user):
+    """오늘 실제로 기록된 건 수 (활동별 합산과 별개로, 몇 번 기록했는지)."""
+    from ledger.models import EarnRecord, SpendRecord
+    today = get_today_kst()
+    return (
+        EarnRecord.objects.filter(users=user, earn_date=today).count()
+        + SpendRecord.objects.filter(users=user, spend_date=today).count()
+    )
