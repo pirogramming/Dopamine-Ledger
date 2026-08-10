@@ -114,7 +114,7 @@
     font-size: 24px;
     text-decoration: none;
     color: var(--text);
-    margin-bottom: 8px;
+    margin-bottom: -24px;
 }
 
 /* ── 입력 라벨 · 필드 (create) ── */
@@ -210,7 +210,7 @@
     margin-bottom: 30px;
     text-decoration: none;
 }
-.invite-info { font-size: 14px; color: var(--gray); margin-bottom: 8px; }
+.invite-info { font-size: 14px; color: var(--gray); margin-bottom: -8px; }
 .invite-info strong { color: var(--text); }
 
 /* ── 팝업(모달) ── */
@@ -259,7 +259,8 @@
     background: var(--accent-bg);
     border-radius: 15px;
     padding: 20px;
-    margin-bottom: -8px;
+    margin-top: -16px;
+    margin-bottom: -16px;
 }
 .goal-box .goal-head {
     font-size: 13px;
@@ -433,4 +434,46 @@
     font-size: 12px;
     color: var(--gray);
     margin-top: 2px;
+}
+
+/* ── 크루 피드 ── */
+.feed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.feed-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: var(--card);
+    border-radius: 14px;
+    padding: 14px 16px;
+    border-left: 4px solid var(--line);
+}
+.feed-item--earn  { border-left-color: var(--green); }
+.feed-item--spend { border-left-color: var(--orange); }
+.feed-item--cheer { border-left-color: #FFD93B; }
+.feed-item--close { border-left-color: var(--gray); }
+
+.feed-icon { font-size: 20px; line-height: 1.2; flex-shrink: 0; }
+.feed-body { flex: 1; min-width: 0; }
+.feed-message {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+    line-height: 1.4;
+}
+.feed-time {
+    font-size: 12px;
+    color: var(--gray);
+}
+.feed-link {
+    display: inline-block;
+    font-size: 13px;
+    color: var(--orange);
+    text-decoration: none;
+    font-weight: 700;
+    margin-bottom: -8px;
 }

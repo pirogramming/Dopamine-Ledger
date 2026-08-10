@@ -86,35 +86,53 @@ def _sorted_members_with_contribution(crew, sort='contribution'):
     return members
 
 def _goal_progress(crew):
-    """
-    크루 목표 달성률 계산.
-    반환: (모은 분, 목표 분, 퍼센트, 달성여부) 또는 goal 없으면 None
-    """
     goal = getattr(crew, 'goal', None)
     if not goal:
         return None
 
     week_start, week_end = _week_range()
-    member_user_ids = list(
-        crew.members.values_list('users_id', flat=True)
-    )
-    total = EarnRecord.objects.filter(
+    members = list(crew.members.select_related('users'))
+    member_user_ids = [m.users_id for m in members]
+
+    # 크루 전체 이번 주 벌이 합계
+    earned = EarnRecord.objects.filter(
         users_id__in=member_user_ids,
         earn_date__range=[week_start, week_end],
     ).aggregate(total=Sum('earn_min'))['total'] or 0
-    total = int(round(total))
+
+    # 크루 전체 이번 주 과예산 합계 = Σ 멤버별 max(0, Σspend - (예산 + Σearn))
+    # (개별 지출 과예산분을 다 더한 것과 동일)
+    from ledger.models import SpendRecord
+    from decimal import Decimal
+
+    overspend_total = Decimal('0')
+    for m in members:
+        u = m.users
+        u_earn = EarnRecord.objects.filter(
+            users=u, earn_date__range=[week_start, week_end],
+        ).aggregate(total=Sum('earn_min'))['total'] or Decimal('0')
+        u_spend = SpendRecord.objects.filter(
+            users=u, spend_date__range=[week_start, week_end],
+        ).aggregate(total=Sum('duration_min'))['total'] or 0
+        available = u.weekly_budget_min + u_earn
+        over = max(Decimal('0'), Decimal(u_spend) - available)
+        overspend_total += over
+
+    collected = int(round(earned - overspend_total))
+    collected = max(collected, 0)   # 음수면 0으로 막기
 
     target = goal.target_minutes or 0
-    pct = round(total / target * 100) if target > 0 else 0
+    pct = round(collected / target * 100) if target > 0 else 0
+    pct = max(pct, 0)
     achieved = pct >= 100
 
     return {
-        'collected_min': total,
-        'collected_hm': _format_hm(total),
+        'collected_min': collected,
+        'collected_hm': _format_hm(collected),
         'target_min': target,
         'target_hm': _format_hm(target),
         'percent': pct,
-        'percent_capped': min(pct, 100),   # 바 너비용 (100 넘어도 안 넘치게)
+        'percent_capped': min(pct, 100),
         'achieved': achieved,
     }
 
@@ -490,3 +508,24 @@ def crew_cheer(request, crew_id, member_id):
         return redirect('crew:member_detail', crew_id=crew.id, member_id=member_id)
 
     return redirect('crew:member_detail', crew_id=crew.id, member_id=member_id)
+
+@login_required
+def crew_feed(request, crew_id):
+    """크루 피드 화면. 벌이/과예산/응원 이벤트를 시간순으로."""
+    crew = get_object_or_404(Crew, id=crew_id)
+
+    if not _is_member(request.user, crew):
+        messages.error(request, '그 크루의 멤버가 아니에요.')
+        return redirect('crew:list')
+
+    events = (
+        FeedEvent.objects
+        .filter(crew=crew)
+        .select_related('actor', 'target')
+        .order_by('-created_at')[:100]   # 최근 100개
+    )
+
+    return render(request, 'crew/crew_feed.html', {
+        'crew': crew,
+        'events': events,
+    })
