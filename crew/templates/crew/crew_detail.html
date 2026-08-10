@@ -28,7 +28,7 @@
             <span class="goal-title">{{ goal.reward_text|default:"목표 달성 시 보상" }}</span>
             <span class="goal-percent">{{ goal_progress.percent }}%</span>
         </div>
-        <div class="goal-bar"><div class="fill" style="width: {{ goal_progress.percent_capped }}%;"></div></div>
+        <div class="goal-bar"><div class="fill" style="--pct: {{ goal_progress.percent_capped }}"></div></div>
         <div class="goal-foot">
             <span>{{ goal_progress.collected_hm }} 모음</span>
             {% if goal_progress.achieved %}
