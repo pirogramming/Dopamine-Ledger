@@ -174,6 +174,22 @@ def get_category_display(category):
     return CATEGORY_DISPLAY_NAMES.get(category, category)
 
 
+# ---------- 표시용 아이콘 매핑 ----------
+# 지출 카테고리(category 원본값) → 정적 파일 경로
+SPEND_CATEGORY_ICONS = {
+    'short_form': 'ledger/images/icon-shortform.svg',
+}
+
+# 적립 활동(activity.activity_type) → 정적 파일 경로
+EARN_ACTIVITY_ICONS = {
+    '독서': 'ledger/images/icon-reading.svg',
+    '공부': 'ledger/images/icon-study.svg',
+    '운동': 'ledger/images/icon-exercise.svg',
+}
+
+DEFAULT_ICON = 'ledger/images/icon-default.svg'  # 매핑에 없는 카테고리/활동용 안전장치
+
+
 # ---------- 오늘 기록 ----------
 
 def get_today_records(user):
@@ -189,21 +205,22 @@ def get_today_records(user):
     records = []
     for e in earns:
         records.append({
-            'label': e.activity.activity_type,          # "독서 30분" → "독서"
+            'label': e.activity.activity_type,
+            'icon': EARN_ACTIVITY_ICONS.get(e.activity.activity_type, DEFAULT_ICON),
             'signed_min': e.earn_min,
             'is_positive': True,
             'started_at': e.earn_start,
         })
     for s in spends:
         records.append({
-            'label': get_category_display(s.category),  # "short_form 지출" → "숏폼"
+            'label': get_category_display(s.category),
+            'icon': SPEND_CATEGORY_ICONS.get(s.category, DEFAULT_ICON),
             'signed_min': Decimal(-s.duration_min),
             'is_positive': False,
             'started_at': s.spend_start,
         })
     records.sort(key=lambda r: r['started_at'])
     return records
-
 
 def attach_value_displays(records, mode='minutes', conversion_base=None, unit_label=None):
     """records에 value_display 붙임. mode='minutes' | 'unit'."""
