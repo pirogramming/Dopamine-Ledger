@@ -35,15 +35,19 @@
     </form>
 
     <!-- 멤버 관리 -->
-    <div class="section-label" style="margin-top:30px;">멤버 {{ members.count }}명</div>
+    <div class="section-label" style="margin-top:30px;">멤버 {{ member_count }}명</div>
     <div class="member-box">
         {% for member in members %}
             <div class="member-row" style="justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:12px;">
                     <div class="member-avatar"></div>
-                    <div class="member-name">
-                        {{ member.users }}
-                        {% if member.users == crew.owner %}<span class="member-crown">👑 크루장</span>{% endif %}
+                    <div>
+                        <div class="member-name">{{ member.users }}</div>
+                        {% if member.users == crew.owner %}
+                            <div class="member-sub">크루장</div>
+                        {% else %}
+                            <div class="member-sub">기여도 {{ member.contribution_pct }}%</div>
+                        {% endif %}
                     </div>
                 </div>
                 {% if member.users != crew.owner %}

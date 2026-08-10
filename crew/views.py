@@ -5,10 +5,118 @@ from django.contrib import messages
 from django.http import JsonResponse
 
 from .forms import CrewCreateForm, CrewJoinForm, CrewRenameForm
-from .models import Crew, CrewMember, CrewGoal, generate_invite_code
+from .models import Crew, CrewMember, CrewGoal, FeedEvent, generate_invite_code
 
+from datetime import timedelta
+from django.db.models import Sum
+from django.utils import timezone
+from ledger.models import EarnRecord
 
 # ── 헬퍼 ──
+
+def _week_range(today=None):
+    """이번 주 월~일 범위. weekly_report와 동일 기준."""
+    today = today or timezone.localdate()
+    start = today - timedelta(days=today.weekday())
+    end = start + timedelta(days=6)
+    return start, end
+
+
+def _format_hm(total_min):
+    """분 → 'N시간 N분' / 'N분'. 0이면 '0분'."""
+    total_min = int(round(total_min or 0))
+    h, m = divmod(total_min, 60)
+    if h > 0:
+        return f"{h}시간 {m}분"
+    return f"{m}분"
+
+
+def _sorted_members_with_contribution(crew, sort='contribution'):
+    """
+    멤버 목록에 이번 주 기여도(earn_min 합계)를 붙이고 정렬해서 반환.
+    각 멤버에 부착되는 속성:
+      - contribution      : 이번 주 earn_min 합 (정수 분)
+      - contribution_hm   : 위를 'N시간 N분'으로 포맷한 문자열
+      - contribution_pct  : 크루 전체 earn 중 내 비율 (정수 %)
+      - feed_text         : 임시 피드 문구 (FeedEvent 붙이면 교체)
+    쿼리는 집계 1번.
+    """
+    members = list(crew.members.select_related('users'))
+    week_start, week_end = _week_range()
+
+    member_user_ids = [m.users_id for m in members]
+    earn_map = {
+        row['users']: int(round(row['total'] or 0))
+        for row in EarnRecord.objects
+            .filter(users_id__in=member_user_ids,
+                    earn_date__range=[week_start, week_end])
+            .values('users')
+            .annotate(total=Sum('earn_min'))
+    }
+
+    total_earn = sum(earn_map.values())   # 크루 전체 이번 주 earn (퍼센트 분모)
+
+    # 멤버별 최신 벌이 피드 (이번 주, earn 타입) 한 방에 조회
+    latest_feed = {}
+    feed_qs = (
+        FeedEvent.objects
+        .filter(crew=crew, event_type=FeedEvent.EventType.EARN,
+                created_at__date__range=[week_start, week_end])
+        .order_by('actor_id', '-created_at')
+    )
+    for fe in feed_qs:
+        if fe.actor_id not in latest_feed:   # actor별 첫 번째 = 최신
+            latest_feed[fe.actor_id] = fe.message
+
+    for m in members:
+        mins = earn_map.get(m.users_id, 0)
+        m.contribution = mins
+        m.contribution_hm = _format_hm(mins)
+        m.contribution_pct = round(mins / total_earn * 100) if total_earn > 0 else 0
+        m.feed_text = latest_feed.get(m.users_id, "이번 주 활동 없음")
+
+    # 정렬
+    if sort == 'name':
+        members.sort(key=lambda m: str(m.users))
+    elif sort == 'joined':
+        members.sort(key=lambda m: m.joined_date)
+    else:  # 'contribution'
+        members.sort(key=lambda m: m.contribution, reverse=True)
+
+    return members
+
+def _goal_progress(crew):
+    """
+    크루 목표 달성률 계산.
+    반환: (모은 분, 목표 분, 퍼센트, 달성여부) 또는 goal 없으면 None
+    """
+    goal = getattr(crew, 'goal', None)
+    if not goal:
+        return None
+
+    week_start, week_end = _week_range()
+    member_user_ids = list(
+        crew.members.values_list('users_id', flat=True)
+    )
+    total = EarnRecord.objects.filter(
+        users_id__in=member_user_ids,
+        earn_date__range=[week_start, week_end],
+    ).aggregate(total=Sum('earn_min'))['total'] or 0
+    total = int(round(total))
+
+    target = goal.target_minutes or 0
+    pct = round(total / target * 100) if target > 0 else 0
+    achieved = pct >= 100
+
+    return {
+        'collected_min': total,
+        'collected_hm': _format_hm(total),
+        'target_min': target,
+        'target_hm': _format_hm(target),
+        'percent': pct,
+        'percent_capped': min(pct, 100),   # 바 너비용 (100 넘어도 안 넘치게)
+        'achieved': achieved,
+    }
 
 def _is_member(user, crew):
     """해당 유저가 이 크루의 멤버인지 확인."""
@@ -67,14 +175,17 @@ def crew_detail(request, crew_id):
         messages.error(request, '그 크루의 멤버가 아니에요.')
         return redirect('crew:list')
 
-    members = crew.members.select_related('users')
-
-    goal = getattr(crew, 'goal', None)
+    sort = request.GET.get('sort', 'contribution')
+    members = _sorted_members_with_contribution(crew, sort)
+    goal_progress = _goal_progress(crew)
 
     return render(request, 'crew/crew_detail.html', {
         'crew': crew,
         'members': members,
-        'goal': goal,
+        'member_count': len(members),
+        'goal': getattr(crew, 'goal', None),
+        'goal_progress': goal_progress,
+        'sort': sort,
     })
 
 
@@ -182,26 +293,31 @@ def crew_leave(request, crew_id):
 
 @login_required
 def crew_members_api(request, crew_id):
-    """멤버 목록을 JSON으로 반환 (폴링용)."""
+    """멤버 목록을 JSON으로 반환 (폴링용). crew_detail과 동일 정렬·기여도."""
     crew = get_object_or_404(Crew, id=crew_id)
 
     if not _is_member(request.user, crew):
         return JsonResponse({'error': 'forbidden'}, status=403)
 
-    members = crew.members.select_related('users').order_by('joined_date')
+    sort = request.GET.get('sort', 'contribution')
+    members = _sorted_members_with_contribution(crew, sort)
 
     data = {
         'status': crew.get_status_display(),
-        'member_count': crew.member_count,
+        'member_count': len(members),
         'max_members': crew.MAX_MEMBERS,
         'owner_id': crew.owner_id,
         'members': [
             {
+                'id': m.id,
                 'name': str(m.users),
                 'is_owner': (m.users_id == crew.owner_id),
-                'joined': m.joined_date.strftime('%Y년 %m월 %d일'),
+                'contribution_pct': m.contribution_pct,
+                'contribution_hm': m.contribution_hm,
+                'feed_text': m.feed_text,
+                'is_top': (i == 0 and m.contribution > 0),   # 1등(기여>0)만 초록
             }
-            for m in members
+            for i, m in enumerate(members)
         ],
     }
     return JsonResponse(data)
@@ -293,11 +409,12 @@ def crew_manage(request, crew_id):
 
         return redirect('crew:manage', crew_id=crew.id)
 
-    members = crew.members.select_related('users')
+    members = _sorted_members_with_contribution(crew, sort='contribution')
     return render(request, 'crew/crew_manage.html', {
         'crew': crew,
         'goal': goal,
         'members': members,
+        'member_count': len(members),
     })
 
 @login_required
@@ -342,3 +459,34 @@ def crew_member_detail(request, crew_id, member_id):
         'crew': crew,
         'membership': membership,
     })
+
+@login_required
+def crew_cheer(request, crew_id, member_id):
+    """멤버에게 응원 보내기. FeedEvent(cheer) 생성."""
+    crew = get_object_or_404(Crew, id=crew_id)
+
+    if not _is_member(request.user, crew):
+        messages.error(request, '그 크루의 멤버가 아니에요.')
+        return redirect('crew:list')
+
+    if request.method == 'POST':
+        target_membership = get_object_or_404(CrewMember, id=member_id, crew=crew)
+        target_user = target_membership.users
+
+        # 자기 자신 응원 방지
+        if target_user == request.user:
+            messages.info(request, '자기 자신은 응원할 수 없어요.')
+            return redirect('crew:member_detail', crew_id=crew.id, member_id=member_id)
+
+        from crew.models import FeedEvent
+        FeedEvent.objects.create(
+            crew=crew,
+            actor=request.user,
+            target=target_user,
+            event_type=FeedEvent.EventType.CHEER,
+            message=f"{request.user}님이 {target_user}님을 응원했어요",
+        )
+        messages.success(request, f'{target_user}님에게 응원을 보냈어요!')
+        return redirect('crew:member_detail', crew_id=crew.id, member_id=member_id)
+
+    return redirect('crew:member_detail', crew_id=crew.id, member_id=member_id)

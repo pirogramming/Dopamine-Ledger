@@ -73,6 +73,15 @@ def earn_record_create(request):
             instance = form.save(commit=False)
             instance.users = request.user  # user -> users
             instance.save()
+
+            # 크루 피드에 벌이 이벤트 생성 (내가 속한 모든 크루)
+            from crew.services import create_earn_feed
+            create_earn_feed(
+                request.user,
+                instance.activity.activity_type,
+                instance.earn_min,
+            )
+            
             return redirect('ledger:main_progress')
         # 검증 실패 시 새 폼으로 덮어쓰지 않고 에러 담긴 form 그대로 유지
     else:

@@ -19,31 +19,53 @@
     </div>
 
     <!-- 크루 목표 -->
-    {% if goal %}
-    <div class="goal-box">
-        <div class="goal-head">🎯 이번 주 크루 목표</div>
+    {% if goal_progress %}
+    <div class="goal-box {% if goal_progress.achieved %}goal-box--done{% endif %}">
+        <div class="goal-head">
+            {% if goal_progress.achieved %}✅ 이번 주 목표 달성{% else %}🎯 이번 주 크루 목표{% endif %}
+        </div>
         <div class="goal-main">
             <span class="goal-title">{{ goal.reward_text|default:"목표 달성 시 보상" }}</span>
-            <span class="goal-percent">73%</span>
+            <span class="goal-percent">{{ goal_progress.percent }}%</span>
         </div>
-        <div class="goal-bar"><div class="fill" style="width: 73%;"></div></div>
+        <div class="goal-bar"><div class="fill" style="width: {{ goal_progress.percent_capped }}%;"></div></div>
         <div class="goal-foot">
-            <span>14시간 36분 모음</span>
-            <span>{{ goal.target_hours }}시간 목표</span>
+            <span>{{ goal_progress.collected_hm }} 모음</span>
+            {% if goal_progress.achieved %}
+                <span>목표 달성 완료</span>
+            {% else %}
+                <span>{{ goal_progress.target_hm }} 목표</span>
+            {% endif %}
         </div>
     </div>
     {% endif %}
 
     <p class="invite-info">초대 코드: <strong>{{ crew.invite_code }}</strong></p>
 
-    <div class="section-label">멤버 <span id="member-count">{{ members.count }}</span>명 · 상태 <span id="crew-status">{{ crew.get_status_display }}</span></div>
+    <div class="member-list-head">
+        <span class="section-label" style="margin:0;">멤버 <span id="member-count">{{ member_count }}</span>명 · 상태 <span id="crew-status">{{ crew.get_status_display }}</span></span>
+        <div class="sort-tabs">
+            <a href="?sort=contribution" class="sort-tab {% if sort == 'contribution' %}is-active{% endif %}">기여순</a>
+            <a href="?sort=name" class="sort-tab {% if sort == 'name' %}is-active{% endif %}">이름순</a>
+            <a href="?sort=joined" class="sort-tab {% if sort == 'joined' %}is-active{% endif %}">가입순</a>
+        </div>
+    </div>
+
     <div class="member-box" id="member-list">
         {% for member in members %}
-            <a class="member-row" href="{% url 'crew:member_detail' crew_id=crew.id member_id=member.id %}">
+            <a class="member-item {% if forloop.first %}member-item--top{% endif %}"
+               href="{% url 'crew:member_detail' crew_id=crew.id member_id=member.id %}">
                 <div class="member-avatar"></div>
-                <div class="member-name">
-                    {{ member.users }}
-                    {% if member.users == crew.owner %}<span class="member-crown">👑 크루장</span>{% endif %}
+                <div class="member-main">
+                    <div class="member-name">
+                        {{ member.users }}
+                        {% if member.users == crew.owner %}<span class="member-crown">👑</span>{% endif %}
+                    </div>
+                    <div class="member-feed">{{ member.feed_text }}</div>
+                </div>
+                <div class="member-stat">
+                    <div class="member-pct {% if forloop.first %}member-pct--top{% endif %}">{{ member.contribution_pct }}%</div>
+                    <div class="member-time">{{ member.contribution_hm }}</div>
                 </div>
             </a>
         {% endfor %}
