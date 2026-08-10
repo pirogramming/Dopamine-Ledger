@@ -100,7 +100,7 @@
             <div class="activity-item">
                 <span class="activity-name">독서</span>
                 <div class="activity-input-group">
-                    <input type="number" id="reading_min" class="minute-box" value="40">
+                    <input type="number" id="reading_min" class="minute-box" value="60">
                     <span class="unit-text">분</span>
                 </div>
             </div>
@@ -118,7 +118,7 @@
             <div class="activity-item">
                 <span class="activity-name">공부</span>
                 <div class="activity-input-group">
-                    <input type="number" id="study_min" class="minute-box" value="20">
+                    <input type="number" id="study_min" class="minute-box" value="60">
                     <span class="unit-text">분</span>
                 </div>
             </div>
@@ -146,6 +146,29 @@
 
 {% block extra_js%}
     <script>
+        // 0. DOM 로드 후 분 단위 input 입력창 60분 제한 이벤트 바인딩
+        document.addEventListener('DOMContentLoaded', () => {
+            // 60분 제한을 적용할 input ID 목록
+            const minuteInputIds = ['reading_min', 'exercise_min', 'study_min', 'custom_activity_min'];
+
+            minuteInputIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', (e) => {
+                        let value = parseInt(e.target.value, 10);
+                        
+                        // 60분 초과 시 60으로 제한
+                        if (value > 60) {
+                            e.target.value = 60;
+                        }
+                        // 음수 입력 방지
+                        if (value < 0) {
+                            e.target.value = 0;
+                        }
+                    });
+                }
+            });
+        });
         // 1. 스텝 이동 함수
         function goToStep(stepNumber) {
             const step1 = document.getElementById('step-1');
