@@ -317,6 +317,7 @@ def main_progress(request):
         ),
         'today_records': records,
         'today_record_count': get_today_record_count(request.user),
+        'active_tab': 'home', 
     }
     return render(request, 'ledger/main_progress.html', context)
 
@@ -348,5 +349,6 @@ def main_convert(request):
         'desc_line2': f"{activity} {format_unit_display(today_spent, base, unit)}에 해당해요",
         'today_records': records,
         'today_record_count': get_today_record_count(user),
+        'active_tab': 'home',
     }
     return render(request, 'ledger/main_convert.html', context)
