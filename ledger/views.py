@@ -22,6 +22,8 @@ from budget.services import (
     attach_value_displays,
     format_minutes_display,
     format_unit_display,
+    get_today_spent_minutes,
+    get_ro_particle, 
 )
 
 @login_required
@@ -321,32 +323,29 @@ def main_progress(request):
 @login_required
 def main_convert(request):
     """홈 — 변환해서 보기.
-    이번 주 지출 시간을 conversion_base로 환산해서 크게 표시.
-    (예: 숏폼 60분 사용 → "독서 10페이지")
-    이번 주 예산/사용/적립 요약과 오늘의 기록은 main_progress와 동일하게 분 단위로 표시."""
+    큰 값: 이번 주 지출 시간을 환산.
+    진행률 설명: 오늘 지출한 시간을 환산해서 2줄(둘째 줄 강조)로 표시."""
     user = request.user
     summary = get_week_summary(user)
     base = user.conversion_base
     unit = user.conversion_unit or ''
     activity = user.converting_activity or '환산 활동'
 
+    today_spent = get_today_spent_minutes(user)
+
     records = attach_value_displays(
         get_today_activity_summary(user), mode='minutes',
     )
     context = {
         **summary,
-        # 큰 값(도넛 중앙): 이번 주 지출을 환산 단위로.
-        # 예: 숏폼 60분 사용 & 독서 1페이지=6분 이면 "독서 10페이지"
         'balance_display':  format_unit_display(summary['spent'], base, unit),
         'budget_display':   format_minutes_display(summary['budget']),
         'spent_display':    format_minutes_display(summary['spent']),
         'earned_display':   format_minutes_display(summary['earned']),
-        'budget_desc': (
-            f"이번 주 예산 {format_minutes_display(summary['budget'])} 중 "
-            f"{format_minutes_display(summary['spent'])} 사용"
-        ),
-        # 큰 값 위 라벨: 지출 시간을 환산했다는 의미로 문구 변경
-        'converted_unit_label': f"이번 주 사용한 시간을 {activity}(으)로 바꾸면",
+        'converted_unit_label': f"이번 주 사용한 시간을 {activity}{get_ro_particle(activity)} 바꾸면",
+        # 진행률 위 2줄 설명 (오늘 지출 기준)
+        'desc_line1': f"오늘 숏폼에 사용한 {format_minutes_display(today_spent)}은",
+        'desc_line2': f"{activity} {format_unit_display(today_spent, base, unit)}에 해당해요",
         'today_records': records,
         'today_record_count': get_today_record_count(user),
     }

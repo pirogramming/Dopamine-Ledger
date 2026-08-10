@@ -298,3 +298,26 @@ def get_today_record_count(user):
         EarnRecord.objects.filter(users=user, earn_date=today).count()
         + SpendRecord.objects.filter(users=user, spend_date=today).count()
     )
+
+def get_today_spent_minutes(user):
+    """오늘 하루 지출 총합(분). convert 페이지의 진행률 설명용."""
+    from ledger.models import SpendRecord
+    today = get_today_kst()
+    total = SpendRecord.objects.filter(
+        users=user, spend_date=today,
+    ).aggregate(total=Sum('duration_min'))['total'] or 0
+    return Decimal(total)
+
+def get_ro_particle(word):
+    """단어 끝 글자의 받침 유무에 따라 '로' 또는 '으로' 반환.
+    받침 없음 또는 ㄹ받침 → '로', 그 외 받침 → '으로'."""
+    if not word:
+        return '로'
+    last_char = word[-1]
+    code = ord(last_char) - 0xAC00
+    if code < 0 or code > 11171:
+        return '로'  # 한글 완성형 음절이 아니면 안전하게 기본값
+    jong = code % 28   # 종성(받침) 인덱스: 0=받침없음, 8=ㄹ
+    if jong in (0, 8):
+        return '로'
+    return '으로'
