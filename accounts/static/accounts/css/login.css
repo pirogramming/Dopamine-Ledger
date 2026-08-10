@@ -15,26 +15,20 @@ body {
 /* ============================================
    페이지 전체 래퍼
    ============================================ */
-.page-wrapper {
+/* .page-wrapper {
   max-width: 393px;
   margin: 0 auto;
   padding: 40px 24px 24px;
   min-height: 100vh;
-}
+} */
 
 /* ============================================
    인증 카드 (로그인/회원가입 공통 컨테이너)
    ============================================ */
 .auth-card {
-  background: #fdfcf9;
-  border-radius: 28px;
-  border: 1px solid #70737c;
   min-height: 780px;
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: 80px 33px 40px;
-  position: relative;
+  padding: 80px 0 40px;
 }
 
 /* 카드 안 "로그인" 제목 텍스트 */
