@@ -73,7 +73,10 @@
             <img class="record-list__icon" src="{% static record.icon %}" alt="">
             <span class="record-list__label">{{ record.label }}</span>
           </div>
-          <span class="record-list__value {% if record.is_positive %}record-list__value--positive{% else %}record-list__value--negative{% endif %}">{{ record.value_display }}</span>
+          <span class="record-list__value
+            {% if not record.has_record %}record-list__value--muted
+            {% elif record.is_positive %}record-list__value--positive
+            {% else %}record-list__value--negative{% endif %}">{{ record.value_display }}</span>
         </li>
       {% empty %}
         <li class="record-list__item">

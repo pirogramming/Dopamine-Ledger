@@ -200,6 +200,8 @@
 .record-list {
   list-style: none;
   padding: 0;
+  max-height: 240px;
+  overflow-y: auto;
 }
 
 .record-list__item {
@@ -244,6 +246,9 @@
   color: #ff7a00;
 }
 
+.record-list__value--muted {
+  color: #70737c;         /* 0분일 때 회색 표시 */
+}
 /* ===== 예산 소진 경고 배너 ===== */
 .alert-banner {
   background: #fbe2df;

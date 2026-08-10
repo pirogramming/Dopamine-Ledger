@@ -17,7 +17,8 @@ from collections import defaultdict
 WEEKDAYS_KR = ("월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일")
 from budget.services import (
     get_week_summary,
-    get_today_records,
+    get_today_activity_summary,
+    get_today_record_count,
     attach_value_displays,
     format_minutes_display,
     format_unit_display,
@@ -300,7 +301,7 @@ def main_progress(request):
     """홈 — 시간으로 보기."""
     summary = get_week_summary(request.user)
     records = attach_value_displays(
-        get_today_records(request.user), mode='minutes',
+        get_today_activity_summary(request.user), mode='minutes'
     )
     context = {
         **summary,
@@ -313,7 +314,7 @@ def main_progress(request):
             f"{format_minutes_display(summary['spent'])} 사용"
         ),
         'today_records': records,
-        'today_record_count': len(records),
+        'today_record_count': get_today_record_count(request.user),
     }
     return render(request, 'ledger/main_progress.html', context)
 
@@ -330,7 +331,7 @@ def main_convert(request):
     activity = user.converting_activity or '환산 활동'
 
     records = attach_value_displays(
-        get_today_records(user), mode='minutes',   # 'unit' → 'minutes'
+        get_today_activity_summary(request.user), mode='minutes'
     )
     context = {
         **summary,
@@ -344,6 +345,6 @@ def main_convert(request):
         ),
         'converted_unit_label': f"이번 주 남은 {activity} 시간",
         'today_records': records,
-        'today_record_count': len(records),
+        'today_record_count': get_today_record_count(request.user),
     }
     return render(request, 'ledger/main_convert.html', context)
