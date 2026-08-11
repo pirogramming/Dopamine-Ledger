@@ -2,173 +2,172 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'accounts/css/onboarding.css' %}">
+    <link rel="stylesheet" href="{% static 'accounts/css/onboarding.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="mobile-container">
+    <div class="mobile-container">
+        <!-- ================= 온보딩 1 ================= -->
+        <div id="step-1" class="step">
+            <div class="step-indicator">
+                <div class="dot active"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
 
-    <!-- ================= 온보딩 1 ================= -->
-    <div id="step-1" class="step">
-        <div class="step-indicator">
-            <div class="dot active"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
+            <div class="title">
+                숏폼에 쓴 아까운 시간,<br>
+                무엇과 비교해볼까요?
+            </div>
+
+            <input type="text" id="converting_activity" class="step1-input-main" placeholder="활동 (예: 코딩 공부)">
+
+            <div class="section-label">1시간에 이 활동을 얼마나 하나요?</div>
+            <div class="step1-grid">
+                <input type="number" id="conversion_base" placeholder="활동량: 예) 20">
+                <input type="text" id="conversion_unit" placeholder="단위: 예) 페이지">
+            </div>
+
+            <div class="step1-subtext">1시간에 [ 활동 ]을 [ 활동량 ] [ 단위 ] 하나요?</div>
+
+            <div class="title" style="margin-top: 15px;">
+                일주일에 숏폼,<br>
+                얼마나 허용할까요?
+            </div>
+
+            <div class="section-label">주간 숏폼 예산 (시간)</div>
+            <input type="number" id="weekly_budget_hours" class="step1-input-main" value="5" placeholder="5">
+
+            <div class="step1-notice-box">
+                책 읽거나 운동할 때는 시간당 숏폼을 적립하고 숏폼을 볼 때는 그만큼 차감돼요.
+            </div>
+
+            <div class="btn-group">
+                <button type="button" class="btn-next" onclick="goToStep(2)">다음</button>
+            </div>
         </div>
 
-        <div class="title">
-            숏폼에 쓴 아까운 시간,<br>
-            무엇과 비교해볼까요?
+        <!-- ================= 온보딩 2 ================= -->
+        <div id="step-2" class="step" style="display: none;">
+            <div class="step-indicator">
+                <div class="dot"></div>
+                <div class="dot active"></div>
+                <div class="dot"></div>
+            </div>
+
+            <div class="title">
+                예산을 다 쓰면<br>
+                어떻게 될까요?
+            </div>
+
+            <div class="step2-card-box">
+                <div class="step2-notice-item">
+                    <div class="step2-badge">1</div>
+                    <div class="step2-text">주간 예산을 다 쓰면 초과 경고를 보여드려요</div>
+                </div>
+                <div class="step2-notice-item">
+                    <div class="step2-badge">2</div>
+                    <div class="step2-text">그 뒤 지출은 차단되지 않고 계속 기록되지만 "초과지출"로 따로 표시돼요</div>
+                </div>
+                <div class="step2-notice-item">
+                    <div class="step2-badge">3</div>
+                    <div class="step2-text">주간결산과 크루 피드에도 초과 여부가 표시돼요</div>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" class="btn-prev" onclick="goToStep(1)">이전</button>
+                <button type="button" class="btn-next" onclick="goToStep(3)">다음</button>
+            </div>
         </div>
 
-        <input type="text" id="converting_activity" class="step1-input-main" placeholder="활동 (예: 코딩 공부)">
+        <!-- ================= 온보딩 3 ================= -->
+        <div id="step-3" class="step" style="display: none;">
+            <div class="step-indicator">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot active"></div>
+            </div>
 
-        <div class="section-label">1시간에 이 활동을 얼마나 하나요?</div>
-        <div class="step1-grid">
-            <input type="number" id="conversion_base" placeholder="활동량: 예) 20">
-            <input type="text" id="conversion_unit" placeholder="단위: 예) 페이지">
-        </div>
+            <div class="title">
+                활동 1시간당<br>
+                숏폼을 얼마나 쌓을까요?
+            </div>
 
-        <div class="step1-subtext">1시간에 [ 활동 ]을 [ 활동량 ] [ 단위 ] 하나요?</div>
+            <div class="activity-list">
+                <!-- 고정 1: 독서 -->
+                <div class="activity-item">
+                    <span class="activity-name">독서</span>
+                    <div class="activity-input-group">
+                        <input type="number" id="reading_min" class="minute-box" value="50">
+                        <span class="unit-text">분</span>
+                    </div>
+                </div>
 
-        <div class="title" style="margin-top: 15px;">
-            일주일에 숏폼,<br>
-            얼마나 허용할까요?
-        </div>
+                <!-- 고정 2: 운동 -->
+                <div class="activity-item">
+                    <span class="activity-name">운동</span>
+                    <div class="activity-input-group">
+                        <input type="number" id="exercise_min" class="minute-box" value="50">
+                        <span class="unit-text">분</span>
+                    </div>
+                </div>
 
-        <div class="section-label">주간 숏폼 예산 (시간)</div>
-        <input type="number" id="weekly_budget_hours" class="step1-input-main" value="5" placeholder="5">
+                <!-- 고정 3: 공부 -->
+                <div class="activity-item">
+                    <span class="activity-name">공부</span>
+                    <div class="activity-input-group">
+                        <input type="number" id="study_min" class="minute-box" value="50">
+                        <span class="unit-text">분</span>
+                    </div>
+                </div>
 
-        <div class="step1-notice-box">
-            책 읽거나 운동할 때는 시간당 숏폼을 적립하고 숏폼을 볼 때는 그만큼 차감돼요.
-        </div>
+                <!-- 커스텀 추가 가변 항목 -->
+                <div class="activity-item">
+                    <input type="text" id="custom_activity_name" style="width: 140px; border: none; padding: 0;" placeholder="기타 (선택)">
+                    <div class="activity-input-group">
+                        <input type="number" id="custom_activity_min" class="minute-box" placeholder="0">
+                        <span class="unit-text">분</span>
+                    </div>
+                </div>
+            </div>
 
-        <div class="btn-group">
-            <button type="button" class="btn-next" onclick="goToStep(2)">다음</button>
+            <div class="btn-group">
+                <button type="button" class="btn-prev" onclick="goToStep(2)">이전</button>
+                <button type="button" class="btn-submit" onclick="submitOnboarding()">시작하기</button>
+            </div>
         </div>
     </div>
 
-    <!-- ================= 온보딩 2 ================= -->
-    <div id="step-2" class="step" style="display: none;">
-        <div class="step-indicator">
-            <div class="dot"></div>
-            <div class="dot active"></div>
-            <div class="dot"></div>
-        </div>
-
-        <div class="title">
-            예산을 다 쓰면<br>
-            어떻게 될까요?
-        </div>
-
-        <div class="step2-card-box">
-            <div class="step2-notice-item">
-                <div class="step2-badge">1</div>
-                <div class="step2-text">주간 예산을 다 쓰면 초과 경고를 보여드려요</div>
+    <!-- 공용 알림 모달 -->
+    <div class="modal-overlay" id="alert-modal">
+        <div class="modal">
+            <p id="alert-modal-msg"></p>
+            <div class="modal-actions">
+                <button type="button" class="modal-confirm-btn" onclick="closeAlertModal()">확인</button>
             </div>
-            <div class="step2-notice-item">
-                <div class="step2-badge">2</div>
-                <div class="step2-text">그 뒤 지출은 차단되지 않고 계속 기록되지만 "초과지출"로 따로 표시돼요</div>
-            </div>
-            <div class="step2-notice-item">
-                <div class="step2-badge">3</div>
-                <div class="step2-text">주간결산과 크루 피드에도 초과 여부가 표시돼요</div>
-            </div>
-        </div>
-
-        <div class="btn-group">
-            <button type="button" class="btn-prev" onclick="goToStep(1)">이전</button>
-            <button type="button" class="btn-next" onclick="goToStep(3)">다음</button>
         </div>
     </div>
-
-    <!-- ================= 온보딩 3 ================= -->
-    <div id="step-3" class="step" style="display: none;">
-        <div class="step-indicator">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot active"></div>
-        </div>
-
-        <div class="title">
-            활동 1시간당<br>
-            숏폼을 얼마나 쌓을까요?
-        </div>
-
-        <div class="activity-list">
-            <!-- 고정 1: 독서 -->
-            <div class="activity-item">
-                <span class="activity-name">독서</span>
-                <div class="activity-input-group">
-                    <input type="number" id="reading_min" class="minute-box" value="59">
-                    <span class="unit-text">분</span>
-                </div>
-            </div>
-
-            <!-- 고정 2: 운동 -->
-            <div class="activity-item">
-                <span class="activity-name">운동</span>
-                <div class="activity-input-group">
-                    <input type="number" id="exercise_min" class="minute-box" value="59">
-                    <span class="unit-text">분</span>
-                </div>
-            </div>
-
-            <!-- 고정 3: 공부 -->
-            <div class="activity-item">
-                <span class="activity-name">공부</span>
-                <div class="activity-input-group">
-                    <input type="number" id="study_min" class="minute-box" value="59">
-                    <span class="unit-text">분</span>
-                </div>
-            </div>
-
-            <!-- 커스텀 추가 가변 항목 -->
-            <div class="activity-item">
-                <input type="text" id="custom_activity_name" style="width: 140px; border: none; padding: 0;" placeholder="기타 (선택)">
-                <div class="activity-input-group">
-                    <input type="number" id="custom_activity_min" class="minute-box" placeholder="0">
-                    <span class="unit-text">분</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="btn-group">
-            <button type="button" class="btn-prev" onclick="goToStep(2)">이전</button>
-            <button type="button" class="btn-submit" onclick="submitOnboarding()">시작하기</button>
-        </div>
-    </div>
-
-</div>
 {% endblock %}
 
 {% block nav %}{% endblock %}
 
 {% block extra_js%}
     <script>
-        // 0. DOM 로드 후 분 단위 input 입력창 60분 제한 이벤트 바인딩
-        document.addEventListener('DOMContentLoaded', () => {
-            // 60분 제한을 적용할 input ID 목록
-            const minuteInputIds = ['reading_min', 'exercise_min', 'study_min', 'custom_activity_min'];
+        let modalRedirectUrl = null;
 
-            minuteInputIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('input', (e) => {
-                        let value = parseInt(e.target.value, 10);
-                        
-                        // 60분 초과 시 60으로 제한
-                        if (value >= 60) {
-                            e.target.value = 59;
-                        }
-                        // 음수 입력 방지
-                        if (value < 0) {
-                            e.target.value = 0;
-                        }
-                    });
-                }
-            });
-        });
+        function showModal(message, redirectUrl) {
+            document.getElementById('alert-modal-msg').textContent = message;
+            document.getElementById('alert-modal').classList.add('open');
+            modalRedirectUrl = redirectUrl || null;
+        }
+        function closeAlertModal() {
+            document.getElementById('alert-modal').classList.remove('open');
+            if (modalRedirectUrl) {
+                window.location.href = modalRedirectUrl;
+            }
+        }
+
         // 1. 스텝 이동 함수
         function goToStep(stepNumber) {
             const step1 = document.getElementById('step-1');
@@ -204,9 +203,9 @@
         // 3. 백엔드 전송 함수
         async function submitOnboarding() {
             const convertingActivity = document.getElementById('converting_activity').value;
-            const conversionBase = parseFloat(document.getElementById('conversion_base').value) || 0.0001;
+            const conversionBase = parseFloat(document.getElementById('conversion_base').value) || 0.01;
             const conversionUnit = document.getElementById('conversion_unit').value;
-            
+
             const budgetHours = parseFloat(document.getElementById('weekly_budget_hours').value) || 0;
             const weeklyBudgetMin = Math.round(budgetHours * 60);
 
@@ -255,16 +254,15 @@
                 });
 
                 if (response.ok) {
-                    alert("온보딩 정보가 저장되었습니다!");
-                    window.location.href = "/ledger/";
+                    showModal("온보딩 정보가 저장되었습니다!", "/ledger/");
                 } else {
                     const errData = await response.json();
                     console.error("백엔드 오류:", errData);
-                    alert("저장에 실패했습니다. F12 콘솔을 확인해주세요.");
+                    showModal("저장 실패: 활동 적립 시간은 0분 초과 60분 미만이어야 해요.");
                 }
             } catch (error) {
                 console.error("네트워크 에러:", error);
-                alert("서버 통신 실패");
+                showModal("서버 통신에 실패했어요.");
             }
         }
     </script>

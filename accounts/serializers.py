@@ -100,7 +100,13 @@ class ActivityInputSerializer(serializers.Serializer):
     개별 활동 단위 검증 (활동명과 분 모두 필수)
     """
     activity_type = serializers.CharField(max_length=30, required=True)
-    minutes = serializers.IntegerField(min_value=1, max_value=1440, required=True)
+    minutes = serializers.IntegerField(min_value=1, max_value=59, required=True)
+
+    def validate_minutes(self, value):
+        # 0분 초과 60분 미만 (설정 화면과 동일 규칙)
+        if value <= 0 or value >= 60:
+            raise serializers.ValidationError('적립 시간은 0분 초과 60분 미만이어야 합니다.')
+        return value
 
 
 class OnboardingSerializer(serializers.ModelSerializer):

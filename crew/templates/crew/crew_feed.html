@@ -1,0 +1,28 @@
+{% extends 'crew/base.html' %}
+
+{% block title %}{{ crew.name }} 피드{% endblock %}
+
+{% block content %}
+    <a class="back-link" href="{% url 'crew:detail' crew_id=crew.id %}">‹</a>
+    <h1 class="page-title">{{ crew.name }} 피드</h1>
+
+    <div class="feed-list">
+        {% for event in events %}
+            <div class="feed-item feed-item--{{ event.event_type }}">
+                <div class="feed-icon">
+                    {% if event.event_type == 'earn' %}📈
+                    {% elif event.event_type == 'spend' %}⚠️
+                    {% elif event.event_type == 'cheer' %}❤️
+                    {% elif event.event_type == 'close' %}✅
+                    {% endif %}
+                </div>
+                <div class="feed-body">
+                    <div class="feed-message">{{ event.message }}</div>
+                    <div class="feed-time">{{ event.created_at|date:"n월 j일 A g:i" }}</div>
+                </div>
+            </div>
+        {% empty %}
+            <p class="empty">아직 크루 활동이 없어요.<br>기록하면 여기에 쌓여요.</p>
+        {% endfor %}
+    </div>
+{% endblock %}

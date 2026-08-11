@@ -91,3 +91,36 @@ class CrewGoal(models.Model):
     def target_hours(self):
         """목표 시간을 '시간' 단위로 (화면 표시용)"""
         return self.target_minutes // 60
+
+class FeedEvent(models.Model):
+    class EventType(models.TextChoices):
+        EARN  = 'earn',  '벌이'
+        SPEND = 'spend', '과예산 지출'
+        CHEER = 'cheer', '응원'
+        CLOSE = 'close', '마감'
+
+    crew = models.ForeignKey(
+        Crew, on_delete=models.CASCADE, related_name='feed_events'
+    )
+    # 이벤트를 일으킨 사람 (벌이한 사람, 응원 보낸 사람)
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='feed_events'
+    )
+    # 대상이 있는 경우만 (응원 받은 사람). 나머진 null
+    target = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='feed_events_received',
+        null=True, blank=True,
+    )
+    event_type = models.CharField(max_length=10, choices=EventType.choices)
+    message = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'feed_event'
+        ordering = ['-created_at']
+        indexes = [models.Index(fields=['crew', '-created_at'])]
+
+    def __str__(self):
+        return f'[{self.crew.name}] {self.get_event_type_display()} - {self.message}'

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}환산 단위 변경{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'accounts/settings.css' %}">
+{% endblock %}
+
+{% block content %}
+    <a class="settings-back" href="{% url 'settings-page' %}">‹</a>
+    <h1 class="settings-title">환산 단위 변경</h1>
+
+    <p class="rate-desc">숏폼 시간을 무엇과 비교할지 정해요</p>
+
+    <form method="post" action="{% url 'unit-edit' %}">
+        {% csrf_token %}
+
+        <div class="settings-field-label">활동명</div>
+        <input class="settings-input" type="text" name="converting_activity"
+               value="{{ request.user.converting_activity|default:'' }}" placeholder="예: 독서" maxlength="100">
+
+        <div class="settings-field-label">1시간에 이 활동을 얼마나 하나요?</div>
+        <div class="unit-row">
+            <input class="settings-input" type="number" name="conversion_base"
+                   value="{{ request.user.conversion_base }}" placeholder="20" step="0.1" min="0.1">
+            <input class="settings-input" type="text" name="conversion_unit"
+                   value="{{ request.user.conversion_unit|default:'' }}" placeholder="페이지" maxlength="30">
+        </div>
+
+        <div class="settings-bottom">
+            <button type="submit" class="btn-save">수정하기</button>
+        </div>
+    </form>
+
+    {% if messages %}
+    <div class="modal-overlay open" id="message-modal">
+        <div class="modal">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+            <div class="modal-actions">
+                <button type="button" class="btn-modal-confirm" onclick="closeMessageModal()">확인</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function closeMessageModal() { document.getElementById('message-modal').classList.remove('open'); }
+</script>
+{% endblock %}

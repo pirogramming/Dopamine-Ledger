@@ -34,12 +34,35 @@
         </p>
     </div>
 </div>
+
+<!-- 공용 알림 모달 -->
+<div class="modal-overlay" id="alert-modal">
+    <div class="modal">
+        <p id="alert-modal-msg"></p>
+        <div class="modal-actions">
+            <button type="button" class="modal-confirm-btn" onclick="closeAlertModal()">확인</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block nav %}{% endblock %}
 
 {% block extra_js %}
 <script>
+    let modalRedirectUrl = null;   // 확인 누를 때 이동할 주소 (없으면 그냥 닫기)
+
+    function showModal(message, redirectUrl) {
+        document.getElementById('alert-modal-msg').textContent = message;
+        document.getElementById('alert-modal').classList.add('open');
+        modalRedirectUrl = redirectUrl || null;
+    }
+    function closeAlertModal() {
+        document.getElementById('alert-modal').classList.remove('open');
+        if (modalRedirectUrl) {
+            window.location.href = modalRedirectUrl;
+        }
+    }
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -60,7 +83,7 @@
         const password = document.getElementById('password').value;
 
         if (!email || !password) {
-            alert('이메일과 비밀번호를 모두 입력해 주세요.');
+            showModal('이메일과 비밀번호를 모두 입력해 주세요.');
             return;
         }
 
@@ -80,21 +103,14 @@
             const data = await response.json();
 
             if (response.ok) {
-                alert('로그인 성공! ' + data.user.nickname + '님 환영합니다.');
-
-                if (data.is_onboarded) {
-                    // 이미 온보딩을 완료한 유저 -> 바로 메인 가계부로 이동
-                    window.location.href = '/ledger/';
-                } else {
-                    // 첫 로그인 유저 -> 온보딩 페이지로 이동
-                    window.location.href = '/accounts/onboarding-page/';
-                }
+                const dest = data.is_onboarded ? '/ledger/' : '/accounts/onboarding-page/';
+                showModal('환영합니다, ' + data.user.nickname + '님!', dest);
             } else {
-                alert('로그인 실패: ' + JSON.stringify(data));
+                showModal('로그인 실패: ' + (data.email || data.password || data.account || '다시 확인해주세요'));
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('서버 통신 중 에러가 발생했습니다.');
+            showModal('서버 통신 중 에러가 발생했습니다.');
         }
     }
 </script>

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}주간 예산 수정{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'accounts/settings.css' %}">
+{% endblock %}
+
+{% block content %}
+    <a class="settings-back" href="{% url 'settings-page' %}">‹</a>
+    <h1 class="settings-title">주간 예산·시급 수정</h1>
+
+    <form method="post" action="{% url 'budget-edit' %}">
+        {% csrf_token %}
+
+        <div class="settings-field-label">주간 숏폼 예산 (시간)</div>
+        <input class="settings-input" type="number" name="weekly_budget_hours"
+               value="{{ current_hours }}" step="0.5" min="0.5">
+
+        <div class="settings-bottom">
+            <button type="submit" class="btn-save">수정하기</button>
+        </div>
+    </form>
+
+    {% if messages %}
+    <div class="modal-overlay open" id="message-modal">
+        <div class="modal">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+            <div class="modal-actions">
+                <button type="button" class="btn-modal-confirm" onclick="closeMessageModal()">확인</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function closeMessageModal() { document.getElementById('message-modal').classList.remove('open'); }
+</script>
+{% endblock %}

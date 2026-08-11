@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}개인정보 수정{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'accounts/settings.css' %}">
+{% endblock %}
+
+{% block content %}
+    <a class="settings-back" href="{% url 'settings-page' %}">‹</a>
+    <h1 class="settings-title">개인정보 수정</h1>
+
+    {% if messages %}
+    <div class="modal-overlay open" id="message-modal">
+        <div class="modal">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+            <div class="modal-actions">
+                <button type="button" class="btn-modal-confirm" onclick="closeMessageModal()">확인</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'profile-edit' %}">
+        {% csrf_token %}
+
+        <div class="settings-field-label">닉네임</div>
+        <input class="settings-input" type="text" name="nickname" value="{{ request.user.nickname }}" maxlength="30">
+
+        <div class="settings-field-label">이메일</div>
+        <input class="settings-input" type="email" name="email" value="{{ request.user.email }}">
+
+        <a href="{% url 'password-change' %}" class="settings-item" style="margin-top:8px;">
+            <span>비밀번호 변경</span>
+            <span class="settings-arrow">›</span>
+        </a>
+
+        <div class="settings-bottom">
+            <button type="submit" class="btn-save">저장</button>
+            <button type="button" class="btn-delete" onclick="openDeleteModal()">계정 탈퇴</button>
+        </div>
+    </form>
+
+    <!-- 계정 탈퇴 확인 모달 (크루 모달 패턴) -->
+    <div class="modal-overlay" id="delete-modal">
+        <div class="modal">
+            <h2>계정 탈퇴</h2>
+            <p>정말 탈퇴하시겠어요?</p>
+            <p class="warn">모든 기록이 사라지고 되돌릴 수 없어요.</p>
+            <form method="post" action="{% url 'account-delete' %}">
+                {% csrf_token %}
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal-cancel" onclick="closeDeleteModal()">취소</button>
+                    <button type="submit" class="btn-modal-danger">탈퇴</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openDeleteModal() { document.getElementById('delete-modal').classList.add('open'); }
+    function closeDeleteModal() { document.getElementById('delete-modal').classList.remove('open'); }
+    function closeMessageModal() { document.getElementById('message-modal').classList.remove('open'); }
+</script>
+{% endblock %}

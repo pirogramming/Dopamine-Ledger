@@ -240,3 +240,40 @@ input::placeholder {
     cursor: pointer;
     width: 100%;
 }
+
+/* ================= 공용 알림 모달 ================= */
+.modal-overlay {
+    display: none;
+    position: absolute;      /* mobile-container 기준 */
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+    width: 300px;
+    background: #fdfcf9;
+    border-radius: 20px;
+    padding: 28px 24px 24px;
+    text-align: center;
+}
+.modal p {
+    font-size: 15px;
+    color: #000;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+.modal-actions { display: flex; }
+.modal-confirm-btn {
+    flex: 1;
+    height: 48px;
+    background: #ff7a00;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}

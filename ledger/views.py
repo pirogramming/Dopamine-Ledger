@@ -27,16 +27,30 @@ from budget.services import (
 def spend_record_create(request):
     """
     지출 기록 생성 뷰.
-    - GET: 빈 폼을 보여줌
-    - POST: 검증 후 저장. user는 폼 필드로 노출하지 않고 request.user로 직접 채움(다른 사람 이름으로 기록 남기는 것 방지)
+    - GET: 빈 폼을 보여줌. 잔액이 음수면 진입 시 초과지출 경고 모달 표시(매번). 지출은 막지 않음.
+    - POST: 검증 후 저장. 저장하면 홈으로 이동(마이너스 반영 확인).
     """
     if request.method == 'POST':
         form = SpendRecordForm(request.POST)
         if form.is_valid():
+            # 저장 '전' 잔액을 먼저 잰다 (과예산분 계산용)
+            balance_before = get_current_balance(request.user)
+
             instance = form.save(commit=False)
             instance.users = request.user  # 모델 필드명이 user -> users로 바뀐 것 반영
             instance.save()
-            # Post-Redirect-Get: 새로고침 시 중복 저장 방지
+
+            # 이 지출 중 예산을 넘긴 부분(과예산분)만 크루 피드/목표에 반영
+            # 지출 전 잔액이 양수면 그만큼은 정상, 나머지가 과예산. 음수면 전액 과예산.
+            duration = instance.duration_min
+            positive_before = max(balance_before, Decimal('0'))
+            overspend_min = max(Decimal('0'), Decimal(duration) - positive_before)
+
+            if overspend_min > 0:
+                from crew.services import create_overspend_feed
+                create_overspend_feed(request.user, int(overspend_min))
+
+            # 저장 후 홈으로 → 잔액(마이너스 포함) 갱신 확인
             return redirect('ledger:main_progress')
         # form.is_valid()가 False면 여기서 form을 새로 안 만들고
         # 에러가 담긴 form 그대로 아래 render로 넘어감 (에러 메시지 보존)
@@ -44,7 +58,14 @@ def spend_record_create(request):
         # GET 요청 분기가 없어서 아무것도 반환 안 하던 버그 수정
         form = SpendRecordForm()
 
-    return render(request, 'ledger/spend_record_form.html', {'form': form})
+    # 지출 화면 진입 시점의 잔액이 음수면 초과지출 경고 모달 표시 (매번, 차단 아님)
+    balance = get_current_balance(request.user)
+    budget_exhausted = balance < 0
+
+    return render(request, 'ledger/spend_record_form.html', {
+        'form': form,
+        'budget_exhausted': budget_exhausted,
+    })
 
 
 @login_required
@@ -73,6 +94,15 @@ def earn_record_create(request):
             instance = form.save(commit=False)
             instance.users = request.user  # user -> users
             instance.save()
+
+            # 크루 피드에 벌이 이벤트 생성 (내가 속한 모든 크루)
+            from crew.services import create_earn_feed
+            create_earn_feed(
+                request.user,
+                instance.activity.activity_type,
+                instance.earn_min,
+            )
+
             return redirect('ledger:main_progress')
         # 검증 실패 시 새 폼으로 덮어쓰지 않고 에러 담긴 form 그대로 유지
     else:
