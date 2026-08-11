@@ -181,14 +181,15 @@ SPEND_CATEGORY_ICONS = {
 }
 
 # 적립 활동(activity.activity_type) → 정적 파일 경로
+# 여기 등록된 활동은 전용 아이콘, 그 외(온보딩에서 사용자가 직접 추가한 활동)는 icon-plus로 표시
 EARN_ACTIVITY_ICONS = {
     '독서': 'ledger/images/icon-reading.svg',
     '공부': 'ledger/images/icon-study.svg',
     '운동': 'ledger/images/icon-exercise.svg',
 }
 
-DEFAULT_ICON = 'ledger/images/icon-default.svg'  # 매핑에 없는 카테고리/활동용 안전장치
-
+DEFAULT_ICON = 'ledger/images/icon-default.svg'          # 지출 카테고리 폴백
+DEFAULT_EARN_ICON = 'ledger/images/icon-plus.svg'        # 온보딩 커스텀 활동용 폴백
 
 # ---------- 오늘 기록 ----------
 
@@ -206,7 +207,9 @@ def get_today_records(user):
     for e in earns:
         records.append({
             'label': e.activity.activity_type,
-            'icon': EARN_ACTIVITY_ICONS.get(e.activity.activity_type, DEFAULT_ICON),
+            'icon': EARN_ACTIVITY_ICONS.get(
+                e.activity.activity_type, DEFAULT_EARN_ICON,   # ← DEFAULT_ICON에서 변경
+            ),
             'signed_min': e.earn_min,
             'is_positive': True,
             'started_at': e.earn_start,
@@ -275,18 +278,19 @@ def get_today_activity_summary(user):
         })
 
     # 2) 적립 활동 — 사용자에게 등록된 활동들
-    activities = Activity.objects.filter(users=user)  # ← 실제 관계에 맞게 수정
+    activities = Activity.objects.filter(users=user)
     for activity in activities:
         activity_type = activity.activity_type
         total = earn_totals.get(activity_type, 0) or Decimal(0)
         records.append({
             'label': activity_type,
-            'icon': EARN_ACTIVITY_ICONS.get(activity_type, DEFAULT_ICON),
+            'icon': EARN_ACTIVITY_ICONS.get(
+                activity_type, DEFAULT_EARN_ICON,              # ← DEFAULT_ICON에서 변경
+            ),
             'signed_min': Decimal(total),
             'is_positive': True,
             'has_record': Decimal(total) > 0,
         })
-
     return records
 
 
