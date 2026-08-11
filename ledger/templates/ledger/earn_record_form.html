@@ -182,6 +182,8 @@
         const activitySelect = document.getElementById('id_activity');
         let currentRate = tabs.length ? parseFloat(tabs[0].dataset.rate) : 0;
         let currentActivityName = tabs.length ? tabs[0].textContent.trim() : '활동';
+        
+        let isTimerRunning = false;
 
         function selectActivity(tabEl) {
             tabs.forEach((t) => t.classList.remove('is-active'));
@@ -193,7 +195,13 @@
         }
 
         tabs.forEach((tab) => {
-            tab.addEventListener('click', () => selectActivity(tab));
+            tab.addEventListener('click', () => {
+                if (isTimerRunning) {
+                    return;
+                }
+
+                selectActivity(tab);
+            });
         });
 
         // ---- 결과 요약 갱신 (분 단위, rate는 "1시간당 N분" 표기로 환산해서 보여줌) ----
@@ -223,6 +231,12 @@
             }
 
             startBtn.addEventListener('click', () => {
+                isTimerRunning = true;
+                tabs.forEach((tab) => {
+                    if (!tab.classList.contains('is-active')) {
+                        tab.disabled = true;
+                    }
+                });
                 startTime = new Date();
                 document.getElementById('id_timer_start').value = startTime.toISOString();
                 startBtn.disabled = true;
@@ -235,6 +249,10 @@
             });
 
             stopBtn.addEventListener('click', () => {
+                isTimerRunning = false;
+                tabs.forEach((tab) => {
+                    tab.disabled = false;
+                });
                 clearInterval(tickHandle);
                 const endTime = new Date();
                 document.getElementById('id_timer_end').value = endTime.toISOString();

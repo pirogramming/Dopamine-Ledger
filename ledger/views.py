@@ -237,6 +237,17 @@ def weekly_report(request):
         weekday_kr = WEEKDAYS_KR[record_date.weekday()]
         date_str = f"{record_date.strftime('%Y년 %m월 %d일')} {weekday_kr}"
 
+        total_minutes = int(round(float(earn.earn_min)))
+        hours = total_minutes // 60
+        minutes = total_minutes % 60
+
+        if hours > 0 and minutes > 0:
+            amount_text = f"{hours}시간 {minutes}분"
+        elif hours > 0:
+            amount_text = f"{hours}시간"
+        else:
+            amount_text = f"{minutes}분"
+
         raw_items.append({
             "dt_key": earn.created_at,
             "date_str": date_str,
@@ -244,7 +255,7 @@ def weekly_report(request):
                 "type": "earn",
                 "title": f"{earn.activity.activity_type} 완료",
                 "time": time_str,
-                "amount": int(round(earn.earn_min))
+                "amount": amount_text
             }
         })
 
@@ -256,6 +267,18 @@ def weekly_report(request):
         record_date = local_time.date()
         weekday_kr = WEEKDAYS_KR[record_date.weekday()]
         date_str = f"{record_date.strftime('%Y년 %m월 %d일')} {weekday_kr}"
+
+        total_minutes = int(round(float(spend.duration_min)))
+
+        hours = total_minutes // 60
+        minutes = total_minutes % 60
+
+        if hours > 0 and minutes > 0:
+            amount_text = f"{hours}시간 {minutes}분"
+        elif hours > 0:
+            amount_text = f"{hours}시간"
+        else:
+            amount_text = f"{minutes}분"
         
         raw_items.append({
             "dt_key": spend.created_at,
@@ -264,7 +287,7 @@ def weekly_report(request):
                 "type": "spend",
                 "title": "숏폼 지출",
                 "time": time_str,
-                "amount": int(round(spend.duration_min))
+                "amount": amount_text
             }
         })
 
