@@ -27,9 +27,15 @@ SpendRecordForm 필드 대응:
         <span class="ledger-title">숏폼 지출 기록</span>
     </div>
 
-    {# 잔액 0 이하일 때 뷰에서 context로 내려주는 플래그 #}
+    {# 잔액 음수일 때: 진입 시 초과지출 경고 모달 표시 (차단 아님, 알림만) #}
     {% if budget_exhausted %}
-        <div class="budget-warning">⚠ 이번 주 예산을 다 썼어요</div>
+        <div class="overspend-modal-overlay" id="overspend-modal">
+            <div class="overspend-modal">
+                <p class="overspend-modal__title">이번 주 예산을 다 썼어요</p>
+                <p class="overspend-modal__desc">지금부터는 <strong>"초과지출"</strong>로 기록돼요</p>
+                <button type="button" class="overspend-modal__btn" onclick="closeOverspendModal()">알겠어요..</button>
+            </div>
+        </div>
     {% endif %}
 
     <form method="post" action="{% url 'ledger:spend_record_create' %}" id="spend-form">
@@ -79,7 +85,9 @@ SpendRecordForm 필드 대응:
     </form>
 </div>
 {% endblock %}
+
 {% block nav %}{% endblock %}
+
 {% block extra_js %}
 <script>
     // 시:분 입력이 바뀔 때마다 "= 잔여 시간에서 N분 차감" 문구를 실시간으로 갱신
@@ -101,4 +109,17 @@ SpendRecordForm 필드 대응:
         updateCaption();
     })();
 </script>
+
+    {% if budget_exhausted %}
+    <script>
+        // 진입 시 자동으로 초과지출 경고 모달 표시
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('overspend-modal').classList.add('open');
+        });
+        function closeOverspendModal() {
+            document.getElementById('overspend-modal').classList.remove('open');
+        }
+    </script>
+    {% endif %}
+
 {% endblock %}

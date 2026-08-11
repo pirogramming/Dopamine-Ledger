@@ -1,19 +1,21 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}도파민 크루{% endblock %}</title>
+
+{% block title %}도파민 크루{% endblock %}
+
+{% block extra_css %}
     <link rel="preconnect" href="https://rsms.me/">
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
     <link rel="stylesheet" href="{% static 'crew/crew.css' %}">
-</head>
-<body>
-    <div class="app-frame">
-        {% block content %}{% endblock %}
-    </div>
+{% endblock %}
 
+{% block nav %}
+    {% with active_tab='crew' %}
+        {{ block.super }}
+    {% endwith %}
+{% endblock %}
+
+{% block extra_js %}
     {% if messages %}
     <div class="modal-overlay" id="message-modal">
         <div class="modal">
@@ -35,6 +37,6 @@
     </script>
     {% endif %}
 
+    {# 각 크루 페이지가 자기 스크립트를 여기에 실어보냄 #}
     {% block extra_script %}{% endblock %}
-</body>
-</html>
+{% endblock %}
