@@ -41,7 +41,30 @@
         </div>
     </div>
 
+    <!-- 공용 알림 모달 -->
+    <div class="modal-overlay" id="alert-modal">
+        <div class="modal">
+            <p id="alert-modal-msg"></p>
+            <div class="modal-actions">
+                <button type="button" class="modal-confirm-btn" onclick="closeAlertModal()">확인</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let modalRedirectUrl = null;
+
+        function showModal(message, redirectUrl) {
+            document.getElementById('alert-modal-msg').textContent = message;
+            document.getElementById('alert-modal').classList.add('open');
+            modalRedirectUrl = redirectUrl || null;
+        }
+        function closeAlertModal() {
+            document.getElementById('alert-modal').classList.remove('open');
+            if (modalRedirectUrl) {
+                window.location.href = modalRedirectUrl;
+            }
+        }
         // 쿠키에서 CSRF 토큰 추출하는 함수
         function getCookie(name) {
             let cookieValue = null;
@@ -64,7 +87,7 @@
             const nickname = document.getElementById('nickname').value;
 
             if (!email || !password || !nickname) {
-                alert(' 모든 항목을 입력해 주세요: ');
+                showModal('모든 항목을 입력해 주세요.');
                 return;
             }
 
@@ -85,15 +108,14 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert('회원가입이 완료되었습니다!');
-                    
-                    window.location.href = '/accounts/login-page/'; 
+                    showModal('회원가입이 완료되었습니다!', '/accounts/login-page/');
                 } else {
-                    alert('회원가입 실패: ' + JSON.stringify(data));
+                    const msg = data.email || data.password || data.nickname || '다시 확인해주세요';
+                    showModal('회원가입 실패: ' + msg);
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('서버 통신 중 에러가 발생했습니다.');
+                showModal('서버 통신 중 에러가 발생했습니다.');
             }
         }
     </script>

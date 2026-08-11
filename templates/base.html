@@ -28,7 +28,7 @@
                     </a>
                 </li>
                 <li class="nav-item {% if active_tab == 'crew' %}nav-item--active{% endif %}">
-                    <a class="nav-item__link" href="#">
+                    <a class="nav-item__link" href="{% url 'crew:list' %}">
                         <span class="nav-item__icon"
                             style="--icon-src: url('{% static 'images/icon-crew.svg' %}')"
                             role="img" aria-label="크루"></span>
@@ -36,7 +36,7 @@
                     </a>
                 </li>
                 <li class="nav-item {% if active_tab == 'deadline' %}nav-item--active{% endif %}">
-                    <a class="nav-item__link" href="#">
+                    <a class="nav-item__link" href="{% url 'ledger:daily_close' %}">
                         <span class="nav-item__icon"
                             style="--icon-src: url('{% static 'images/icon-deadline.svg' %}')"
                             role="img" aria-label="마감"></span>
@@ -44,7 +44,7 @@
                     </a>
                 </li>
                 <li class="nav-item {% if active_tab == 'settlement' %}nav-item--active{% endif %}">
-                    <a class="nav-item__link" href="#">
+                    <a class="nav-item__link" href="{% url 'ledger:weekly_report' %}">
                         <span class="nav-item__icon"
                             style="--icon-src: url('{% static 'images/icon-settlement.svg' %}')"
                             role="img" aria-label="결산"></span>
@@ -52,7 +52,7 @@
                     </a>
                 </li>
                 <li class="nav-item {% if active_tab == 'setting' %}nav-item--active{% endif %}">
-                    <a class="nav-item__link" href="#">
+                    <a class="nav-item__link" href="{% url 'settings-page' %}">
                         <span class="nav-item__icon"
                             style="--icon-src: url('{% static 'images/icon-setting.svg' %}')"
                             role="img" aria-label="설정"></span>

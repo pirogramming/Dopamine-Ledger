@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>도파민 가계부 - 온보딩</title>
-    <!-- 외부 CSS 경로 연결 -->
     <link rel="stylesheet" href="{% static 'accounts/onboarding.css' %}">
 </head>
 <body>
@@ -112,7 +111,7 @@
                 <div class="activity-item">
                     <span class="activity-name">운동</span>
                     <div class="activity-input-group">
-                        <input type="number" id="exercise_min" class="minute-box" value="60">
+                        <input type="number" id="exercise_min" class="minute-box" value="50">
                         <span class="unit-text">분</span>
                     </div>
                 </div>
@@ -144,8 +143,32 @@
 
     </div>
 
+    <!-- 공용 알림 모달 -->
+    <div class="modal-overlay" id="alert-modal">
+        <div class="modal">
+            <p id="alert-modal-msg"></p>
+            <div class="modal-actions">
+                <button type="button" class="modal-confirm-btn" onclick="closeAlertModal()">확인</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ================= JS 스크립트 ================= -->
     <script>
+        let modalRedirectUrl = null;
+
+        function showModal(message, redirectUrl) {
+            document.getElementById('alert-modal-msg').textContent = message;
+            document.getElementById('alert-modal').classList.add('open');
+            modalRedirectUrl = redirectUrl || null;
+        }
+        function closeAlertModal() {
+            document.getElementById('alert-modal').classList.remove('open');
+            if (modalRedirectUrl) {
+                window.location.href = modalRedirectUrl;
+            }
+        }
+
         // 1. 스텝 이동 함수
         function goToStep(stepNumber) {
             const step1 = document.getElementById('step-1');
@@ -183,7 +206,7 @@
             const convertingActivity = document.getElementById('converting_activity').value;
             const conversionBase = parseFloat(document.getElementById('conversion_base').value) || 0.0001;
             const conversionUnit = document.getElementById('conversion_unit').value;
-            
+
             const budgetHours = parseFloat(document.getElementById('weekly_budget_hours').value) || 0;
             const weeklyBudgetMin = Math.round(budgetHours * 60);
 
@@ -232,16 +255,15 @@
                 });
 
                 if (response.ok) {
-                    alert("온보딩 정보가 저장되었습니다!");
-                    window.location.href = "/ledger/";
+                    showModal("온보딩 정보가 저장되었습니다!", "/ledger/");
                 } else {
                     const errData = await response.json();
                     console.error("백엔드 오류:", errData);
-                    alert("저장에 실패했습니다. F12 콘솔을 확인해주세요.");
+                    showModal("저장 실패: 활동 적립 시간은 0분 초과 60분 미만이어야 해요.");
                 }
             } catch (error) {
                 console.error("네트워크 에러:", error);
-                alert("서버 통신 실패");
+                showModal("서버 통신에 실패했어요.");
             }
         }
     </script>
