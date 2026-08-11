@@ -17,10 +17,13 @@ from collections import defaultdict
 WEEKDAYS_KR = ("월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일")
 from budget.services import (
     get_week_summary,
-    get_today_records,
+    get_today_activity_summary,
+    get_today_record_count,
     attach_value_displays,
     format_minutes_display,
     format_unit_display,
+    get_today_spent_minutes,
+    get_ro_particle, 
 )
 
 @login_required
@@ -330,7 +333,7 @@ def main_progress(request):
     """홈 — 시간으로 보기."""
     summary = get_week_summary(request.user)
     records = attach_value_displays(
-        get_today_records(request.user), mode='minutes',
+        get_today_activity_summary(request.user), mode='minutes'
     )
     context = {
         **summary,
@@ -343,37 +346,39 @@ def main_progress(request):
             f"{format_minutes_display(summary['spent'])} 사용"
         ),
         'today_records': records,
-        'today_record_count': len(records),
+        'today_record_count': get_today_record_count(request.user),
+        'active_tab': 'home', 
     }
     return render(request, 'ledger/main_progress.html', context)
 
 @login_required
 def main_convert(request):
     """홈 — 변환해서 보기.
-    큰 잔액만 conversion_base로 환산해서 크게 표시하고,
-    이번 주 예산/사용/적립 요약은 main_progress와 동일하게 분(시간) 포맷으로 표시.
-    오늘의 기록도 main_progress와 동일하게 분 단위로 표시."""
+    큰 값: 이번 주 지출 시간을 환산.
+    진행률 설명: 오늘 지출한 시간을 환산해서 2줄(둘째 줄 강조)로 표시."""
     user = request.user
     summary = get_week_summary(user)
     base = user.conversion_base
     unit = user.conversion_unit or ''
     activity = user.converting_activity or '환산 활동'
 
+    today_spent = get_today_spent_minutes(user)
+
     records = attach_value_displays(
-        get_today_records(user), mode='minutes',   # 'unit' → 'minutes'
+        get_today_activity_summary(user), mode='minutes',
     )
     context = {
         **summary,
-        'balance_display':  format_unit_display(summary['balance'], base, unit),
+        'balance_display':  format_unit_display(summary['spent'], base, unit),
         'budget_display':   format_minutes_display(summary['budget']),
         'spent_display':    format_minutes_display(summary['spent']),
         'earned_display':   format_minutes_display(summary['earned']),
-        'budget_desc': (
-            f"이번 주 예산 {format_minutes_display(summary['budget'])} 중 "
-            f"{format_minutes_display(summary['spent'])} 사용"
-        ),
-        'converted_unit_label': f"이번 주 남은 {activity} 시간",
+        'converted_unit_label': f"이번 주 사용한 시간을 {activity}{get_ro_particle(activity)} 바꾸면",
+        # 진행률 위 2줄 설명 (오늘 지출 기준)
+        'desc_line1': f"오늘 숏폼에 사용한 {format_minutes_display(today_spent)}은",
+        'desc_line2': f"{activity} {format_unit_display(today_spent, base, unit)}에 해당해요",
         'today_records': records,
-        'today_record_count': len(records),
+        'today_record_count': get_today_record_count(user),
+        'active_tab': 'home',
     }
     return render(request, 'ledger/main_convert.html', context)

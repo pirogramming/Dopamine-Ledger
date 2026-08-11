@@ -53,6 +53,16 @@
 {% block extra_js%}
     
 
+    <!-- 공용 알림 모달 -->
+    <div class="modal-overlay" id="alert-modal">
+        <div class="modal">
+            <p id="alert-modal-msg"></p>
+            <div class="modal-actions">
+                <button type="button" class="modal-confirm-btn" onclick="closeAlertModal()">확인</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let modalRedirectUrl = null;
 
