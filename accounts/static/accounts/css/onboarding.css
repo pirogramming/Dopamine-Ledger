@@ -175,6 +175,13 @@ input::placeholder {
     white-space: nowrap;
 }
 
+#custom_activity_name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000000;
+    white-space: nowrap;
+}
+
 .activity-input-group {
     display: flex;
     align-items: center;
