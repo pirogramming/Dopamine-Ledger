@@ -56,7 +56,6 @@ class Crew(models.Model):
             self.status = self.Status.ACTIVE
             self.save(update_fields=['status'])
 
-
 class CrewMember(models.Model):
     crew = models.ForeignKey(
         Crew, on_delete=models.CASCADE, related_name='members'
@@ -66,13 +65,12 @@ class CrewMember(models.Model):
         related_name='crew_memberships'
     )
     joined_date = models.DateField('가입일', auto_now_add=True)
+    # 멤버별 캐릭터 (추후 캐릭터 부여 기능용). 기본 캐릭터=1
+    character = models.PositiveSmallIntegerField('캐릭터', default=1)
 
     class Meta:
         db_table = 'crew_member'
         unique_together = [['crew', 'users']]
-
-    def __str__(self):
-        return f'{self.crew.name} - {self.users}'
 
 class CrewGoal(models.Model):
     crew = models.OneToOneField(

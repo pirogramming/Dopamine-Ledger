@@ -136,11 +136,8 @@ class OnboardingSerializer(serializers.ModelSerializer):
                 act_type = item['activity_type'].strip()
                 minutes = item['minutes']
 
-                calculated_rate = round(Decimal(minutes) / Decimal(60.0), 2)
-                if calculated_rate <= Decimal('0.00'):
-                    calculated_rate = Decimal('0.01')
-                elif calculated_rate >= Decimal('1.00'):
-                    calculated_rate = Decimal('0.99')
+                # validate_minutes(0<분<60)가 이미 보장하므로 분기 불필요
+                calculated_rate = round(Decimal(minutes) / Decimal(60), 4)
 
                 activities_to_create.append(
                     Activity(

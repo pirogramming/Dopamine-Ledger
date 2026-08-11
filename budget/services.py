@@ -8,13 +8,6 @@ import zoneinfo
 
 KST = zoneinfo.ZoneInfo("Asia/Seoul")
 
-from datetime import datetime, time, timedelta
-from django.db.models import Sum
-from django.utils import timezone
-import zoneinfo
-
-KST = zoneinfo.ZoneInfo("Asia/Seoul")
-
 
 def calculate_earn_minutes(duration_min, rate):
     duration_min = Decimal(str(duration_min))
@@ -139,7 +132,7 @@ def get_week_summary(user, reference_dt=None):
 
 def format_minutes_display(m):
     """정수 분 → '1시간 30분' / '-30분'. 부호 그대로."""
-    m = int(m)
+    m = int(round(m))
     sign = "-" if m < 0 else ""
     m = abs(m)
     h, r = divmod(m, 60)
