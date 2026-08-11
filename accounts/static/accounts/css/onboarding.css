@@ -16,16 +16,8 @@ body {
     min-height: 100vh;
 }
 
-/* 📱 모바일 컨테이너 프레임 (393px x 852px) */
 .mobile-container {
-    width: 393px;
-    height: 852px;
-    background: #fdfcf9;
-    border-radius: 28px;
-    border: 1px solid #70737c;
-    position: relative;
     overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
 .step {
@@ -177,6 +169,13 @@ input::placeholder {
 }
 
 .activity-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000000;
+    white-space: nowrap;
+}
+
+#custom_activity_name {
     font-size: 16px;
     font-weight: 600;
     color: #000000;

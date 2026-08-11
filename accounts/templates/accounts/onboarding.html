@@ -1,16 +1,12 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>도파민 가계부 - 온보딩</title>
-    <link rel="stylesheet" href="{% static 'accounts/onboarding.css' %}">
-</head>
-<body>
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'accounts/css/onboarding.css' %}">
+{% endblock %}
+
+{% block content %}
     <div class="mobile-container">
-
         <!-- ================= 온보딩 1 ================= -->
         <div id="step-1" class="step">
             <div class="step-indicator">
@@ -80,6 +76,7 @@
             </div>
 
             <div class="btn-group">
+                <button type="button" class="btn-prev" onclick="goToStep(1)">이전</button>
                 <button type="button" class="btn-next" onclick="goToStep(3)">다음</button>
             </div>
         </div>
@@ -102,7 +99,7 @@
                 <div class="activity-item">
                     <span class="activity-name">독서</span>
                     <div class="activity-input-group">
-                        <input type="number" id="reading_min" class="minute-box" value="40">
+                        <input type="number" id="reading_min" class="minute-box" value="50">
                         <span class="unit-text">분</span>
                     </div>
                 </div>
@@ -120,14 +117,14 @@
                 <div class="activity-item">
                     <span class="activity-name">공부</span>
                     <div class="activity-input-group">
-                        <input type="number" id="study_min" class="minute-box" value="20">
+                        <input type="number" id="study_min" class="minute-box" value="50">
                         <span class="unit-text">분</span>
                     </div>
                 </div>
 
                 <!-- 커스텀 추가 가변 항목 -->
                 <div class="activity-item">
-                    <input type="text" id="custom_activity_name" style="width: 140px; border: none; padding: 0;" placeholder="기타 활동 (선택)">
+                    <input type="text" id="custom_activity_name" style="width: 140px; border: none; padding: 0;" placeholder="기타 (선택)">
                     <div class="activity-input-group">
                         <input type="number" id="custom_activity_min" class="minute-box" placeholder="0">
                         <span class="unit-text">분</span>
@@ -140,7 +137,6 @@
                 <button type="button" class="btn-submit" onclick="submitOnboarding()">시작하기</button>
             </div>
         </div>
-
     </div>
 
     <!-- 공용 알림 모달 -->
@@ -152,8 +148,11 @@
             </div>
         </div>
     </div>
+{% endblock %}
 
-    <!-- ================= JS 스크립트 ================= -->
+{% block nav %}{% endblock %}
+
+{% block extra_js%}
     <script>
         let modalRedirectUrl = null;
 
@@ -204,9 +203,9 @@
         // 3. 백엔드 전송 함수
         async function submitOnboarding() {
             const convertingActivity = document.getElementById('converting_activity').value;
-            const conversionBase = parseFloat(document.getElementById('conversion_base').value) || 0.0001;
+            const conversionBase = parseFloat(document.getElementById('conversion_base').value) || 0.01;
             const conversionUnit = document.getElementById('conversion_unit').value;
-
+            
             const budgetHours = parseFloat(document.getElementById('weekly_budget_hours').value) || 0;
             const weeklyBudgetMin = Math.round(budgetHours * 60);
 
@@ -267,5 +266,4 @@
             }
         }
     </script>
-</body>
-</html>
+{% endblock %}
