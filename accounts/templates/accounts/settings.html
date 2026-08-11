@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}설정{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'accounts/settings.css' %}">
+{% endblock %}
+
+{% block content %}
+    <h1 class="settings-title">설정</h1>
+
+    {% if messages %}
+    <div class="modal-overlay open" id="message-modal">
+        <div class="modal">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+            <div class="modal-actions">
+                <button type="button" class="btn-modal-confirm" onclick="closeMessageModal()">확인</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="settings-list">
+        <a href="{% url 'unit-edit' %}" class="settings-item">
+            <span>환산 단위 변경</span>
+            <span class="settings-arrow">›</span>
+        </a>
+        <a href="{% url 'budget-edit' %}" class="settings-item">
+            <span>주간 예산·시급 수정</span>
+            <span class="settings-arrow">›</span>
+        </a>
+        <a href="{% url 'rate-edit' %}" class="settings-item">
+            <span>활동별 환율</span>
+            <span class="settings-arrow">›</span>
+        </a>
+        <a href="{% url 'profile-edit' %}" class="settings-item">
+            <span>개인정보 수정</span>
+            <span class="settings-arrow">›</span>
+        </a>
+    </div>
+
+    <div class="settings-bottom">
+        <button type="button" class="btn-kakao-connect" onclick="alert('준비 중이에요')">카카오 계정 연결</button>
+        <button type="button" class="btn-logout" onclick="handleLogout()">로그아웃</button>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function getCookie(name) {
+        let v = null;
+        if (document.cookie) {
+            for (const c of document.cookie.split(';')) {
+                const t = c.trim();
+                if (t.startsWith(name + '=')) { v = decodeURIComponent(t.slice(name.length + 1)); break; }
+            }
+        }
+        return v;
+    }
+
+    async function handleLogout() {
+        try {
+            const res = await fetch('/accounts/logout/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+            });
+            if (res.ok) {
+                window.location.href = '/accounts/login-page/';
+            } else {
+                alert('로그아웃 실패');
+            }
+        } catch (e) {
+            alert('서버 통신 오류');
+        }
+    }
+
+    function closeMessageModal() { document.getElementById('message-modal').classList.remove('open'); }
+</script>
+{% endblock %}

@@ -52,7 +52,7 @@
                     </a>
                 </li>
                 <li class="nav-item {% if active_tab == 'setting' %}nav-item--active{% endif %}">
-                    <a class="nav-item__link" href="#">
+                    <a class="nav-item__link" href="{% url 'settings-page' %}">
                         <img class="nav-item__icon"
                              style="--icon-src: url('{% static 'images/icon-setting.svg' %}')"
                              src="{% static 'images/icon-setting.svg' %}" alt="설정">
