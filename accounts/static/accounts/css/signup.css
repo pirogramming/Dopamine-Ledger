@@ -44,6 +44,9 @@ body {
   width: auto;
   object-fit: contain;
   margin-bottom: 30px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
 /* ============================================
