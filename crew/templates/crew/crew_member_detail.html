@@ -45,10 +45,12 @@
         </div>
     </div>
 
-    <!-- 응원 보내기 (모양만) -->
+    <!-- 응원 보내기 (자기 자신에겐 안 보임) -->
+    {% if membership.users != request.user %}
     <div class="bottom-btn">
         <button class="btn-outline" onclick="openModal('cheer-modal')">응원 보내기</button>
     </div>
+    {% endif %}
 
     <!-- 더미 데이터 안내 -->
     <p style="text-align:center; font-size:12px; color:var(--gray); margin-top:12px;">
@@ -56,39 +58,26 @@
     </p>
 
     <!-- 응원 보내기 팝업 -->
+    {% if membership.users != request.user %}
     <div class="modal-overlay" id="cheer-modal">
         <div class="modal">
             <h2>응원 보내기</h2>
             <p><strong>{{ membership.users }}</strong>님에게<br>응원을 보낼까요?</p>
-            <p class="warn">응원 기능은 준비 중이에요.</p>
-            <div class="modal-actions">
-                <button type="button" class="btn-outline" onclick="closeModal('cheer-modal')">닫기</button>
-                <button type="button" class="btn-primary" onclick="sendCheer()">응원 보내기</button>
-            </div>
+            <form method="post" action="{% url 'crew:cheer' crew_id=crew.id member_id=membership.id %}">
+                {% csrf_token %}
+                <div class="modal-actions">
+                    <button type="button" class="btn-outline" onclick="closeModal('cheer-modal')">닫기</button>
+                    <button type="submit" class="btn-primary">응원 보내기</button>
+                </div>
+            </form>
         </div>
     </div>
-
-    <!-- 응원 완료 팝업 -->
-    <div class="modal-overlay" id="cheer-done-modal">
-        <div class="modal">
-            <h2>응원 완료</h2>
-            <p><strong>{{ membership.users }}</strong>님에게 응원을 보냈어요!</p>
-            <p class="warn">응원 기능은 준비 중이에요.</p>
-            <div class="modal-actions">
-                <button type="button" class="btn-primary" onclick="closeModal('cheer-done-modal')">확인</button>
-            </div>
-        </div>
-    </div>
+    {% endif %}
 {% endblock %}
 
 {% block extra_script %}
 <script>
     function openModal(id) { document.getElementById(id).classList.add('open'); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-    function sendCheer() {
-        closeModal('cheer-modal');
-        openModal('cheer-done-modal');
-    }
 </script>
 {% endblock %}

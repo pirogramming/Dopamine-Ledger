@@ -12,25 +12,6 @@
 
 * { box-sizing: border-box; }
 
-body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background: #EEE;
-    display: flex;
-    justify-content: center;
-}
-
-/* 모바일 프레임 */
-.app-frame {
-    position: relative;
-    width: 393px;
-    min-height: 852px;
-    background: var(--bg);
-    border: 1px solid var(--gray);
-    border-radius: 28px;
-    padding: 51px 23px 100px;
-}
-
 /* 메시지 */
 .messages {
     list-style: none;
@@ -80,10 +61,8 @@ body {
 
 /* 하단 고정 영역 (초대코드 입력 + 만들기 버튼) */
 .bottom-area {
-    position: absolute;
-    left: 33px;
-    right: 33px;
-    bottom: 30px;
+    margin-top: auto;
+    padding-top: 24px;
 }
 
 /* 초대코드 입력 줄 */
@@ -131,12 +110,11 @@ body {
 
 /* ── 뒤로가기 화살표 ── */
 .back-link {
-    position: absolute;
-    left: 30px; top: 51px;
-    font-size: 20px;
+    display: inline-block;
+    font-size: 24px;
     text-decoration: none;
     color: var(--text);
-    z-index: 10;
+    margin-bottom: -24px;
 }
 
 /* ── 입력 라벨 · 필드 (create) ── */
@@ -169,8 +147,7 @@ body {
 
 /* 하단 고정 버튼 하나 */
 .bottom-btn {
-    position: absolute;
-    left: 33px; right: 33px; bottom: 30px;
+    margin-top: 24px;
 }
 
 /* 흰 배경 주황 테두리 버튼 */
@@ -192,12 +169,16 @@ body {
 }
 
 /* ── 멤버 (detail) ── */
-.section-label { font-size: 16px; color: var(--gray); margin-bottom: 10px; }
+.section-label {
+    font-size: 16px;
+    color: var(--gray);
+    margin-bottom: -24  px;
+}
 .member-box {
-    background: var(--card);
+    background: transparent;
     border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 30px;
+    padding: 0;
+    margin-bottom: 16px;
 }
 .member-row {
     display: flex;
@@ -229,7 +210,7 @@ body {
     margin-bottom: 30px;
     text-decoration: none;
 }
-.invite-info { font-size: 14px; color: var(--gray); margin-bottom: 8px; }
+.invite-info { font-size: 14px; color: var(--gray); margin-bottom: -8px; }
 .invite-info strong { color: var(--text); }
 
 /* ── 팝업(모달) ── */
@@ -278,7 +259,8 @@ body {
     background: var(--accent-bg);
     border-radius: 15px;
     padding: 20px;
-    margin-bottom: 30px;
+    margin-top: -16px;
+    margin-bottom: -16px;
 }
 .goal-box .goal-head {
     font-size: 13px;
@@ -310,6 +292,7 @@ body {
 }
 .goal-bar .fill {
     height: 100%;
+    width: calc(var(--pct, 0) * 1%);
     background: var(--green);
     border-radius: 4px;
 }
@@ -326,7 +309,7 @@ body {
     align-items: center;
     justify-content: center;
     position: relative;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     margin-top: 10px;
 }
 .detail-header .detail-title {
@@ -370,3 +353,127 @@ body {
 .today-value { font-size: 22px; font-weight: 700; color: var(--text); }
 .today-sub { font-size: 12px; color: var(--gray); margin-top: 4px; }
 .today-divider { width: 1px; height: 50px; background: var(--line); }
+
+/* ── 정렬 탭 ── */
+.member-list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.sort-tabs {
+    display: flex;
+    gap: 4px;
+}
+.sort-tab {
+    font-size: 12px;
+    color: var(--gray);
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+.sort-tab.is-active {
+    color: var(--orange);
+    font-weight: 700;
+    background: var(--accent-bg);
+}
+
+/* ── 멤버 행 (기여도 포함) ── */
+.member-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid #F0F0F0;
+}
+.member-item:last-child { border-bottom: none; }
+
+.member-item .member-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: #D9D9D9;
+    flex-shrink: 0;
+}
+.member-main { flex: 1; min-width: 0; }
+.member-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+}
+.member-feed {
+    font-size: 12px;
+    color: var(--gray);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.member-stat { text-align: right; flex-shrink: 0; }
+.member-pct {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+}
+.member-pct--top { color: var(--green); }   /* 1등만 초록 */
+.member-time {
+    font-size: 12px;
+    color: var(--gray);
+    margin-top: 2px;
+}
+
+/* ── goal-box 달성 시 초록 테마 ── */
+.goal-box--done {
+    background: #EAF7E8;   /* 연초록 */
+}
+.goal-box--done .goal-head { color: var(--green); }
+.goal-box--done .goal-foot { color: var(--green); }
+
+.member-sub {
+    font-size: 12px;
+    color: var(--gray);
+    margin-top: 2px;
+}
+
+/* ── 크루 피드 ── */
+.feed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.feed-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: var(--card);
+    border-radius: 14px;
+    padding: 14px 16px;
+    border-left: 4px solid var(--line);
+}
+.feed-item--earn  { border-left-color: var(--green); }
+.feed-item--spend { border-left-color: var(--orange); }
+.feed-item--cheer { border-left-color: #FFD93B; }
+.feed-item--close { border-left-color: var(--gray); }
+
+.feed-icon { font-size: 20px; line-height: 1.2; flex-shrink: 0; }
+.feed-body { flex: 1; min-width: 0; }
+.feed-message {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+    line-height: 1.4;
+}
+.feed-time {
+    font-size: 12px;
+    color: var(--gray);
+}
+.feed-link {
+    display: inline-block;
+    font-size: 13px;
+    color: var(--orange);
+    text-decoration: none;
+    font-weight: 700;
+    margin-bottom: -8px;
+}
