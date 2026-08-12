@@ -199,22 +199,26 @@ class KakaoCallbackView(APIView):
         email=email,
         defaults={
             "username": f"kakao_{kakao_id}",
-            "nickname": nickname,
+            "nickname": f"kakao_{kakao_id}",
             "kakao_id": str(kakao_id),
         },
     )
 
-    # 5. 세션 로그인 처리
+    # 4-1. 토큰 저장 (기존 유저도 갱신)
+    refresh_token = token_json.get("refresh_token")
+    user.kakao_id = str(kakao_id)
+    user.kakao_access_token = access_token
+    if refresh_token:
+        user.kakao_refresh_token = refresh_token
+    user.save(update_fields=['kakao_id', 'kakao_access_token', 'kakao_refresh_token'])
+
+    # 5. 세션 로그인
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
 
-    return Response(
-        {
-            "message": "카카오 로그인 성공",
-            "user": UserResponseSerializer(user).data,
-        },
-        status=status.HTTP_200_OK,
-    )
-
+    # 6. 온보딩 여부에 따라 분기
+    if user.is_onboarded:
+        return redirect('/ledger/')
+    return redirect('onboarding-page')
 
 class OnboardingAPIView(APIView):
   permission_classes = [IsAuthenticated]

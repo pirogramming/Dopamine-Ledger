@@ -10,6 +10,7 @@ from .views import (
     budget_edit,
     rate_edit,
     unit_edit,
+    nickname_setup,
     SignupView,
     LoginView,
     LogoutView,
@@ -34,7 +35,7 @@ urlpatterns = [
     # 카카오 소셜 로그인 콜백
     path('kakao/login/', KakaoLoginRedirectView.as_view(), name='kakao_login'),
     path('kakao/callback/', KakaoCallbackView.as_view(), name='kakao_callback'),
-
+    
     # 설정 기능 경로
     path('profile-edit/', profile_edit, name='profile-edit'),
     path('account-delete/', account_delete, name='account-delete'),
