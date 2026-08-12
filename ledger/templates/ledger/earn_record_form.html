@@ -46,8 +46,15 @@
 
         {# entry_mode: 사용자가 조작 못 함. URL(mode 파라미터)에서 뷰가 initial로 내려준 값을 그대로 hidden 전송 #}
         <input type="hidden" name="entry_mode" id="id_entry_mode" value="{{ form.entry_mode.value|default:'timer' }}">
-
+        
+        <!-- 입력 방식 선택: 밑줄 탭 -->
+        <p class="section-label">입력 방식</p>
+        <div class="mode-tabs" role="tablist" aria-label="입력 방식 선택">
+            <button type="button" class="mode-tab" data-mode="timer" id="mode-tab-timer" role="tab">타이머</button>
+            <button type="button" class="mode-tab" data-mode="manual" id="mode-tab-manual" role="tab">수동입력</button>
+        </div>
         <!-- 활동 종류 탭: 유저 소유 활동만 노출 (forms.py __init__에서 이미 필터링된 쿼리셋) -->
+        <p class="section-label">활동 선택</p>
         <div class="activity-tabs" role="tablist" aria-label="활동 종류 선택">
             {% for choice in form.activity.field.queryset %}
                 <button type="button"
@@ -84,11 +91,9 @@
                 </div>
             </div>
             <div class="button-row">
-                <button type="button" class="btn btn-ghost" id="timer-start-btn">시작</button>
-                <button type="button" class="btn btn-primary-earn" id="timer-stop-btn" disabled>종료</button>
+                <button type="button" class="btn btn-primary-earn" id="timer-start-btn">시작</button>
+                <button type="button" class="btn btn-muted" id="timer-stop-btn" disabled>종료</button>
             </div>
-            <p class="time-caption" style="margin-top:12px;">시간을 직접 입력하려면 <a href="?mode=manual">여기</a></p>
-
             {# 타이머로 계산된 시작/종료 시각이 여기에 JS로 채워짐 (forms.py timer_start/timer_end) #}
             <input type="hidden" name="timer_start" id="id_timer_start">
             <input type="hidden" name="timer_end" id="id_timer_end">
@@ -130,26 +135,6 @@
                 <div class="result-rate-note" id="result-rate-note">환율 -분/시간 기준</div>
             </div>
 
-            {# 인증 방식: 사용자가 못 바꾸는 값 -> 버튼처럼 안 보이게 읽기전용 뱃지 스타일로 변경 #}
-            <div class="field-block field-block--readonly">
-                <span class="field-label">인증 방식</span>
-                <div class="readonly-badge-row">
-                    <span class="readonly-badge" id="pill-timer">타이머</span>
-                    <span class="readonly-badge" id="pill-manual">수동입력</span>
-                </div>
-                <p class="field-note">입력 경로에 따라 자동으로 기록돼요 (변경 불가)</p>
-            </div>
-
-            {# photo_url 필드 하나뿐이라 라벨도 하나로 통일 #}
-            <div class="field-block">
-                <span class="field-label">인증 사진 URL (선택)</span>
-                <input type="url" name="photo_url" id="id_photo_url" class="photo-upload-input"
-                       placeholder="https://..." value="{{ form.photo_url.value|default:'' }}">
-                {% if form.photo_url.errors %}
-                    <p class="field-note" style="color:var(--warning-text);">{{ form.photo_url.errors.0 }}</p>
-                {% endif %}
-            </div>
-
             <div class="footer-actions">
                 <div class="button-row" style="margin-top: 20px;">
                     <button type="submit" class="btn btn-primary-earn" id="submit-btn">적립하기</button>
@@ -160,6 +145,25 @@
             </div>
         </div>
     </form>
+    <div id="zero-min-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h2 class="modal-title">시간이 너무 짧아요</h2>
+            <p class="modal-desc">최소 30초 이상 활동해야 적립할 수 있어요.<br>다시 시작해서 측정해주세요.</p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-ghost" id="zero-min-close-btn">닫기</button>
+                <button type="button" class="btn btn-primary-earn" id="zero-min-retry-btn">다시 시작</button>
+            </div>
+        </div>
+    </div>
+    <!-- 범용 알림 모달 (login.html의 alert-modal 패턴과 동일) -->
+    <div class="modal-overlay" id="info-modal">
+        <div class="modal-box">
+            <p class="modal-desc" id="info-modal-msg"></p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-primary-earn" id="info-modal-confirm-btn">확인</button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 {% block nav %}{% endblock %}
@@ -173,18 +177,25 @@
         4) 수동입력: 시/분 바뀔 때마다 result-panel 갱신 (별도 미리보기 배너는 제거됨)
     */
     (function () {
-        const entryMode = document.getElementById('id_entry_mode').value;
         const timerPanel = document.getElementById('timer-mode-panel');
         const manualPanel = document.getElementById('manual-mode-panel');
         const resultPanel = document.getElementById('result-panel');
+        const zeroMinModal = document.getElementById('zero-min-modal');
+        const infoModal = document.getElementById('info-modal');
+        const entryModeInput = document.getElementById('id_entry_mode');
 
-        const tabs = document.querySelectorAll('.activity-tab');
+        const modeTabTimer = document.getElementById('mode-tab-timer');
+        const modeTabManual = document.getElementById('mode-tab-manual');
+
+        const tabs = document.querySelectorAll('.activity-tabs[aria-label="활동 종류 선택"] .activity-tab');
         const activitySelect = document.getElementById('id_activity');
         let currentRate = tabs.length ? parseFloat(tabs[0].dataset.rate) : 0;
         let currentActivityName = tabs.length ? tabs[0].textContent.trim() : '활동';
-        
-        let isTimerRunning = false;
 
+        let isTimerRunning = false;
+        let entryMode = entryModeInput.value; // 'timer' 또는 'manual' 토글로 바뀔 수 있음
+
+        // ---- 활동 탭 선택 ----
         function selectActivity(tabEl) {
             tabs.forEach((t) => t.classList.remove('is-active'));
             tabEl.classList.add('is-active');
@@ -193,18 +204,18 @@
             currentActivityName = tabEl.textContent.trim();
             document.getElementById('result-activity-name').textContent = currentActivityName;
         }
-
         tabs.forEach((tab) => {
             tab.addEventListener('click', () => {
-                if (isTimerRunning) {
-                    return;
-                }
-
+                if (isTimerRunning) return;
                 selectActivity(tab);
+                if (entryMode === 'manual') {
+                    document.getElementById('id_hours').dispatchEvent(new Event('input'));
+                }
             });
         });
+        if (tabs.length) selectActivity(tabs[0]);
 
-        // ---- 결과 요약 갱신 (분 단위, rate는 "1시간당 N분" 표기로 환산해서 보여줌) ----
+        // ---- 결과 요약 갱신 ----
         function updateResultPanel(durationMin) {
             const earnMin = Math.round(durationMin * currentRate);
             document.getElementById('result-duration').textContent = durationMin + '분';
@@ -213,87 +224,126 @@
             resultPanel.style.display = 'block';
         }
 
-        // ---- 타이머 모드 ----
-        if (entryMode === 'timer') {
-            timerPanel.style.display = 'block';
-            const startBtn = document.getElementById('timer-start-btn');
-            const stopBtn = document.getElementById('timer-stop-btn');
-            const display = document.getElementById('timer-display');
-            let startTime = null;
-            let tickHandle = null;
+        // ---- 0분 경고 모달 ----
+        function showZeroMinModal() { zeroMinModal.classList.add('open'); }
+        function hideZeroMinModal() { zeroMinModal.classList.remove('open'); }
+        document.getElementById('zero-min-close-btn').addEventListener('click', hideZeroMinModal);
+        document.getElementById('zero-min-retry-btn').addEventListener('click', () => {
+            hideZeroMinModal();
+            if (entryMode === 'timer') startBtn.click();
+        });
 
-            function formatMMSS(totalSeconds) {
-                // 1시간(3600초) 넘어가면 h:mm:ss 형태로, 아니면 기존처럼 mm:ss로 표시
-                const h = Math.floor(totalSeconds / 3600);
-                const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-                const s = String(totalSeconds % 60).padStart(2, '0');
-                return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
-            }
-
-            startBtn.addEventListener('click', () => {
-                isTimerRunning = true;
-                tabs.forEach((tab) => {
-                    if (!tab.classList.contains('is-active')) {
-                        tab.disabled = true;
-                    }
-                });
-                startTime = new Date();
-                document.getElementById('id_timer_start').value = startTime.toISOString();
-                startBtn.disabled = true;
-                stopBtn.disabled = false;
-                document.querySelector('.timer-circle-caption').textContent = '측정 중...';
-                tickHandle = setInterval(() => {
-                    const elapsed = Math.floor((new Date() - startTime) / 1000);
-                    display.textContent = formatMMSS(elapsed);
-                }, 1000);
-            });
-
-            stopBtn.addEventListener('click', () => {
-                isTimerRunning = false;
-                tabs.forEach((tab) => {
-                    tab.disabled = false;
-                });
-                clearInterval(tickHandle);
-                const endTime = new Date();
-                document.getElementById('id_timer_end').value = endTime.toISOString();
-                const durationMin = Math.round((endTime - startTime) / 60000);
-                stopBtn.disabled = true;
-                updateResultPanel(durationMin);
-                document.getElementById('pill-timer').classList.add('is-selected');
-            });
+        function showInfoModal(message) {
+            document.getElementById('info-modal-msg').textContent = message;
+            infoModal.classList.add('open');
         }
+        document.getElementById('info-modal-confirm-btn').addEventListener('click', () => {
+            infoModal.classList.remove('open');
+        });
+
+        // ---- 타이머 모드 요소 ----
+        const startBtn = document.getElementById('timer-start-btn');
+        const stopBtn = document.getElementById('timer-stop-btn');
+        const display = document.getElementById('timer-display');
+        let startTime = null;
+        let tickHandle = null;
+
+        function formatMMSS(totalSeconds) {
+            const h = Math.floor(totalSeconds / 3600);
+            const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+            const s = String(totalSeconds % 60).padStart(2, '0');
+            return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
+        }
+
+        function resetTimerDisplay() {
+            clearInterval(tickHandle);
+            display.textContent = '00:00';
+            document.querySelector('.timer-circle-caption').textContent = '시작을 눌러주세요';
+            startBtn.disabled = false;
+            startBtn.textContent = '시작';
+            stopBtn.disabled = true;
+        }
+
+        startBtn.addEventListener('click', () => {
+            isTimerRunning = true;
+            tabs.forEach((tab) => { if (!tab.classList.contains('is-active')) tab.disabled = true; });
+            resultPanel.style.display = 'none';
+            display.textContent = '00:00';
+            startTime = new Date();
+            document.getElementById('id_timer_start').value = startTime.toISOString();
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            document.querySelector('.timer-circle-caption').textContent = '측정 중...';
+            tickHandle = setInterval(() => {
+                const elapsed = Math.floor((new Date() - startTime) / 1000);
+                display.textContent = formatMMSS(elapsed);
+            }, 1000);
+        });
+
+        stopBtn.addEventListener('click', () => {
+            isTimerRunning = false;
+            tabs.forEach((tab) => { tab.disabled = false; });
+            clearInterval(tickHandle);
+            const endTime = new Date();
+            document.getElementById('id_timer_end').value = endTime.toISOString();
+            const durationMin = Math.round((endTime - startTime) / 60000);
+            stopBtn.disabled = true;
+            startBtn.disabled = false;
+            startBtn.textContent = '다시 시작';
+
+            if (durationMin <= 0) {
+                showZeroMinModal();
+                resultPanel.style.display = 'none';
+                return;
+            }
+            updateResultPanel(durationMin);
+        });
 
         // ---- 수동입력 모드 ----
-        if (entryMode === 'manual') {
-            manualPanel.style.display = 'block';
-            const hoursInput = document.getElementById('id_hours');
-            const minutesInput = document.getElementById('id_minutes');
+        const hoursInput = document.getElementById('id_hours');
+        const minutesInput = document.getElementById('id_minutes');
 
-            function updatePreview() {
-                const h = parseInt(hoursInput.value, 10) || 0;
-                const m = parseInt(minutesInput.value, 10) || 0;
-                const durationMin = h * 60 + m;
-                if (durationMin > 0) {
-                    updateResultPanel(durationMin);
-                } else {
-                    resultPanel.style.display = 'none';
-                }
+        function updatePreview() {
+            const h = parseInt(hoursInput.value, 10) || 0;
+            const m = parseInt(minutesInput.value, 10) || 0;
+            const durationMin = h * 60 + m;
+            if (durationMin > 0) {
+                updateResultPanel(durationMin);
+            } else {
+                resultPanel.style.display = 'none';
             }
+        }
+        hoursInput.addEventListener('input', updatePreview);
+        minutesInput.addEventListener('input', updatePreview);
 
-            hoursInput.addEventListener('input', updatePreview);
-            minutesInput.addEventListener('input', updatePreview);
-            document.getElementById('pill-manual').classList.add('is-selected');
-            updatePreview();
+        // ---- 모드 전환 (핵심: 새로고침 없이 패널만 토글) ----
+        function applyMode(mode) {
+            if (isTimerRunning) {
+                showInfoModal('타이머 진행 중에는 전환할 수 없어요. 먼저 종료해주세요.')
+                return;
+            }
+            entryMode = mode;
+            entryModeInput.value = mode;
+
+            modeTabTimer.classList.toggle('is-active', mode === 'timer');
+            modeTabManual.classList.toggle('is-active', mode === 'manual');
+
+            timerPanel.style.display = mode === 'timer' ? 'block' : 'none';
+            manualPanel.style.display = mode === 'manual' ? 'block' : 'none';
+            resultPanel.style.display = 'none';
+
+            if (mode === 'timer') {
+                resetTimerDisplay();
+            } else {
+                updatePreview();
+            }
         }
 
-        // 활동 탭을 나중에 바꾸면 진행 중이던 미리보기도 다시 계산
-        tabs.forEach((tab) => {
-            tab.addEventListener('click', () => {
-                if (entryMode === 'manual') {
-                    document.getElementById('id_hours').dispatchEvent(new Event('input'));
-                }
-            });
-        });
+        modeTabTimer.addEventListener('click', () => applyMode('timer'));
+        modeTabManual.addEventListener('click', () => applyMode('manual'));
+
+        // ---- 초기 진입: 서버가 내려준 mode로 시작 ----
+        applyMode(entryMode);
     })();
 </script>
 {% endblock %}
