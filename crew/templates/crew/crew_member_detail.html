@@ -11,7 +11,7 @@
         <div class="member-avatar"></div>
         <div>
             <div class="member-name">{{ membership.users }}</div>
-            <div style="font-size:13px; color:var(--gray);">연속 마감 <span style="color:var(--orange);">4일째</span></div>
+            <div style="font-size:13px; color:var(--gray);">연속 마감 <span style="color:var(--orange);">{{ streak_days }}일째</span></div>
         </div>
     </div>
 
@@ -20,14 +20,14 @@
     <div class="today-box">
         <div class="today-col">
             <div class="today-label">↘ 지출</div>
-            <div class="today-value">22분</div>
+            <div class="today-value">{{ today_spend_display }}</div>
             <div class="today-sub">숏폼</div>
         </div>
         <div class="today-divider"></div>
         <div class="today-col">
             <div class="today-label">↗ 수입</div>
-            <div class="today-value">40분</div>
-            <div class="today-sub">독서 40분</div>
+            <div class="today-value">{{ today_earn_display }}</div>
+            <div class="today-sub">활동</div>
         </div>
     </div>
 
@@ -36,12 +36,12 @@
     <div class="goal-box">
         <div class="goal-main">
             <span class="goal-title" style="font-size:14px; color:var(--gray);">잔액</span>
-            <span class="goal-percent">+1시간 12분</span>
+            <span class="goal-percent">{{ balance_display }}</span>
         </div>
-        <div class="goal-bar"><div class="fill" style="width: 60%;"></div></div>
+        <div class="goal-bar"><div class="fill" style="--pct: {{ balance_pct }};"></div></div>
         <div class="goal-foot">
-            <span>예산 5시간</span>
-            <span>수입 2시간 40분 · 지출 1시간 30분</span>
+            <span>예산 {{ budget_display }}</span>
+            <span>수입 {{ earned_display }} · 지출 {{ spent_display }}</span>
         </div>
     </div>
 
@@ -51,11 +51,6 @@
         <button class="btn-outline" onclick="openModal('cheer-modal')">응원 보내기</button>
     </div>
     {% endif %}
-
-    <!-- 더미 데이터 안내 -->
-    <p style="text-align:center; font-size:12px; color:var(--gray); margin-top:12px;">
-        ※ 활동 데이터는 준비 중입니다 (예시)
-    </p>
 
     <!-- 응원 보내기 팝업 -->
     {% if membership.users != request.user %}

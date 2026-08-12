@@ -437,37 +437,46 @@
 }
 
 /* ── 크루 피드 ── */
-.feed-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.feed-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    background: var(--card);
-    border-radius: 14px;
-    padding: 14px 16px;
-    border-left: 4px solid var(--line);
-}
-.feed-item--earn  { border-left-color: var(--green); }
-.feed-item--spend { border-left-color: var(--orange); }
-.feed-item--cheer { border-left-color: #FFD93B; }
-.feed-item--close { border-left-color: var(--gray); }
-
-.feed-icon { font-size: 20px; line-height: 1.2; flex-shrink: 0; }
-.feed-body { flex: 1; min-width: 0; }
-.feed-message {
+.feed-date {
     font-size: 14px;
-    font-weight: 600;
+    color: var(--gray);
+    margin: 20px 0 4px;
+}
+.feed-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 2px;
+    border-bottom: 1px solid #E3E1DC;
+}
+.feed-row-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;      /* 이모지 폴백용 */
+}
+.feed-row-icon img {
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+.feed-row-icon img[src*="warning"] {
+    filter: brightness(1.3) saturate(1.2);
+}
+.feed-row-msg {
+    flex: 1;
+    min-width: 0;
+    font-size: 15px;
     color: var(--text);
-    margin-bottom: 3px;
     line-height: 1.4;
 }
-.feed-time {
-    font-size: 12px;
+.feed-row-time {
+    font-size: 13px;
     color: var(--gray);
+    flex-shrink: 0;
 }
 .feed-link {
     display: inline-block;
@@ -476,4 +485,30 @@
     text-decoration: none;
     font-weight: 700;
     margin-bottom: -8px;
+}
+
+/* ── 크루 피드 멤버 필터 탭 ── */
+.feed-filter {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 0 12px;
+    scrollbar-width: none;        /* Firefox 스크롤바 숨김 */
+}
+.feed-filter::-webkit-scrollbar { display: none; }   /* Chrome 스크롤바 숨김 */
+
+.filter-pill {
+    flex: none;                   /* 줄바꿈 없이 옆으로 (가로 스크롤) */
+    padding: 7px 18px;
+    border: 1px solid #C7C7C7;
+    border-radius: 20px;
+    font-size: 14px;
+    color: var(--gray);
+    white-space: nowrap;
+    text-decoration: none;
+}
+.filter-pill.is-active {
+    background: var(--orange);
+    color: #fff;
+    border-color: var(--orange);
 }

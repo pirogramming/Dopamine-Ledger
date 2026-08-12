@@ -331,11 +331,12 @@ def daily_close(request):
     error_message = None
 
     if request.method == "POST":
-
         try:
             close_today(request.user)
+            request.user.refresh_from_db()      # streak_days 갱신값 반영
+            from crew.services import create_close_feed
+            create_close_feed(request.user, request.user.streak_days)
             return redirect("ledger:daily_close")
-
         except ValueError as error:
             error_message = str(error)
 

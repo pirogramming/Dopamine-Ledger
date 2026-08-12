@@ -1,4 +1,5 @@
 {% extends 'crew/base.html' %}
+{% load static %}
 
 {% block title %}{{ crew.name }} 피드{% endblock %}
 
@@ -6,23 +7,46 @@
     <a class="back-link" href="{% url 'crew:detail' crew_id=crew.id %}">‹</a>
     <h1 class="page-title">{{ crew.name }} 피드</h1>
 
-    <div class="feed-list">
-        {% for event in events %}
-            <div class="feed-item feed-item--{{ event.event_type }}">
-                <div class="feed-icon">
-                    {% if event.event_type == 'earn' %}📈
-                    {% elif event.event_type == 'spend' %}⚠️
-                    {% elif event.event_type == 'cheer' %}❤️
-                    {% elif event.event_type == 'close' %}✅
-                    {% endif %}
-                </div>
-                <div class="feed-body">
-                    <div class="feed-message">{{ event.message }}</div>
-                    <div class="feed-time">{{ event.created_at|date:"n월 j일 A g:i" }}</div>
-                </div>
-            </div>
-        {% empty %}
-            <p class="empty">아직 크루 활동이 없어요.<br>기록하면 여기에 쌓여요.</p>
+    <!-- 멤버 필터 탭 -->
+    <div class="feed-filter">
+        <a href="{% url 'crew:feed' crew_id=crew.id %}"
+           class="filter-pill {% if not selected_member %}is-active{% endif %}">전체</a>
+        {% for m in members %}
+            <a href="{% url 'crew:feed' crew_id=crew.id %}?member={{ m.users_id }}"
+               class="filter-pill {% if selected_member == m.users_id|stringformat:'s' %}is-active{% endif %}">
+                {{ m.users }}
+            </a>
         {% endfor %}
     </div>
+
+    {% for group in feed_groups %}
+        <div class="feed-date">{{ group.label }}</div>
+        <div class="feed-group">
+            {% for event in group.events %}
+                <div class="feed-row">
+                    <div class="feed-row-icon">
+                        {% if event.event_type == 'earn' %}
+                            <img src="{% static 'crew/images/icon-plus.svg' %}" alt="">
+                        {% elif event.event_type == 'spend' %}
+                            <img src="{% static 'crew/images/icon-warning.svg' %}" alt="">
+                        {% elif event.event_type == 'cheer' %}
+                            <img src="{% static 'crew/images/icon-cheer.svg' %}" alt="">
+                        {% elif event.event_type == 'close' %}
+                            <img src="{% static 'crew/images/icon-close.svg' %}" alt="">
+                        {% elif event.event_type == 'leave' %}
+                            <img src="{% static 'crew/images/icon-leave.svg' %}" alt="">
+                        {% elif event.event_type == 'kick' %}
+                            <img src="{% static 'crew/images/icon-kick.svg' %}" alt="">
+                        {% endif %}
+                    </div>
+                    <div class="feed-row-msg">{{ event.message }}</div>
+                    <div class="feed-row-time">{{ event.created_at|date:"A g:i" }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    {% empty %}
+        <p class="empty">
+            {% if selected_member %}이 멤버의 활동이 아직 없어요.{% else %}아직 크루 활동이 없어요.<br>기록하면 여기에 쌓여요.{% endif %}
+        </p>
+    {% endfor %}
 {% endblock %}
