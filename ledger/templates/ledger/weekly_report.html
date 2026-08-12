@@ -50,33 +50,26 @@
 
 
 {% block extra_js %}
-<!-- 5. 백엔드 API 연동 JavaScript -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       fetchWeeklyReport();
+      initShareButton();
     });
 
     function fetchWeeklyReport() {
-      // 백엔드 API 호출 (Django Url Pattern)
       fetch("/ledger/api/weekly-report/")
         .then(response => {
           if (!response.ok) throw new Error("네트워크 응답 오류");
           return response.json();
         })
         .then(data => {
-          // A. 칭찬 문구 세팅
           document.getElementById("praise-message").innerText = data.praise_message;
-
-          // B. 수치 데이터 세팅 (시간/분 환산)
           document.getElementById("this-spend").innerText = formatHoursMins(data.this_spend_min);
           document.getElementById("this_earn").innerText = formatHoursMins(data.this_earn_min);
-          // css에서 색 바꿔야 함 (그냥 검은색으로)
-          
-          // 전주 대비 숏폼 사용량 표현 (-면 줄임: 초록색 / +면 늘음: 주황색)
+
           const spendDiffEl = document.getElementById("spend-diff");
           const diffVal = data.spend_diff_min;
           if (diffVal <= 0) {
-            // diffVal이 음수/0 → 줄었다는 뜻. abs로 크기만 뽑고 부호는 직접
             spendDiffEl.innerText = `-${formatHoursMins(Math.abs(diffVal))}`;
             spendDiffEl.className = "metric-value diff-green";
           } else {
@@ -84,7 +77,6 @@
             spendDiffEl.className = "metric-value diff-orange";
           }
 
-          // C. 활동 내역 세부 데이터가 있을 경우 동적 HTML 렌더링
           if (data.history_by_date) {
             renderHistoryList(data.history_by_date);
           }
@@ -95,7 +87,6 @@
         });
     }
 
-    // 분 단위 데이터를 X시간 Y분 문맥으로 변환하는 함수
     function formatHoursMins(totalMins) {
       const hrs = Math.floor(totalMins / 60);
       const mins = Math.round(totalMins % 60);
@@ -105,13 +96,11 @@
       return `${mins}분`;
     }
 
-    // 일자별 활동 내역 동적 HTML 생성 함수
     function renderHistoryList(historyData) {
       const container = document.getElementById("history-list-container");
-      container.innerHTML = ""; // 기존 로딩 문구 제거
+      container.innerHTML = "";
 
       historyData.forEach(dayGroup => {
-        // 날짜 구분선 블록 생성
         const groupEl = document.createElement("div");
         groupEl.className = "day-group";
 
@@ -142,21 +131,19 @@
       });
     }
 
-    // 공유 카드 다운로드
-    document.addEventListener("DOMContentLoaded", () => {
-      const btn = document.getElementById("share-card-btn");
-      if (btn) {
-        // ============================================================
-    // 공유 카드: Web Share API로 네이티브 공유 시트 열기
-    // - 모바일: 카톡·인스타·저장 등 시스템 공유 시트
-    // - 데스크톱/미지원: 다운로드로 폴백
     // ============================================================
-    document.addEventListener("DOMContentLoaded", () => {
+    // 공유 카드: Web Share API로 네이티브 공유 시트 열기
+    //  - 모바일: 카톡·인스타·저장 등 시스템 공유 시트
+    //  - 데스크톱/미지원: 다운로드로 폴백
+    // ============================================================
+    function initShareButton() {
       const btn = document.getElementById("share-card-btn");
-      if (!btn) return;
+      if (!btn) {
+        console.warn("share-card-btn을 찾지 못했습니다.");
+        return;
+      }
 
       btn.addEventListener("click", async () => {
-        // 더블 클릭 방지 & 로딩 상태 표시
         if (btn.dataset.busy === "1") return;
         btn.dataset.busy = "1";
         const originalText = btn.textContent;
@@ -164,38 +151,31 @@
         btn.disabled = true;
 
         try {
-          // 1) 서버에서 이미지 바이트 받아오기
           const url = "{% url 'ledger:weekly_share_card' %}";
           const res = await fetch(url, { credentials: "same-origin" });
           if (!res.ok) throw new Error("카드 생성 실패 (" + res.status + ")");
           const blob = await res.blob();
 
-          // 2) 파일명 만들기 (오늘 날짜 기준)
           const today = new Date().toISOString().slice(0, 10);
           const filename = `dopamine-ledger-${today}.png`;
           const file = new File([blob], filename, { type: "image/png" });
 
-          // 3) Web Share API 지원 여부 확인 후 분기
-          //    canShare({ files })가 true여야 파일 첨부 공유 가능
           const canShareFile =
             navigator.canShare &&
             navigator.canShare({ files: [file] });
 
           if (canShareFile) {
-            // 네이티브 공유 시트 (모바일에서 카톡·인스타 등 자동 노출)
             await navigator.share({
               files: [file],
               title: "이번 주 도파민 결산",
               text: "이번 주 내 도파민 가계부 결산이에요!",
             });
           } else {
-            // 폴백: 다운로드 (데스크톱/구형 브라우저)
             downloadBlob(blob, filename);
           }
         } catch (err) {
-          // 사용자가 공유 시트를 취소한 경우는 에러가 아님 (AbortError)
           if (err && err.name === "AbortError") {
-            // 조용히 넘어감
+            // 사용자가 공유 시트를 취소한 경우 — 조용히 넘어감
           } else {
             console.error("공유 실패:", err);
             alert("공유 카드를 만드는 중 문제가 발생했어요. 다시 시도해주세요.");
@@ -206,9 +186,8 @@
           btn.disabled = false;
         }
       });
-    });
+    }
 
-    // Blob을 파일로 다운로드시키는 유틸 (폴백용)
     function downloadBlob(blob, filename) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -217,10 +196,7 @@
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      // 메모리 정리
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-      }
-    });
   </script>
 {% endblock %}
