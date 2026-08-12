@@ -45,7 +45,7 @@ def login_page(request):
 @ensure_csrf_cookie
 def onboarding_page(request):
   if not request.user.is_authenticated:
-        return redirect("login_page")
+        return redirect("login-page")
     
   if request.user.is_onboarded:
     return redirect("/ledger/")
@@ -360,12 +360,12 @@ def rate_edit(request):
                 error = '적립 시간은 0분 초과 60분 미만이어야 해요.'
                 break
 
-            new_rate = round(Decimal(minutes) / Decimal(60), 2)
-            # 경계 방어 (0.00이나 1.00 나오지 않게)
+            new_rate = round(Decimal(minutes) / Decimal(60), 4)
+            # 경계 방어 (0이나 1 나오지 않게)
             if new_rate <= Decimal('0'):
-                new_rate = Decimal('0.01')
+                new_rate = Decimal('0.0001')
             elif new_rate >= Decimal('1'):
-                new_rate = Decimal('0.99')
+                new_rate = Decimal('0.9999')
             updates.append((act, new_rate))
 
         if error:
@@ -397,19 +397,23 @@ def unit_edit(request):
         unit = request.POST.get('conversion_unit', '').strip()
 
         try:
-            base_val = float(base)
-            if base_val <= 0:
+            units_per_hour = float(base)          # 입력: "1시간에 몇 개"
+            if units_per_hour <= 0:
                 raise ValueError
         except (ValueError, TypeError):
             messages.error(request, '활동량은 0보다 큰 숫자여야 해요.')
         else:
             user.converting_activity = activity
-            user.conversion_base = round(base_val, 2)
+            # 저장은 "1단위당 분" = 60 ÷ 시간당 개수
+            user.conversion_base = round(Decimal('60') / Decimal(str(units_per_hour)), 2)
             user.conversion_unit = unit
             user.save(update_fields=['converting_activity', 'conversion_base', 'conversion_unit'])
             messages.success(request, '저장했어요.')
             return redirect('settings-page')
 
+    base = float(user.conversion_base) if user.conversion_base else 0
+    units_per_hour = round(60 / base, 2) if base > 0 else ''
     return render(request, 'accounts/unit_edit.html', {
         'active_tab': 'setting',
+        'units_per_hour': units_per_hour,
     })

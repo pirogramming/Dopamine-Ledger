@@ -76,7 +76,8 @@
           const spendDiffEl = document.getElementById("spend-diff");
           const diffVal = data.spend_diff_min;
           if (diffVal <= 0) {
-            spendDiffEl.innerText = `-${formatHoursMins(diffVal)}`;
+            // diffVal이 음수/0 → 줄었다는 뜻. abs로 크기만 뽑고 부호는 직접
+            spendDiffEl.innerText = `-${formatHoursMins(Math.abs(diffVal))}`;
             spendDiffEl.className = "metric-value diff-green";
           } else {
             spendDiffEl.innerText = `+${formatHoursMins(diffVal)}`;

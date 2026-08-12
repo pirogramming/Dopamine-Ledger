@@ -135,7 +135,7 @@ def record_choice(request):
 @login_required
 def weekly_report(request):
     user = request.user
-    today = timezone.now().date()
+    today = timezone.localdate()
 
     # 1. 날짜 범위 산출
     this_start = today - timedelta(days=today.weekday())
@@ -321,6 +321,8 @@ def weekly_report(request):
         },
         json_dumps_params={'ensure_ascii': False}
     )
+
+@login_required
 def daily_close(request):
     """오늘 기록을 확인하고 하루 마감을 처리하는 뷰"""
     summary = get_today_record_summary(request.user)
