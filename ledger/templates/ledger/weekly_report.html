@@ -46,16 +46,55 @@
     <button type="button" class="btn-primary" id="share-card-btn">주간결산 공유하기</button>
   </div>
 </div>
+
+<!-- 공유 모달: 버튼 클릭 시 열림 -->
+<div id="share-modal" class="share-modal" hidden>
+  <div class="share-modal__backdrop" data-close-modal></div>
+  <div class="share-modal__panel" role="dialog" aria-modal="true" aria-labelledby="share-modal-title">
+    <div class="share-modal__header">
+      <h3 id="share-modal-title" class="share-modal__title">주간결산 공유하기</h3>
+      <button type="button" class="share-modal__close" data-close-modal aria-label="닫기">&times;</button>
+    </div>
+    <div class="share-modal__body">
+      <button type="button" class="share-option" data-action="download">
+        <span class="share-option__icon">⬇️</span>
+        <span class="share-option__label">
+          <span class="share-option__title">이미지로 저장</span>
+          <span class="share-option__desc">기기에 PNG로 다운로드</span>
+        </span>
+      </button>
+      <button type="button" class="share-option" data-action="copy">
+        <span class="share-option__icon">📋</span>
+        <span class="share-option__label">
+          <span class="share-option__title">이미지 복사</span>
+          <span class="share-option__desc">카톡·슬랙 등에 붙여넣기</span>
+        </span>
+      </button>
+      <button type="button" class="share-option" data-action="native" id="share-option-native" hidden>
+        <span class="share-option__icon">📱</span>
+        <span class="share-option__label">
+          <span class="share-option__title">다른 앱으로 공유</span>
+          <span class="share-option__desc">공유 시트 열기 (모바일 권장)</span>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 
 {% block extra_js %}
+  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
+
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       fetchWeeklyReport();
       initShareButton();
     });
 
+    // ============================================================
+    // 결산 데이터 로드 & 렌더 (기존 유지)
+    // ============================================================
     function fetchWeeklyReport() {
       fetch("/ledger/api/weekly-report/")
         .then(response => {
@@ -132,60 +171,164 @@
     }
 
     // ============================================================
-    // 공유 카드: Web Share API로 네이티브 공유 시트 열기
-    //  - 모바일: 카톡·인스타·저장 등 시스템 공유 시트
-    //  - 데스크톱/미지원: 다운로드로 폴백
+    // 공유 모달 & 옵션들
     // ============================================================
+    let cachedBlob = null;   // 마지막에 생성한 캡처 이미지 캐시 (같은 세션에서 재사용)
+
     function initShareButton() {
       const btn = document.getElementById("share-card-btn");
-      if (!btn) {
-        console.warn("share-card-btn을 찾지 못했습니다.");
-        return;
+      const modal = document.getElementById("share-modal");
+      if (!btn || !modal) return;
+
+      // 메인 버튼: 모달 열기
+      btn.addEventListener("click", () => openShareModal());
+
+      // 모달 닫기 (backdrop, X 버튼)
+      modal.querySelectorAll("[data-close-modal]").forEach(el => {
+        el.addEventListener("click", () => closeShareModal());
+      });
+
+      // ESC 키로 닫기
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !modal.hidden) closeShareModal();
+      });
+
+      // 각 옵션 버튼
+      modal.querySelectorAll(".share-option").forEach(optBtn => {
+        optBtn.addEventListener("click", async () => {
+          const action = optBtn.dataset.action;
+          await handleShareAction(action);
+        });
+      });
+
+      // 모바일에서만 '다른 앱으로 공유' 옵션 노출
+      // (Web Share API가 파일 첨부를 지원하는 환경에서만)
+      checkNativeShareAvailable();
+    }
+
+    function checkNativeShareAvailable() {
+      // 아무 파일이나 하나 만들어서 canShare 테스트
+      try {
+        const testFile = new File(["test"], "test.png", { type: "image/png" });
+        if (navigator.canShare && navigator.canShare({ files: [testFile] })) {
+          document.getElementById("share-option-native").hidden = false;
+        }
+      } catch (e) {
+        // 지원 안 함 → 옵션 숨김 유지
+      }
+    }
+
+    function openShareModal() {
+      const modal = document.getElementById("share-modal");
+      modal.hidden = false;
+      // 문서 스크롤 잠금
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeShareModal() {
+      const modal = document.getElementById("share-modal");
+      modal.hidden = true;
+      document.body.style.overflow = "";
+    }
+
+    // 결산 페이지 캡처 → Blob 반환 (캐시됨)
+    async function captureReportAsBlob() {
+      if (cachedBlob) return cachedBlob;
+
+      const target = document.querySelector(".report-container");
+      if (!target) throw new Error("캡처할 영역을 찾지 못함");
+
+      // 스크롤 영역 스타일 임시 해제
+      const historyList = document.getElementById("history-list-container");
+      const savedStyles = {};
+      if (historyList) {
+        savedStyles.maxHeight = historyList.style.maxHeight;
+        savedStyles.height = historyList.style.height;
+        savedStyles.overflowY = historyList.style.overflowY;
+        historyList.style.maxHeight = "none";
+        historyList.style.height = "auto";
+        historyList.style.overflowY = "visible";
       }
 
-      btn.addEventListener("click", async () => {
-        if (btn.dataset.busy === "1") return;
-        btn.dataset.busy = "1";
-        const originalText = btn.textContent;
-        btn.textContent = "카드 만드는 중...";
-        btn.disabled = true;
+      // 공유 버튼 숨김
+      const btnWrapper = document.querySelector(".action-button-wrapper");
+      const savedBtnDisplay = btnWrapper ? btnWrapper.style.display : "";
+      if (btnWrapper) btnWrapper.style.display = "none";
 
-        try {
-          const url = "{% url 'ledger:weekly_share_card' %}";
-          const res = await fetch(url, { credentials: "same-origin" });
-          if (!res.ok) throw new Error("카드 생성 실패 (" + res.status + ")");
-          const blob = await res.blob();
+      try {
+        const blob = await htmlToImage.toBlob(target, {
+          pixelRatio: 2,
+          backgroundColor: "#fdfcf9",
+          cacheBust: true,
+        });
+        if (!blob) throw new Error("이미지 생성 실패");
+        cachedBlob = blob;
+        return blob;
+      } finally {
+        if (historyList) {
+          historyList.style.maxHeight = savedStyles.maxHeight;
+          historyList.style.height = savedStyles.height;
+          historyList.style.overflowY = savedStyles.overflowY;
+        }
+        if (btnWrapper) btnWrapper.style.display = savedBtnDisplay;
+      }
+    }
 
-          const today = new Date().toISOString().slice(0, 10);
-          const filename = `dopamine-ledger-${today}.png`;
+    async function handleShareAction(action) {
+      try {
+        showToast("카드 만드는 중...");
+        const blob = await captureReportAsBlob();
+        hideToast();
+
+        const today = new Date().toISOString().slice(0, 10);
+        const filename = `dopamine-ledger-${today}.png`;
+
+        if (action === "download") {
+          downloadBlob(blob, filename);
+          closeShareModal();
+          showToast("이미지를 저장했어요!", 1500);
+        }
+        else if (action === "copy") {
+          await copyImageToClipboard(blob);
+          closeShareModal();
+          showToast("클립보드에 복사됐어요. 원하는 곳에 붙여넣으세요!", 2000);
+        }
+        else if (action === "native") {
           const file = new File([blob], filename, { type: "image/png" });
-
-          const canShareFile =
-            navigator.canShare &&
-            navigator.canShare({ files: [file] });
-
-          if (canShareFile) {
-            await navigator.share({
-              files: [file],
-              title: "이번 주 도파민 결산",
-              text: "이번 주 내 도파민 가계부 결산이에요!",
-            });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({
+                files: [file],
+                title: "이번 주 도파민 결산",
+                text: "이번 주 내 도파민 가계부 결산이에요!",
+              });
+              closeShareModal();
+            } catch (err) {
+              if (err.name !== "AbortError") {
+                console.warn("공유 실패, 다운로드로 폴백:", err);
+                downloadBlob(blob, filename);
+                closeShareModal();
+              }
+            }
           } else {
             downloadBlob(blob, filename);
+            closeShareModal();
           }
-        } catch (err) {
-          if (err && err.name === "AbortError") {
-            // 사용자가 공유 시트를 취소한 경우 — 조용히 넘어감
-          } else {
-            console.error("공유 실패:", err);
-            alert("공유 카드를 만드는 중 문제가 발생했어요. 다시 시도해주세요.");
-          }
-        } finally {
-          btn.dataset.busy = "0";
-          btn.textContent = originalText;
-          btn.disabled = false;
         }
-      });
+      } catch (err) {
+        hideToast();
+        console.error("공유 처리 실패:", err);
+        alert("문제가 발생했어요. 다시 시도해주세요.");
+      }
+    }
+
+    async function copyImageToClipboard(blob) {
+      // Clipboard API — Chrome/Edge/Safari 최근 버전 지원
+      if (!navigator.clipboard || !window.ClipboardItem) {
+        throw new Error("이 브라우저는 이미지 복사를 지원하지 않아요.");
+      }
+      const item = new ClipboardItem({ "image/png": blob });
+      await navigator.clipboard.write([item]);
     }
 
     function downloadBlob(blob, filename) {
@@ -197,6 +340,33 @@
       a.click();
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    // ============================================================
+    // 토스트 알림
+    // ============================================================
+    let toastEl = null;
+    let toastTimer = null;
+
+    function showToast(message, autoHideMs) {
+      if (!toastEl) {
+        toastEl = document.createElement("div");
+        toastEl.className = "share-toast";
+        document.body.appendChild(toastEl);
+      }
+      toastEl.textContent = message;
+      // 다음 프레임에 클래스 붙여야 트랜지션 적용됨
+      requestAnimationFrame(() => toastEl.classList.add("share-toast--visible"));
+
+      if (toastTimer) clearTimeout(toastTimer);
+      if (autoHideMs) {
+        toastTimer = setTimeout(hideToast, autoHideMs);
+      }
+    }
+
+    function hideToast() {
+      if (toastEl) toastEl.classList.remove("share-toast--visible");
+      if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
     }
   </script>
 {% endblock %}
