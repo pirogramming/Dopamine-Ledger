@@ -43,7 +43,7 @@
 
   <!-- 3. 하단 주간결산 공유 버튼 -->
   <div class="action-button-wrapper">
-    <button type="button" class="btn-primary">주간결산 공유하기</button>
+    <button type="button" class="btn-primary" id="share-card-btn">주간결산 공유하기</button>
   </div>
 </div>
 {% endblock %}
@@ -140,5 +140,86 @@
         container.appendChild(groupEl);
       });
     }
+
+    // 공유 카드 다운로드
+    document.addEventListener("DOMContentLoaded", () => {
+      const btn = document.getElementById("share-card-btn");
+      if (btn) {
+        // ============================================================
+    // 공유 카드: Web Share API로 네이티브 공유 시트 열기
+    // - 모바일: 카톡·인스타·저장 등 시스템 공유 시트
+    // - 데스크톱/미지원: 다운로드로 폴백
+    // ============================================================
+    document.addEventListener("DOMContentLoaded", () => {
+      const btn = document.getElementById("share-card-btn");
+      if (!btn) return;
+
+      btn.addEventListener("click", async () => {
+        // 더블 클릭 방지 & 로딩 상태 표시
+        if (btn.dataset.busy === "1") return;
+        btn.dataset.busy = "1";
+        const originalText = btn.textContent;
+        btn.textContent = "카드 만드는 중...";
+        btn.disabled = true;
+
+        try {
+          // 1) 서버에서 이미지 바이트 받아오기
+          const url = "{% url 'ledger:weekly_share_card' %}";
+          const res = await fetch(url, { credentials: "same-origin" });
+          if (!res.ok) throw new Error("카드 생성 실패 (" + res.status + ")");
+          const blob = await res.blob();
+
+          // 2) 파일명 만들기 (오늘 날짜 기준)
+          const today = new Date().toISOString().slice(0, 10);
+          const filename = `dopamine-ledger-${today}.png`;
+          const file = new File([blob], filename, { type: "image/png" });
+
+          // 3) Web Share API 지원 여부 확인 후 분기
+          //    canShare({ files })가 true여야 파일 첨부 공유 가능
+          const canShareFile =
+            navigator.canShare &&
+            navigator.canShare({ files: [file] });
+
+          if (canShareFile) {
+            // 네이티브 공유 시트 (모바일에서 카톡·인스타 등 자동 노출)
+            await navigator.share({
+              files: [file],
+              title: "이번 주 도파민 결산",
+              text: "이번 주 내 도파민 가계부 결산이에요!",
+            });
+          } else {
+            // 폴백: 다운로드 (데스크톱/구형 브라우저)
+            downloadBlob(blob, filename);
+          }
+        } catch (err) {
+          // 사용자가 공유 시트를 취소한 경우는 에러가 아님 (AbortError)
+          if (err && err.name === "AbortError") {
+            // 조용히 넘어감
+          } else {
+            console.error("공유 실패:", err);
+            alert("공유 카드를 만드는 중 문제가 발생했어요. 다시 시도해주세요.");
+          }
+        } finally {
+          btn.dataset.busy = "0";
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }
+      });
+    });
+
+    // Blob을 파일로 다운로드시키는 유틸 (폴백용)
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      // 메모리 정리
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+      }
+    });
   </script>
 {% endblock %}
