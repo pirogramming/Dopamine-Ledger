@@ -206,7 +206,7 @@
 
         // ---- 결과 요약 갱신 (분 단위, rate는 "1시간당 N분" 표기로 환산해서 보여줌) ----
         function updateResultPanel(durationMin) {
-            const earnMin = Math.round(durationMin * currentRate * 100) / 100;
+            const earnMin = Math.round(durationMin * currentRate);
             document.getElementById('result-duration').textContent = durationMin + '분';
             document.getElementById('result-rate-note').innerHTML =
                 '환율 ' + Math.round(currentRate * 60) + '분/시간 기준 · <strong>+' + earnMin + '분 적립</strong>';

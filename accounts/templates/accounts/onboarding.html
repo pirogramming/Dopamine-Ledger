@@ -203,7 +203,8 @@
         // 3. 백엔드 전송 함수
         async function submitOnboarding() {
             const convertingActivity = document.getElementById('converting_activity').value;
-            const conversionBase = parseFloat(document.getElementById('conversion_base').value) || 0.01;
+            const unitsPerHour = parseFloat(document.getElementById('conversion_base').value) || 0;
+            const conversionBase = unitsPerHour > 0 ? Math.round((60 / unitsPerHour) * 100) / 100 : 0.01;
             const conversionUnit = document.getElementById('conversion_unit').value;
             
             const budgetHours = parseFloat(document.getElementById('weekly_budget_hours').value) || 0;

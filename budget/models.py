@@ -11,16 +11,10 @@ class Activity(models.Model):
     )
     activity_type = models.CharField('활동 종류', max_length=30)
     rate = models.DecimalField(
-        '환산율', max_digits=3, decimal_places=2,
+        '환산율', max_digits=5, decimal_places=4,
         validators=[
-            MinValueValidator(
-                Decimal('0.01'),
-                message='값이 올바르지 않습니다.'
-            ),
-            MaxValueValidator(
-                Decimal('0.99'),
-                message='값이 올바르지 않습니다.'
-            ),
+            MinValueValidator(Decimal('0.0001'), message='값이 올바르지 않습니다.'),
+            MaxValueValidator(Decimal('0.9999'), message='값이 올바르지 않습니다.'),
         ]
     )
 
