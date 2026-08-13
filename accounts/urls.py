@@ -10,7 +10,6 @@ from .views import (
     budget_edit,
     rate_edit,
     unit_edit,
-    nickname_setup,
     SignupView,
     LoginView,
     LogoutView,

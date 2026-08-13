@@ -132,6 +132,7 @@ class KakaoLoginRedirectView(APIView):
       f"?client_id={settings.KAKAO_REST_API_KEY}"
       f"&redirect_uri={settings.KAKAO_REDIRECT_URI}"
       "&response_type=code"
+      "&scope=talk_message" # 나에게 보내기 권한 요청
     )
     return redirect(url)
     
