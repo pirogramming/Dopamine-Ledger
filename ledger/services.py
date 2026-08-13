@@ -18,6 +18,21 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from django.conf import settings
 
+#==========
+from datetime import timedelta
+from io import BytesIO
+from pathlib import Path
+
+from django.conf import settings
+from django.db import transaction
+from django.db.models import Sum
+from django.utils import timezone
+
+from PIL import Image, ImageDraw, ImageFont
+
+from .models import DailyClose, EarnRecord, SpendRecord
+
+
 def get_today_record_summary(user):
     """
     사용자의 오늘 수입/지출 정보와 마감 여부를 조회한다.
@@ -124,7 +139,7 @@ def close_today(user):
 
 # 카드 규격 (폰 프레임 393×852의 2배 해상도)
 CARD_WIDTH = 786
-CARD_HEIGHT = 1704
+CARD_HEIGHT = 1200
 
 # 색 (common.css / weekly_report.css 값 그대로)
 COLOR_BG = "#fdfcf9"          # phone-frame 배경
@@ -142,7 +157,6 @@ FONT_BOLD_PATH = str(_FONT_DIR / "Pretendard-Bold.otf")
 
 
 def _format_hours_mins(total_mins) -> str:
-    """분을 'X시간 Y분' 문자열로. weekly_report.html의 formatHoursMins와 동일 로직."""
     total_mins = int(total_mins or 0)
     hrs = total_mins // 60
     mins = total_mins % 60
@@ -151,62 +165,112 @@ def _format_hours_mins(total_mins) -> str:
     return f"{mins}분"
 
 
-def _draw_metric_column(draw, cx, cy_label, label, value, value_color,
-                        font_label, font_value):
-    """3분할 지표 한 칸(라벨 + 값)을 중앙정렬로 그림."""
-    draw.text((cx, cy_label), label,
+def _earn_diff_message(diff_min: int) -> str:
+    """수입 차이 → 자연어 문구."""
+    if diff_min > 0:
+        return f"벌어들인 시간이 저번 주 대비 {_format_hours_mins(diff_min)}이 늘었어요!"
+    if diff_min < 0:
+        return f"벌어들인 시간이 저번 주 대비 {_format_hours_mins(abs(diff_min))} 줄었어요."
+    return "벌어들인 시간이 저번 주와 같아요."
+
+
+def _spend_diff_message(diff_min: int) -> str:
+    """지출 차이 → 자연어 문구."""
+    if diff_min < 0:
+        return f"숏폼을 전 주 대비 {_format_hours_mins(abs(diff_min))} 덜 사용하셨어요!"
+    if diff_min > 0:
+        return f"숏폼을 전 주 대비 {_format_hours_mins(diff_min)} 더 사용하셨어요."
+    return "숏폼 사용 시간이 저번 주와 같아요."
+
+
+def _draw_block(draw, cx, y_top, label_text, value_text, value_color,
+                alt_text, alt_color, diff_message,
+                font_label, font_value, font_alt, font_diff) -> int:
+    """
+    수입/지출 블록 하나를 그린다. 시작 y좌표를 받아 마지막 y좌표를 반환.
+    구조 (위→아래):
+        [라벨]              — 회색
+        [큰 값]             — value_color (초록/주황)
+        [= 환산문구]         — alt_color (초록/주황)
+        [차이 문구]         — 검정
+    """
+    # 라벨 (좌측정렬 느낌으로 중앙에서 살짝 왼쪽 배치는 생략하고 중앙정렬 통일)
+    draw.text((cx, y_top), label_text,
               fill=COLOR_GRAY_SUB, font=font_label, anchor="mm")
-    draw.text((cx, cy_label + 70), value,
+
+    # 큰 값
+    y_value = y_top + 90
+    draw.text((cx, y_value), value_text,
               fill=value_color, font=font_value, anchor="mm")
+
+    # 대체재 환산 (환산 활동 미설정 시 스킵)
+    y_alt = y_value + 85
+    if alt_text:
+        draw.text((cx, y_alt), f"= {alt_text}",
+                  fill=alt_color, font=font_alt, anchor="mm")
+        y_diff = y_alt + 70
+    else:
+        y_diff = y_alt
+
+    # 차이 문구 (검정)
+    draw.text((cx, y_diff), diff_message,
+              fill=COLOR_BLACK, font=font_diff, anchor="mm")
+
+    return y_diff  # 이 블록의 마지막 y
 
 
 def generate_weekly_share_card(
     nickname: str,
-    this_spend_min: int,
-    this_earn_min: int,
-    spend_diff_min: int,
     week_label: str,
-    alt_text: str = "",
+    this_earn_min: int,
+    this_spend_min: int,
+    earn_diff_min: int,
+    spend_diff_min: int,
+    earn_alt: str = "",
+    spend_alt: str = "",
 ) -> bytes:
     """
     주간 결산을 카드 이미지(PNG 바이트)로 반환한다.
 
-    인자:
-        nickname       : 사용자 닉네임
-        this_spend_min : 이번 주 지출(숏폼) 분
-        this_earn_min  : 이번 주 수입(활동) 분
-        spend_diff_min : 전주 대비 지출 차이(분). 음수면 줄었음.
-        week_label     : '2026년 08월 10일 ~ 08월 16일' 같은 주차 라벨
-        alt_text       : 대체재 환산 문구 (예: '책 0.8권'). 비어있으면 렌더 안 함.
-
-    리턴: PNG 바이트 (view에서 HttpResponse로 감싸서 반환)
+    새 구조:
+        상단 타이틀·주차
+        [흰 카드]
+            [수입 블록 - 초록]
+                이번주 벌어들인 시간:
+                    2시간 0분 (초록, 큰)
+                = 코딩공부 6.0페이지 (초록)
+                벌어들인 시간이 저번 주 대비 30분이 늘었어요! (검정)
+            [지출 블록 - 주황]
+                이번주 숏폼에 사용한 시간:
+                    2시간 0분 (주황, 큰)
+                = 코딩공부 6.0페이지 (주황)
+                숏폼을 전 주 대비 30분 덜 사용하셨어요! (검정)
+        하단: 닉네임 + 서비스명
     """
-    # --- 1) 캔버스 ---
     img = Image.new("RGB", (CARD_WIDTH, CARD_HEIGHT), COLOR_BG)
     draw = ImageDraw.Draw(img)
 
-    # --- 2) 폰트 로드 ---
-    font_title = ImageFont.truetype(FONT_BOLD_PATH, 56)     # "이번 주 결산"
-    font_week = ImageFont.truetype(FONT_REGULAR_PATH, 30)   # 주차 라벨
-    font_hero_label = ImageFont.truetype(FONT_REGULAR_PATH, 34)  # "이번 주 절약 시간"
-    font_hero_value = ImageFont.truetype(FONT_BOLD_PATH, 110)    # 큰 숫자
-    font_alt = ImageFont.truetype(FONT_REGULAR_PATH, 34)    # 대체재 환산
-    font_metric_label = ImageFont.truetype(FONT_REGULAR_PATH, 28)  # 3분할 라벨
-    font_metric_value = ImageFont.truetype(FONT_BOLD_PATH, 40)     # 3분할 값
+    # --- 폰트 (기존 크기 유지) ---
+    font_title = ImageFont.truetype(FONT_BOLD_PATH, 56)       # "이번 주 결산"
+    font_week = ImageFont.truetype(FONT_REGULAR_PATH, 30)     # 주차 라벨
+    font_block_label = ImageFont.truetype(FONT_REGULAR_PATH, 32)  # "이번주 벌어들인 시간:"
+    font_block_value = ImageFont.truetype(FONT_BOLD_PATH, 70)     # 큰 숫자
+    font_block_alt = ImageFont.truetype(FONT_REGULAR_PATH, 32)    # 대체재 환산
+    font_block_diff = ImageFont.truetype(FONT_REGULAR_PATH, 28)   # 차이 문구
     font_footer_sub = ImageFont.truetype(FONT_REGULAR_PATH, 26)
     font_footer_brand = ImageFont.truetype(FONT_BOLD_PATH, 30)
 
     center_x = CARD_WIDTH / 2
 
-    # --- 3) 상단: 타이틀 + 주차 ---
+    # --- 상단: 타이틀 + 주차 ---
     draw.text((center_x, 110), "이번 주 결산",
               fill=COLOR_BLACK, font=font_title, anchor="mm")
     draw.text((center_x, 175), week_label,
               fill=COLOR_GRAY_SUB, font=font_week, anchor="mm")
 
-    # --- 4) 흰 카드 박스 (summary-card 톤) ---
-    card_x1, card_y1 = 60, 260
-    card_x2, card_y2 = CARD_WIDTH - 60, CARD_HEIGHT - 220
+    # --- 흰 카드 박스 ---
+    card_x1, card_y1 = 60, 240
+    card_x2, card_y2 = CARD_WIDTH - 60, CARD_HEIGHT - 180
     draw.rounded_rectangle(
         [(card_x1, card_y1), (card_x2, card_y2)],
         radius=32,
@@ -215,71 +279,54 @@ def generate_weekly_share_card(
         width=2,
     )
 
-    # --- 5) 카드 내부: 절약 시간 크게 (수입 시간을 절약분으로 강조) ---
-    draw.text((center_x, card_y1 + 110), "이번 주 벌어들인 시간",
-              fill=COLOR_GRAY_SUB, font=font_hero_label, anchor="mm")
-
-    hero_value = _format_hours_mins(this_earn_min)
-    draw.text((center_x, card_y1 + 240), hero_value,
-              fill=COLOR_ORANGE, font=font_hero_value, anchor="mm")
-
-    # 대체재 환산 (2줄: '= 책 0.8권' + '숏폼에 쓴 만큼의 시간')
-    # alt_text는 view에서 { "converted": "책 0.8권", "context": "숏폼에 쓴 만큼의 시간" } 형태로 넘김
-    # 문자열이 넘어오면 옛날 방식(한 줄)도 지원 — 안전장치
-    if alt_text:
-        if isinstance(alt_text, dict):
-            converted = alt_text.get("converted", "")
-            context_line = alt_text.get("context", "")
-            if converted:
-                draw.text((center_x, card_y1 + 340), f"= {converted}",
-                          fill=COLOR_ORANGE, font=font_alt, anchor="mm")
-            if context_line:
-                draw.text((center_x, card_y1 + 395), context_line,
-                          fill=COLOR_GRAY_SUB, font=font_alt, anchor="mm")
-        else:
-            # 문자열이 그대로 들어오면 한 줄로 (하위 호환)
-            draw.text((center_x, card_y1 + 340), f"= {alt_text}",
-                      fill=COLOR_BLACK, font=font_alt, anchor="mm")
-
-    # --- 6) 카드 하단부: 3분할 지표 (metrics-container 톤) ---
-    metrics_label_y = card_y2 - 260
-    col_w = (card_x2 - card_x1) / 3
-
-    # 사용 시간
-    _draw_metric_column(
-        draw, card_x1 + col_w * 0.5, metrics_label_y,
-        "사용 시간", _format_hours_mins(this_spend_min),
-        COLOR_BLACK, font_metric_label, font_metric_value,
-    )
-    # 수입 시간
-    _draw_metric_column(
-        draw, card_x1 + col_w * 1.5, metrics_label_y,
-        "수입 시간", _format_hours_mins(this_earn_min),
-        COLOR_BLACK, font_metric_label, font_metric_value,
-    )
-    # 전주 대비 (음수=줄었음=초록, 양수=늘었음=주황)
-    diff_val = int(spend_diff_min or 0)
-    if diff_val <= 0:
-        diff_str = f"-{_format_hours_mins(abs(diff_val))}"
-        diff_color = COLOR_GREEN
-    else:
-        diff_str = f"+{_format_hours_mins(diff_val)}"
-        diff_color = COLOR_ORANGE
-    _draw_metric_column(
-        draw, card_x1 + col_w * 2.5, metrics_label_y,
-        "전주 대비", diff_str, diff_color,
-        font_metric_label, font_metric_value,
+    # --- 수입 블록 (초록) ---
+    earn_block_top = card_y1 + 80
+    earn_block_bottom = _draw_block(
+        draw, center_x, earn_block_top,
+        label_text="이번주 벌어들인 시간",
+        value_text=_format_hours_mins(this_earn_min),
+        value_color=COLOR_GREEN,
+        alt_text=earn_alt,
+        alt_color=COLOR_GREEN,
+        diff_message=_earn_diff_message(earn_diff_min),
+        font_label=font_block_label,
+        font_value=font_block_value,
+        font_alt=font_block_alt,
+        font_diff=font_block_diff,
     )
 
-    # --- 7) 하단: 닉네임 + 서비스명 ---
-    draw.text((center_x, CARD_HEIGHT - 130),
+    # --- 블록 사이 구분선 (얇은 회색 선) ---
+    divider_y = earn_block_bottom + 60
+    draw.line(
+        [(card_x1 + 60, divider_y), (card_x2 - 60, divider_y)],
+        fill=COLOR_GRAY_LINE, width=1,
+    )
+
+    # --- 지출 블록 (주황) ---
+    spend_block_top = divider_y + 60
+    _draw_block(
+        draw, center_x, spend_block_top,
+        label_text="이번주 숏폼에 사용한 시간",
+        value_text=_format_hours_mins(this_spend_min),
+        value_color=COLOR_ORANGE,
+        alt_text=spend_alt,
+        alt_color=COLOR_ORANGE,
+        diff_message=_spend_diff_message(spend_diff_min),
+        font_label=font_block_label,
+        font_value=font_block_value,
+        font_alt=font_block_alt,
+        font_diff=font_block_diff,
+    )
+
+    # --- 하단: 닉네임 + 서비스명 ---
+    draw.text((center_x, CARD_HEIGHT - 110),
               f"@{nickname}", fill=COLOR_GRAY_SUB,
               font=font_footer_sub, anchor="mm")
-    draw.text((center_x, CARD_HEIGHT - 80),
+    draw.text((center_x, CARD_HEIGHT - 60),
               "도파민 가계부", fill=COLOR_ORANGE,
               font=font_footer_brand, anchor="mm")
 
-    # --- 8) PNG 바이트로 반환 ---
+    # --- PNG 반환 ---
     buf = BytesIO()
     img.save(buf, format="PNG", optimize=True)
     return buf.getvalue()
