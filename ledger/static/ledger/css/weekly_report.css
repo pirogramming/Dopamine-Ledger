@@ -16,7 +16,7 @@ body {
 
 /* 1. 상단 헤더 & 칭찬 카드 */
 .report-header {
-  margin-top: 20px;
+  margin-top: 30px;
   display: flex;
   flex-direction: column;
   align-items: center;

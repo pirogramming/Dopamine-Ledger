@@ -71,7 +71,7 @@
 }
 
 .ledger-title {
-  font-size: var(--fs-md);
+  font-size: var(--fs-lg);
   font-weight: 700;
   position: absolute;
   left: 50%;
@@ -90,11 +90,6 @@
   font-size: var(--fs-lg);
 }
 .ledger-back:hover { background: var(--bg); }
-
-.ledger-title {
-  font-size: var(--fs-md);
-  font-weight: 700;
-}
 
 .ledger-heading {
   font-size: var(--fs-lg);
