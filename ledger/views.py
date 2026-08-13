@@ -13,6 +13,10 @@ from django.http import JsonResponse
 
 from collections import defaultdict
 
+from django.http import HttpResponse
+from .services import generate_weekly_share_card
+from budget.services import format_unit_display
+
 # 요일 변환용 튜플 (weekly_report)
 WEEKDAYS_KR = ("월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일")
 from budget.services import (
@@ -441,3 +445,159 @@ def main_convert(request):
         'active_tab': 'home',
     }
     return render(request, 'ledger/main_convert.html', context)
+
+
+"""@login_required
+def weekly_share_card(request):
+    
+#    주간 결산 공유 카드 이미지(PNG)를 발행한다.
+#    weekly_report와 동일한 집계 로직을 쓰되, 화면이 아닌 이미지로 응답.
+    
+    user = request.user
+
+    # 1) 이번 주 / 지난주 날짜 범위
+    # weekly_report와 동일하게 로컬타임 기준. (weekly_report의 UTC 버그는 PM이 별도 수정 중)
+    today = timezone.localdate()
+    this_start = today - timedelta(days=today.weekday())
+    this_end = this_start + timedelta(days=6)
+    last_start = this_start - timedelta(days=7)
+    last_end = this_start - timedelta(days=1)
+
+    # 2) 집계 (weekly_report와 같은 방식)
+    this_spend = SpendRecord.objects.filter(
+        users=user, spend_date__range=[this_start, this_end]
+    ).aggregate(total=Sum('duration_min'))['total'] or 0
+
+    last_spend = SpendRecord.objects.filter(
+        users=user, spend_date__range=[last_start, last_end]
+    ).aggregate(total=Sum('duration_min'))['total'] or 0
+
+    this_earn = EarnRecord.objects.filter(
+        users=user, earn_date__range=[this_start, this_end]
+    ).aggregate(total=Sum('earn_min'))['total'] or 0
+
+    # 3) 주차 라벨 & 닉네임
+    week_label = (
+        f"{this_start.strftime('%Y년 %m월 %d일')} ~ "
+        f"{this_end.strftime('%m월 %d일')}"
+    )
+    nickname = (
+        getattr(user, 'nickname', None)
+        or getattr(user, 'username', None)
+        or '사용자'
+    )
+
+    # 4) 대체재 환산 문구 만들기
+    #    - 사용자가 온보딩에서 환산 활동을 설정했을 때만 넣음
+    #    - 지출 시간을 기준으로 "= 책 0.8권 / 숏폼에 쓴 만큼의 시간" 두 줄 구성
+    conversion_base = getattr(user, 'conversion_base', None)
+    conversion_unit = getattr(user, 'conversion_unit', '') or ''
+    converting_activity = getattr(user, 'converting_activity', '') or ''
+
+    alt_text = ""
+    if conversion_base and conversion_base > 0 and this_spend > 0:
+        # format_unit_display는 "0.8권" 같은 문자열을 만들어줌 (Decimal → 소수점 1자리 자동)
+        converted_str = format_unit_display(
+            int(round(this_spend)), conversion_base, conversion_unit,
+        )
+        alt_text = {
+            "converted": f"{converting_activity} {converted_str}",
+            "context": "숏폼에 쓴 만큼의 시간",
+        }
+
+    # 5) 이미지 생성
+    png_bytes = generate_weekly_share_card(
+        nickname=nickname,
+        this_spend_min=int(round(this_spend)),
+        this_earn_min=int(round(this_earn)),
+        spend_diff_min=int(round(this_spend - last_spend)),
+        week_label=week_label,
+        alt_text=alt_text,   # ← dict로 전달 (빈 값이면 카드에 안 그려짐)
+    )
+
+    # 6) PNG로 응답 (다운로드 강제)
+    response = HttpResponse(png_bytes, content_type="image/png")
+    filename = f"weekly-report-{this_start.isoformat()}.png"
+    # inline: 브라우저가 다운로드 대화상자를 띄우지 않음 (JS가 처리)
+    # 그래도 filename은 남겨둠 — JS 폴백에서 다운로드할 때 이 이름 씀
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    response['Cache-Control'] = 'no-store'
+    return response"""
+
+@login_required
+def weekly_share_card(request):
+    """주간 결산 공유 카드 이미지(PNG)를 발행한다."""
+    user = request.user
+
+    # 1) 이번 주 / 지난주 날짜 범위
+    today = timezone.localdate()
+    this_start = today - timedelta(days=today.weekday())
+    this_end = this_start + timedelta(days=6)
+    last_start = this_start - timedelta(days=7)
+    last_end = this_start - timedelta(days=1)
+
+    # 2) 집계
+    this_spend = SpendRecord.objects.filter(
+        users=user, spend_date__range=[this_start, this_end]
+    ).aggregate(total=Sum('duration_min'))['total'] or 0
+
+    last_spend = SpendRecord.objects.filter(
+        users=user, spend_date__range=[last_start, last_end]
+    ).aggregate(total=Sum('duration_min'))['total'] or 0
+
+    this_earn = EarnRecord.objects.filter(
+        users=user, earn_date__range=[this_start, this_end]
+    ).aggregate(total=Sum('earn_min'))['total'] or 0
+
+    # 지난주 수입도 추가 (새 카드 디자인에서 수입 증감 표시용)
+    last_earn = EarnRecord.objects.filter(
+        users=user, earn_date__range=[last_start, last_end]
+    ).aggregate(total=Sum('earn_min'))['total'] or 0
+
+    # 3) 주차 라벨 & 닉네임
+    week_label = (
+        f"{this_start.strftime('%Y년 %m월 %d일')} ~ "
+        f"{this_end.strftime('%m월 %d일')}"
+    )
+    nickname = (
+        getattr(user, 'nickname', None)
+        or getattr(user, 'username', None)
+        or '사용자'
+    )
+
+    # 4) 대체재 환산 (수입/지출 각각)
+    conversion_base = getattr(user, 'conversion_base', None)
+    conversion_unit = getattr(user, 'conversion_unit', '') or ''
+    converting_activity = getattr(user, 'converting_activity', '') or ''
+
+    earn_alt = ""
+    spend_alt = ""
+    if conversion_base and conversion_base > 0:
+        if this_earn > 0:
+            earn_converted = format_unit_display(
+                int(round(this_earn)), conversion_base, conversion_unit,
+            )
+            earn_alt = f"{converting_activity} {earn_converted}"
+        if this_spend > 0:
+            spend_converted = format_unit_display(
+                int(round(this_spend)), conversion_base, conversion_unit,
+            )
+            spend_alt = f"{converting_activity} {spend_converted}"
+
+    # 5) 이미지 생성
+    png_bytes = generate_weekly_share_card(
+        nickname=nickname,
+        week_label=week_label,
+        this_earn_min=int(round(this_earn)),
+        this_spend_min=int(round(this_spend)),
+        earn_diff_min=int(round(this_earn - last_earn)),
+        spend_diff_min=int(round(this_spend - last_spend)),
+        earn_alt=earn_alt,
+        spend_alt=spend_alt,
+    )
+
+    response = HttpResponse(png_bytes, content_type="image/png")
+    filename = f"weekly-report-{this_start.isoformat()}.png"
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    response['Cache-Control'] = 'no-store'
+    return response
