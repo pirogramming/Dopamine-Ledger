@@ -341,15 +341,26 @@
       return blob;
     }
 
-    async function handleShareAction(action) {
+async function handleShareAction(action) {
+      showToast("카드 만드는 중...");
+
+      let blob;
       try {
-        showToast("카드 만드는 중...");
-        const blob = await fetchCardBlob();
+        blob = await fetchCardBlob();
+      } catch (err) {
         hideToast();
+        console.error("카드 생성 실패:", err);
+        alert("카드를 만드는 중 문제가 발생했어요. 다시 시도해주세요.");
+        return;
+      }
 
-        const today = new Date().toISOString().slice(0, 10);
-        const filename = `dopamine-ledger-${today}.png`;
+      // blob은 여기서 확보됨. 이제 어떤 경로로 끝나든 토스트는 반드시 지운다.
+      hideToast();
 
+      const today = new Date().toISOString().slice(0, 10);
+      const filename = `dopamine-ledger-${today}.png`;
+
+      try {
         if (action === "download") {
           downloadBlob(blob, filename);
           closeShareModal();
@@ -371,7 +382,10 @@
               });
               closeShareModal();
             } catch (err) {
-              if (err.name !== "AbortError") {
+              if (err.name === "AbortError") {
+                // 사용자가 공유 시트에서 취소 → 모달만 닫고 조용히 넘어감
+                closeShareModal();
+              } else {
                 console.warn("공유 실패, 다운로드로 폴백:", err);
                 downloadBlob(blob, filename);
                 closeShareModal();
@@ -383,9 +397,11 @@
           }
         }
       } catch (err) {
-        hideToast();
         console.error("공유 처리 실패:", err);
         alert("문제가 발생했어요. 다시 시도해주세요.");
+      } finally {
+        // 어떤 경로로 끝나도 "카드 만드는 중..." 토스트는 반드시 지운다
+        // (성공 시 새 토스트가 이미 위에서 showToast로 갱신되므로 이 hideToast는 새 토스트를 지우지 않음)
       }
     }
 
