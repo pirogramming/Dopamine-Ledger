@@ -56,8 +56,8 @@
 .view-toggle__option--active::after {
   content: '';
   position: absolute;
-  left: 12px;
-  right: 12px;
+  left: 0;
+  right: 0;
   bottom: 0;
   height: 2px;
   background: #ff7a00;
@@ -115,7 +115,9 @@
   font-weight: 700;
   color: #ff7a00;
 }
-
+.budget-progress__percent--over {
+  color: #d32f2f;
+}
 /* 바깥 트랙: 안 채워진 부분 */
 .budget-progress__bar {
   background: #f0e5d5;
@@ -126,7 +128,6 @@
 }
 
 /* 안쪽 채움: width는 HTML에서 style="width: {{ percent_used_capped }}%"로 주입 */
-/* 안쪽 채움: width는 HTML에서 style="width: {{ percent_used_capped }}%"로 주입 */
 /* 안쪽 채움: width는 extra_js의 스크립트가 data-percent를 읽어서 주입 */
 /* 안쪽 채움: width는 HTML의 인라인 style로 주입됨 */
 .budget-progress__bar-fill {
@@ -136,15 +137,20 @@
   width: 0;                      /* 기본값. 인라인 style이 덮어씀 */
   transition: width 0.4s ease;   /* 값이 바뀔 때 부드럽게 */
 }
+
+.budget-progress__bar-fill--over {
+  background: #d32f2f;
+}
 /* ===== 이번 주 예산 / 사용 / 적립 요약 ===== */
 .budget-summary {
-  padding: 0;
+  border-top: 1px solid #c7c7c7;
 }
 
 .budget-summary__list {
   list-style: none;
-  display: flex;
-  justify-content: space-evenly;   /* 모든 간격(양쪽 끝 포함)이 동일하게 */
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px; 
   padding: 0;
 }
 
@@ -153,7 +159,7 @@
   flex-direction: column;
   align-items: center;
   gap: 7px;
-  width: auto; /* 고정 70px 제거 */
+  width: 100%; /* 고정 70px 제거 */
 }
 
 .budget-summary__label {
@@ -161,12 +167,14 @@
   font-weight: 400;
   color: #70737c;
   white-space: nowrap; 
+
 }
 
 .budget-summary__value {
   font-size: 16px;
   font-weight: 700;
   color: #000000;
+  font-variant-numeric: tabular-nums;
 }
 
 .budget-summary__value--negative {
@@ -178,6 +186,9 @@
 }
 
 /* ===== 오늘의 기록 ===== */
+.today-record {
+  margin-top: auto;
+}
 .today-record__header {
   display: flex;
   align-items: center;
@@ -253,9 +264,9 @@
 }
 /* ===== 예산 소진 경고 배너 ===== */
 .alert-banner {
-  background: #fbe2df;
+  background: #fdf0ee;
   border-radius: 10px;
-  padding: 10px 20px;
+  padding: 10px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -276,8 +287,8 @@
 .btn-record {
   background: #ff7a00;
   border-radius: 15px;
-  padding: 20px 0;
-  margin-bottom: 0;
+  height: 50px;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -285,7 +296,6 @@
   color: #ffffff;
   font-size: 16px;
   font-weight: 700;
-  height: 13px;  /* 높이 고정: padding만으로는 높이가 일정하지 않을 수 있어서 */
 }
 
 /* ===== 진행률+요약 감싸는 흰 카드 (main_progress 전용) ===== */
