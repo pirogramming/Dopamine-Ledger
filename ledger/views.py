@@ -172,6 +172,7 @@ def weekly_report(request):
 
     # 5. 수치 반올림 처리
     this_spend_int = int(round(this_spend_total))
+    last_spend_int = int(round(last_spend_total))
     spend_diff_int = int(round(spend_diff))
     this_earn_total_int = int(round(this_earn_total))
     earn_diff_int = int(round(earn_diff))
@@ -185,6 +186,36 @@ def weekly_report(request):
         item['activity__activity_type']: int(round(item['total'] or 0))
         for item in last_earn_qs.values('activity__activity_type').annotate(total=Sum('earn_min'))
     }
+
+    # 이번 주 카테고리별 비중 데이터
+    category_total = sum(this_activity_map.values())
+
+    category_breakdown = []
+
+    if category_total > 0:
+        # 이번 주에 해당 활동이 처음 기록된 시간 순서
+        first_record_order = {}
+
+        for earn in this_earn_qs.order_by("created_at"):
+            activity_name = earn.activity.activity_type
+
+            if activity_name not in first_record_order:
+                first_record_order[activity_name] = earn.created_at
+
+        # 최초 기록 순서대로 카테고리 정렬
+        ordered_activity_names = sorted(
+            this_activity_map.keys(),
+            key=lambda name: first_record_order[name]
+        )
+
+        for activity_name in ordered_activity_names:
+            minutes = this_activity_map[activity_name]
+
+            category_breakdown.append({
+                "name": activity_name,
+                "minutes": minutes,
+                "percent": round((minutes / category_total) * 100, 1),
+            })
 
     best_activity = None
     max_increase = 0
@@ -314,9 +345,11 @@ def weekly_report(request):
         {
             "praise_message": praise_message,
             "this_spend_min": this_spend_int,
+            "last_spend_min": last_spend_int,
             "spend_diff_min": spend_diff_int,
             "this_earn_min": this_earn_total_int,
             "earn_diff_min": earn_diff_int,
+            "category_breakdown": category_breakdown,
             "history_by_date": history_by_date,
         },
         json_dumps_params={'ensure_ascii': False}

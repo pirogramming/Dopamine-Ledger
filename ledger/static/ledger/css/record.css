@@ -60,7 +60,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   padding-top: 30px;
   position: relative;
 }
@@ -174,34 +174,67 @@
 }
 .time-caption strong { color: var(--spend-accent); font-weight: 700; }
 
+/* ============ 입력 방식: 밑줄 탭 =========== */
+.section-label {
+    font-size: 13px;
+    color: var(--text-sub);
+    margin: 0 0 8px;
+}
+
+.mode-tabs {
+    display: flex;
+    width: fit-content;
+    gap: 24px;
+    margin: 0 0 24px;
+    border: none;
+    background: transparent;
+    padding: 0;
+}
+
+.mode-tab {
+    padding: 0 0 8px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-sub);
+    cursor: pointer;
+    border-radius: 0;   /* pill 모양 완전히 제거 */
+}
+
+.mode-tab.is-active {
+    color: #000;
+    border-bottom-color: var(--earn-accent);
+}
 /* 활동 탭 선택 (독서/운동/기타) */
 .activity-tabs {
   display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 8px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 4px;
-  margin-bottom: 28px;
+  background: transparent;
+  border: none;
+  padding: 0px;
+  margin-bottom: 30px;
 }
 
 .activity-tab {
-  flex: 1;
-  text-align: center;
-  padding: 10px 0;
-  border-radius: 999px;
+  flex: 0 1 auto;
+  padding: 10px 20px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #fff;
   font-size: var(--fs-md);
   font-weight: 600;
   color: var(--text-sub);
   cursor: pointer;
-  border: none;
-  background: transparent;
-  font-family: inherit;
 }
 
 .activity-tab.is-active {
-  background: var(--earn-accent);
-  color: #fff;
+  background: #eaf3e9;              /* 연한 초록 배경 */
+  border-color: var(--earn-accent); /* 진한 초록 테두리 */
+  color: var(--earn-accent-dark);
 }
 
 /* 타이머 원형 표시 */
@@ -212,15 +245,16 @@
 }
 
 .timer-circle {
-  width: 170px;
-  height: 170px;
+  width: 220px;
+  height: 220px;
   border-radius: 50%;
-  border: 2px solid var(--border);
+  border: 1px solid var(--earn-accent);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background: #f4f9f3;
 }
 
 .timer-circle-time {
@@ -250,7 +284,6 @@
 
 #result-panel {
   flex-direction: column;
-  flex: 1;
 }
 
 .btn {
@@ -271,9 +304,17 @@
 .btn-primary-earn { background: var(--earn-accent); color: #fff; }
 .btn-primary-earn:disabled { background: var(--text-faint); cursor: not-allowed; }
 
+/* 종료 버튼: 연한 회색 배경 + 회색 글자 (핵심 행동인 '시작'과 시각적 위계 구분) */
+.btn-muted {
+  background: #f2f1ec;
+  color: var(--text-sub);
+  border: none;
+}
+.btn-muted:disabled { opacity: 0.6; cursor: not-allowed; }
+
 .btn-ghost {
   background: #fff;
-  color: var(--text-main);
+  color: var(--text-sub);
   border: 1px solid var(--border);
 }
 
@@ -347,10 +388,6 @@
   margin-bottom: 12px;
 }
 
-.field-block + .footer-actions {
-    margin-top: 70px;
-}
-
 .field-label {
   font-size: var(--fs-sm);
   color: var(--text-sub);
@@ -358,51 +395,11 @@
   display: block;
 }
 
-.field-block--readonly {
-  background: var(--bg); /* 카드 배경과 살짝 다르게 -> "조작 불가 영역"이라는 시각적 힌트 */
-}
-
-.readonly-badge-row {
-  display: flex;
-  gap: 8px;
-}
-
-.readonly-badge {
-  flex: 1;
-  text-align: center;
-  padding: 8px 0;
-  border-radius: 999px;
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  border: 1px solid var(--text-faint);
-  color: var(--text-faint);
-  background: transparent;
-  /* 버튼처럼 안 보이게: 그림자·hover·cursor 전부 제거 */
-  cursor: default;
-  user-select: none;
-}
-
-.readonly-badge.is-selected {
-  background: var(--earn-accent);
-  border-color: var(--earn-accent);
-  color: #fff;
-  font-weight: 700;
-}
-
 .field-note {
   font-size: var(--fs-sm);
   color: var(--text-faint);
   margin-top: 6px;
 }
-
-.photo-upload-input {
-  width: 100%;
-  border: none;
-  font-size: var(--fs-sm);
-  font-family: inherit;
-  color: var(--text-main);
-}
-.photo-upload-input:focus { outline: none; }
 
 /* 예산 소진 경고 문구 */
 .budget-warning {
@@ -484,3 +481,41 @@ input:focus-visible {
     font-weight: 700;
     cursor: pointer;
 }
+
+/* ============ 0분 경고 모달 ============ */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+.modal-overlay.open { display: flex; }
+
+.modal-box {
+    width: 300px;
+    background: #fdfcf9;
+    border-radius: 20px;
+    padding: 28px 24px 24px;
+    text-align: center;
+}
+.modal-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #000;
+    margin: 0 0 10px;
+}
+.modal-desc {
+    font-size: 14px;
+    color: #70737c;
+    line-height: 1.5;
+    margin: 0 0 24px;
+}
+.modal-actions {
+    display: flex;
+    gap: 8px;
+}
+.modal-actions .btn { flex: 1; }
+

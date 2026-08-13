@@ -10,38 +10,79 @@
 <div class="report-container">
   <header class="report-header">
     <h1 class="page-title">이번 주 결산</h1>
-        
+
     <div class="summary-card">
-      <p id="praise-message" class="praise-text">로딩 중...</p>
-          
-      <div class="metrics-container">
-        <div class="metric-item">
-          <span class="metric-label">사용 시간</span>
-          <span id="this-spend" class="metric-value">0시간 0분</span>
-        </div>
-        <div class="metric-item">
-          <span class="metric-label">수입 시간</span>
-          <span id="this_earn" class="metric-value">0시간 0분</span> 
-        </div>
-        <div class="metric-item">
-          <span class="metric-label">전 주 대비 사용</span>
-          <span id="spend-diff" class="metric-value diff-green">0시간 0분</span>
-        </div>
+
+      <!-- 전 주 대비 사용 시간 -->
+      <div class="weekly-diff">
+        <strong id="spend-diff" class="weekly-diff__value">
+          0분
+        </strong>
+        <span id="spend-diff-message" class="weekly-diff__label">
+          지난 주와 비교 중...
+        </span>
       </div>
+
+      <!-- 이번 주 사용/수입 시간 -->
+      <div class="weekly-metrics">
+
+        <!-- 사용 시간 -->
+        <div class="weekly-metric weekly-metric--spend">
+          <span class="weekly-metric__label">사용시간</span>
+
+          <strong id="this-spend" class="weekly-metric__value">
+            0시간 0분
+          </strong>
+
+          <span id="last-spend" class="weekly-metric__sub">
+            지난 주 0시간 0분
+          </span>
+        </div>
+
+        <!-- 수입 시간 -->
+        <div class="weekly-metric weekly-metric--earn">
+          <span class="weekly-metric__label">수입시간</span>
+
+          <strong id="this_earn" class="weekly-metric__value">
+            0시간 0분
+          </strong>
+        </div>
+
+      </div>
+
     </div>
   </header>
 
   <section class="history-section">
+
+    <div class="category-summary">
+      <p class="category-summary__title">카테고리별 비중</p>
+
+      <div
+        id="category-bar"
+        class="category-summary__bar"
+      >
+        <!-- JS로 카테고리 비중 막대 삽입 -->
+      </div>
+
+      <div
+        id="category-legend"
+        class="category-summary__legend"
+      >
+        <!-- JS로 카테고리명 / 시간 삽입 -->
+      </div>
+    </div>
+
     <h2 class="section-title">활동 내역</h2>
-        
     <!-- 날짜별 리스트가 JS를 통해 동적으로 삽입되는 컨테이너 -->
+
     <div id="history-list-container" class="history-list">
-      <!-- JS Fetch 이전 스켈레톤/로딩 표시 -->
       <p class="loading-text">기록을 불러오는 중입니다...</p>
     </div>
+
   </section>
 
-  <!-- 3. 하단 주간결산 공유 버튼 -->
+  <!-- 하단 주간결산 공유 버튼 -->
   <div class="action-button-wrapper">
     <button type="button" class="btn-primary" id="share-card-btn">주간결산 공유하기</button>
   </div>
@@ -91,6 +132,14 @@
     });
 
     // ============================================================
+    // 안전 헬퍼: 존재하지 않는 요소 접근 시 크래시 방지
+    // ============================================================
+    function setText(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.innerText = text;
+    }
+
+    // ============================================================
     // 결산 데이터 로드 & 렌더
     // ============================================================
     function fetchWeeklyReport() {
@@ -100,27 +149,74 @@
           return response.json();
         })
         .then(data => {
-          document.getElementById("praise-message").innerText = data.praise_message;
-          document.getElementById("this-spend").innerText = formatHoursMins(data.this_spend_min);
-          document.getElementById("this_earn").innerText = formatHoursMins(data.this_earn_min);
+          // 수치 데이터 세팅 (존재하는 요소만 안전하게 채움)
+          setText("this-spend", formatHoursMins(data.this_spend_min));
+          setText("this_earn", formatHoursMins(data.this_earn_min));
 
-          const spendDiffEl = document.getElementById("spend-diff");
-          const diffVal = data.spend_diff_min;
-          if (diffVal <= 0) {
-            spendDiffEl.innerText = `-${formatHoursMins(Math.abs(diffVal))}`;
-            spendDiffEl.className = "metric-value diff-green";
-          } else {
-            spendDiffEl.innerText = `+${formatHoursMins(diffVal)}`;
-            spendDiffEl.className = "metric-value diff-orange";
+          // 지난 주 사용 시간 (서버에서 last_spend_min을 안 보내주면 표시 스킵)
+          if (data.last_spend_min !== undefined) {
+            setText("last-spend", `지난 주 ${formatHoursMins(data.last_spend_min)}`);
           }
 
+          // 전주 대비 숏폼 사용량 표현
+          const spendDiffEl = document.getElementById("spend-diff");
+          const spendDiffMessageEl = document.getElementById("spend-diff-message");
+          const diffVal = data.spend_diff_min;
+
+          if (spendDiffEl && spendDiffMessageEl) {
+            if (diffVal < 0) {
+              const diffText = formatHoursMins(Math.abs(diffVal));
+              spendDiffEl.innerText = `-${diffText}`;
+              spendDiffEl.className = "weekly-diff__value diff-green";
+              spendDiffMessageEl.innerText = `지난 주보다 ${diffText} 줄었어요`;
+            } else if (diffVal > 0) {
+              const diffText = formatHoursMins(diffVal);
+              spendDiffEl.innerText = `+${diffText}`;
+              spendDiffEl.className = "weekly-diff__value diff-orange";
+              spendDiffMessageEl.innerText = `지난 주보다 ${diffText} 늘었어요`;
+            } else {
+              spendDiffEl.innerText = "0분";
+              spendDiffEl.className = "weekly-diff__value";
+              spendDiffMessageEl.innerText = "지난 주와 사용 시간이 같아요";
+            }
+          }
+
+          // 카테고리별 비중 렌더링 (서버에서 category_breakdown 안 오면 스킵)
+          const categoryBar = document.getElementById("category-bar");
+          const categoryLegend = document.getElementById("category-legend");
+
+          if (categoryBar && categoryLegend) {
+            categoryBar.innerHTML = "";
+            categoryLegend.innerHTML = "";
+
+            if (data.category_breakdown && data.category_breakdown.length > 0) {
+              data.category_breakdown.forEach((category, index) => {
+                // 막대
+                const segment = document.createElement("div");
+                segment.className = `category-segment category-segment--${index % 4}`;
+                segment.style.width = `${category.percent}%`;
+                categoryBar.appendChild(segment);
+
+                // 범례
+                const legendItem = document.createElement("div");
+                legendItem.className = "category-legend-item";
+                legendItem.innerHTML = `
+                  <span class="category-dot category-dot--${index % 4}"></span>
+                  <span>${category.name}</span>
+                  <strong>${formatHoursMins(category.minutes)}</strong>
+                `;
+                categoryLegend.appendChild(legendItem);
+              });
+            }
+          }
+
+          // 활동 내역
           if (data.history_by_date) {
             renderHistoryList(data.history_by_date);
           }
         })
         .catch(err => {
           console.error("데이터 연동 실패:", err);
-          document.getElementById("praise-message").innerText = "리포트 데이터를 불러오지 못했습니다.";
         });
     }
 
@@ -135,6 +231,7 @@
 
     function renderHistoryList(historyData) {
       const container = document.getElementById("history-list-container");
+      if (!container) return;
       container.innerHTML = "";
 
       historyData.forEach(dayGroup => {
@@ -147,8 +244,21 @@
           const amountClass = isEarn ? "amount-earn" : "amount-spend";
           const amountPrefix = isEarn ? "+" : "-";
 
+          let iconPath = "{% static 'ledger/images/icon-study.svg' %}";
+
+          if (item.title.includes("독서")) {
+            iconPath = "{% static 'ledger/images/icon-reading.svg' %}";
+          } else if (item.title.includes("숏폼")) {
+            iconPath = "{% static 'ledger/images/icon-shortform.svg' %}";
+          } else if (item.title.includes("운동")) {
+            iconPath = "{% static 'ledger/images/icon-exercise.svg' %}";
+          } else if (item.title.includes("공부")) {
+            iconPath = "{% static 'ledger/images/icon-study.svg' %}";
+          }
+
           itemsHtml += `
             <div class="activity-card">
+              <img src="${iconPath}" class="activity-icon" alt="">
               <span class="activity-title">${item.title}</span>
               <span class="activity-time">${item.time}</span>
               <span class="activity-amount ${amountClass}">${amountPrefix}${item.amount}</span>
@@ -157,11 +267,12 @@
         });
 
         groupEl.innerHTML = `
-          <div class="activity-cards-wrapper">${itemsHtml}</div>
           <div class="date-header">
             <span class="date-text">${dayGroup.date}</span>
             <div class="date-line"></div>
           </div>
+
+          <div class="activity-cards-wrapper">${itemsHtml}</div>
         `;
 
         container.appendChild(groupEl);
@@ -201,7 +312,8 @@
       try {
         const testFile = new File(["test"], "test.png", { type: "image/png" });
         if (navigator.canShare && navigator.canShare({ files: [testFile] })) {
-          document.getElementById("share-option-native").hidden = false;
+          const nativeOpt = document.getElementById("share-option-native");
+          if (nativeOpt) nativeOpt.hidden = false;
         }
       } catch (e) {}
     }
@@ -218,7 +330,6 @@
       document.body.style.overflow = "";
     }
 
-    // Pillow 서버에서 카드 Blob 받아오기
     async function fetchCardBlob() {
       if (cachedBlob) return cachedBlob;
 
