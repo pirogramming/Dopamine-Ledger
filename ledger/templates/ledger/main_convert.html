@@ -30,19 +30,24 @@
     <p class="remaining-time__value">{{ balance_display }}</p>
   </section>
 
-  <!-- 진행률 (카드 없음, 설명은 2줄 + 둘째 줄 강조) -->
-  <section class="budget-progress">
+<!-- ✅ 수정: budget-card로 감싸고, is_overspent 조건부 클래스 추가 -->
+<section class="budget-card">
+  <div class="budget-progress">
     <div class="budget-progress__header">
       <div class="budget-progress__desc">
         <div>{{ desc_line1 }}</div>
         <div class="budget-progress__desc-strong">{{ desc_line2 }}</div>
       </div>
-      <span class="budget-progress__percent">{{ percent_used }}%</span>
+      <span class="budget-progress__percent {% if is_overspent %}budget-progress__percent--over{% endif %}">
+        {{ percent_used }}%
+      </span>
     </div>
     <div class="budget-progress__bar">
-      <div class="budget-progress__bar-fill" style="width: {{ percent_used_capped }}%"></div>
+      <div class="budget-progress__bar-fill {% if is_overspent %}budget-progress__bar-fill--over{% endif %}"
+          style="width: {{ percent_used_capped }}%"></div>
     </div>
-  </section>
+  </div>
+</section>
 
   {# 예산/사용/적립 요약은 convert에서는 표시 안 함 (디자인 변경) #}
 

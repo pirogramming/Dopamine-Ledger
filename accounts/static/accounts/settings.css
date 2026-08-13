@@ -1,11 +1,30 @@
+.settings-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding-top: 30px;
+    margin-bottom: 16px;
+}
+/* 뒤로가기 */
+.settings-back {
+    position: absolute;
+    left: 0;
+    font-size: 24px;
+    text-decoration: none;
+    color: #000;
+    margin-bottom: 0;
+}
 .settings-title {
     font-size: 20px;
     font-weight: 700;
-    text-align: center;
     color: #000;
-    margin: 10px 0 30px;
+    margin: 0;
 }
-
+.settings-title--top {
+    text-align: center;
+    padding-top: 30px;
+}
 .settings-list {
     display: flex;
     flex-direction: column;
@@ -30,13 +49,16 @@
     padding-top: 30px;
 }
 .btn-kakao-connect {
-    height: 50px;
-    background: #FFE62D;
-    border: none;
-    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    height: 50px;                /* 버튼 높이 */
+    background: #FEE500;         /* 카카오 노랑 */
+    border-radius: 15px;         /* 로그아웃 버튼이랑 통일 */
     font-size: 16px;
     font-weight: 700;
-    color: #000;
+    color: #000000;              /* 검은 글씨 (파란 링크색 덮기) */
     cursor: pointer;
 }
 .btn-logout {
@@ -50,23 +72,14 @@
     cursor: pointer;
 }
 
-/* 뒤로가기 */
-.settings-back {
-    display: inline-block;
-    font-size: 24px;
-    text-decoration: none;
-    color: #000;
-    margin-bottom: 8px;
-}
-
 /* 입력 필드 */
 .settings-field-label {
     font-size: 14px;
     color: #70737C;
-    margin: 14px 0 8px;
+    margin: 8px 0 8px;
 }
 .settings-input {
-    width: 90%;
+    width: 100%;
     height: 55px;
     padding: 0 20px;
     border: 1px solid #C7C7C7;
@@ -74,6 +87,7 @@
     font-size: 16px;
     font-family: inherit;
     background: #FFF;
+    box-sizing: border-box;
 }
 
 /* 저장 / 탈퇴 버튼 */
@@ -161,7 +175,7 @@
 .rate-desc {
     font-size: 13px;
     color: #70737C;
-    margin-bottom: 16px;
+    margin-bottom: 5px;
 }
 .rate-list {
     display: flex;

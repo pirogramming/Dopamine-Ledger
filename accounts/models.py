@@ -13,6 +13,9 @@ class Users(AbstractUser):
         '주간 예산(분)', max_digits=10, decimal_places=2, default=210
     )
     kakao_id = models.CharField('카카오 ID', max_length=100, blank=True, null=True)
+    kakao_access_token = models.CharField('카카오 액세스 토큰', max_length=255, blank=True, null=True)
+    kakao_refresh_token = models.CharField('카카오 리프레시 토큰', max_length=255, blank=True, null=True)
+    
     converting_activity = models.CharField('환산활동', max_length=100, blank=True, null=True)
     conversion_base = models.DecimalField(
         '환산 기준(분)', max_digits=10, decimal_places=2, default=Decimal('360'),

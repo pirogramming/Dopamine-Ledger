@@ -10,7 +10,8 @@ body.app-shell {
 
 .phone-frame {
     width: 393px;
-    min-height: 852px;     /* 852px 고정 대신 브라우저 창 높이만큼 */
+    height: 852px;              /* min-height → height 고정 */
+    max-height: 100vh;          /* 창이 작으면 창 높이까지만 */
     background: #fdfcf9;
     border: 1px solid #70737c;
     border-radius: 28px;
@@ -18,7 +19,7 @@ body.app-shell {
     position: relative;
     display: flex;
     flex-direction: column;
-    overflow: hidden;  /* 혹시 모를 넘침 방지 */
+    overflow: hidden;  /* 프레임은 안 넘침 */
 }
 
 /* ==========================================================================
@@ -52,11 +53,13 @@ body.app-shell {
 /* ===== 본문 영역 (헤더/네비 제외한 콘텐츠) ===== */
 .app-content {
     flex: 1;
+    min-height: 0;              /* ★ flex 자식이 넘칠 때 스크롤되게 하는 핵심 */
+    overflow-y: auto;           /* 내용 넘치면 여기서 세로 스크롤 */
     display: flex;
     flex-direction: column;
     gap: 24px;
     padding: 10px 33px 20px;
-
+    -webkit-overflow-scrolling: touch;   /* iOS 부드러운 스크롤 */
 }
 
 /* ===== 하단 네비게이션 ===== */
