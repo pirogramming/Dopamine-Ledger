@@ -3,8 +3,10 @@
 {% block title %}{{ membership.users }}{% endblock %}
 
 {% block content %}
-    <a class="back-link" href="{% url 'crew:detail' crew_id=crew.id %}">‹</a>
-    <h1 class="page-title">{{ membership.users }}</h1>
+    <div class="page-topbar">
+        <a class="back-link" href="{% url 'crew:detail' crew_id=crew.id %}">‹</a>
+        <h1 class="page-title">{{ membership.users }}</h1>
+    </div>
 
     <!-- 프로필 -->
     <div class="member-row" style="margin-bottom:30px;">

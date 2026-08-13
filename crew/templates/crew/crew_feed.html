@@ -4,8 +4,10 @@
 {% block title %}{{ crew.name }} 피드{% endblock %}
 
 {% block content %}
-    <a class="back-link" href="{% url 'crew:detail' crew_id=crew.id %}">‹</a>
-    <h1 class="page-title">{{ crew.name }} 피드</h1>
+    <div class="page-topbar">
+        <a class="back-link" href="{% url 'crew:detail' crew_id=crew.id %}">‹</a>
+        <h1 class="page-title">{{ crew.name }} 피드</h1>
+    </div>
 
     <!-- 멤버 필터 탭 -->
     <div class="feed-filter">
