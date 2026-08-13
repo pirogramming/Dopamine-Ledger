@@ -26,7 +26,7 @@ class EarnRecord(models.Model):
         related_name='earn_records'
     )
     activity = models.ForeignKey(
-        'budget.Activity', on_delete=models.PROTECT,
+        'budget.Activity', on_delete=models.CASCADE,
         related_name='earn_records'
     )
     earn_min = models.DecimalField('적립 분', max_digits=8, decimal_places=2)
