@@ -155,6 +155,10 @@ KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY", "")
 KAKAO_REDIRECT_URI = os.getenv(
     "KAKAO_REDIRECT_URI", "http://localhost:8000/accounts/kakao/callback/"
 )
+KAKAO_CONNECT_REDIRECT_URI = os.getenv(
+    "KAKAO_CONNECT_REDIRECT_URI",
+    "http://localhost:8000/accounts/kakao/connect/callback/"
+)
 KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET", "")
 
 SOCIALACCOUNT_PROVIDERS = {

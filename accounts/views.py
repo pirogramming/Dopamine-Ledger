@@ -132,6 +132,7 @@ class KakaoLoginRedirectView(APIView):
       f"?client_id={settings.KAKAO_REST_API_KEY}"
       f"&redirect_uri={settings.KAKAO_REDIRECT_URI}"
       "&response_type=code"
+      "&scope=talk_message" # 나에게 보내기 권한 요청
     )
     return redirect(url)
     
@@ -199,22 +200,87 @@ class KakaoCallbackView(APIView):
         email=email,
         defaults={
             "username": f"kakao_{kakao_id}",
-            "nickname": nickname,
+            "nickname": f"kakao_{kakao_id}",
             "kakao_id": str(kakao_id),
         },
     )
 
-    # 5. 세션 로그인 처리
+    # 4-1. 토큰 저장 (기존 유저도 갱신)
+    refresh_token = token_json.get("refresh_token")
+    user.kakao_id = str(kakao_id)
+    user.kakao_access_token = access_token
+    if refresh_token:
+        user.kakao_refresh_token = refresh_token
+    user.save(update_fields=['kakao_id', 'kakao_access_token', 'kakao_refresh_token'])
+
+    # 5. 세션 로그인
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
 
-    return Response(
-        {
-            "message": "카카오 로그인 성공",
-            "user": UserResponseSerializer(user).data,
-        },
-        status=status.HTTP_200_OK,
-    )
+    # 6. 온보딩 여부에 따라 분기
+    if user.is_onboarded:
+        return redirect('/ledger/')
+    return redirect('onboarding-page')
 
+class KakaoConnectRedirectView(APIView):
+    """설정에서 '카카오 계정 연결' — 이미 로그인한 유저용."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        url = (
+            "https://kauth.kakao.com/oauth/authorize"
+            f"?client_id={settings.KAKAO_REST_API_KEY}"
+            f"&redirect_uri={settings.KAKAO_CONNECT_REDIRECT_URI}"   # 연결 전용 콜백
+            "&response_type=code"
+            "&scope=talk_message"
+        )
+        return redirect(url)
+
+class KakaoConnectCallbackView(APIView):
+    """카카오 연결 콜백 — request.user에게 토큰만 붙인다."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        code = request.GET.get("code")
+        if not code:
+            messages.error(request, "카카오 연결에 실패했어요.")
+            return redirect('settings-page')
+
+        # 토큰 발급
+        token_res = requests.post(
+            "https://kauth.kakao.com/oauth/token",
+            data={
+                "grant_type": "authorization_code",
+                "client_id": getattr(settings, "KAKAO_REST_API_KEY", ""),
+                "redirect_uri": getattr(settings, "KAKAO_CONNECT_REDIRECT_URI", ""),
+                "code": code,
+                "client_secret": getattr(settings, "KAKAO_CLIENT_SECRET", ""),
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        token_json = token_res.json()
+        access_token = token_json.get("access_token")
+        if not access_token:
+            messages.error(request, "카카오 토큰 발급에 실패했어요.")
+            return redirect('settings-page')
+
+        # 카카오 id 조회 (연결 표시용)
+        info_res = requests.get(
+            "https://kapi.kakao.com/v2/user/me",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        kakao_id = info_res.json().get("id")
+
+        # ★ 지금 로그인한 유저에게 붙인다 (get_or_create 아님!)
+        user = request.user
+        user.kakao_id = str(kakao_id) if kakao_id else user.kakao_id
+        user.kakao_access_token = access_token
+        refresh_token = token_json.get("refresh_token")
+        if refresh_token:
+            user.kakao_refresh_token = refresh_token
+        user.save(update_fields=['kakao_id', 'kakao_access_token', 'kakao_refresh_token'])
+
+        messages.success(request, "카카오 계정을 연결했어요! 마감 알림을 받을 수 있어요.")
+        return redirect('settings-page')
 
 class OnboardingAPIView(APIView):
   permission_classes = [IsAuthenticated]

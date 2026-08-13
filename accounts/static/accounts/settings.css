@@ -30,13 +30,16 @@
     padding-top: 30px;
 }
 .btn-kakao-connect {
-    height: 50px;
-    background: #FFE62D;
-    border: none;
-    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    height: 50px;                /* 버튼 높이 */
+    background: #FEE500;         /* 카카오 노랑 */
+    border-radius: 15px;         /* 로그아웃 버튼이랑 통일 */
     font-size: 16px;
     font-weight: 700;
-    color: #000;
+    color: #000000;              /* 검은 글씨 (파란 링크색 덮기) */
     cursor: pointer;
 }
 .btn-logout {
