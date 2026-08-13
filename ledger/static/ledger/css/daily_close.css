@@ -12,9 +12,11 @@
 .daily-close-page {
     position: relative;
     width: 100%;
-    min-height: 720px;
     flex: 1;
     font-family: 'Inter', sans-serif;
+
+    display: flex;
+    flex-direction: column;
 }
 
 
@@ -227,12 +229,8 @@
 ========================================= */
 
 .daily-close__action {
-    position: absolute;
-
-    left: 2px;
-    bottom: 17px;
-
-    width: calc(100% - 4px);
+    margin-top: auto;
+    width:100%;
 }
 
 .daily-close__action form {
