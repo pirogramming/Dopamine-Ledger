@@ -11,9 +11,6 @@ body {
   justify-content: center;
 }
 
-.report-container {
-}
-
 /* 1. 상단 헤더 & 칭찬 카드 */
 .report-header {
   margin-top: 20px;
@@ -99,22 +96,46 @@ body {
 }
 
 .history-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 100%;
-  height: 390px;
-  overflow-y: auto;
-  padding-right: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    width: 100%;
+    height: 250px;
+    max-height: 250px;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding: 0;
+    margin: 0;
 }
 
 .history-list::-webkit-scrollbar {
-  display: none;
+    width: 6px;
 }
-.history-list {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+
+.history-list::-webkit-scrollbar-track {
+    background: transparent;
 }
+
+.history-list::-webkit-scrollbar-thumb {
+    background: #918C8C;
+    border-radius: 10px;
+}
+
+/* 위 화살표 */
+.history-list::-webkit-scrollbar-button:single-button:vertical:decrement {
+    height: 10px;
+    background: transparent;
+}
+
+/* 아래 화살표 */
+.history-list::-webkit-scrollbar-button:single-button:vertical:increment {
+    height: 10px;
+    background: transparent;
+}
+
 
 .day-group {
   display: flex;
@@ -125,42 +146,48 @@ body {
 .activity-cards-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
 }
 
 /* ⭐ 시각(오후 14:30) 위치 고정 핵심 Flexbox */
 .activity-card {
-  width: 325px;
-  height: 41px;
-  background: #ffffff;
-  border: 1px solid #c7c7c7;
-  border-radius: 15px;
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
+    width: calc(100% - 12px);
+    min-height: 36px;
+
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #D9D9D9;
+    border-radius: 0;
+
+    padding: 0 0 8px 0;
+
+    display: flex;
+    align-items: center;
 }
 
 .activity-title {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   color: #000000;
   white-space: nowrap;
 }
 
 /* 시각(Time)을 오른쪽 분 수치 바로 왼쪽에 줄 맞춰 고정 */
 .activity-time {
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 400;
   color: #c7c7c7;
   margin-left: auto; /* 왼쪽 여백을 자율 확장하여 시각을 우측으로 밀어냄 */
-  margin-right: 12px; /* 분 수치와의 일정한 고정 간격 */
+  margin-right: 18px; /* 분 수치와의 일정한 고정 간격 */
   font-weight: 500;
 }
 
 .activity-amount {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  width: 48px; /* 폭 고정을 통해 시각 텍스트들의 시작 라인을 완벽 수평 일치시킴 */
+  width: 65px; /* 폭 고정을 통해 시각 텍스트들의 시작 라인을 완벽 수평 일치시킴 */
   text-align: right;
+  white-space: nowrap;
 }
 
 .amount-earn {
@@ -177,6 +204,7 @@ body {
   flex-direction: column;
   gap: 4px;
   margin-top: 4px;
+  width: calc(100% - 12px);
 }
 
 .date-text {
@@ -213,4 +241,311 @@ body {
   font-weight: 700;
   cursor: pointer;
   border: none;
+}
+
+/* =========================================
+   3주차 주간 결산 UI
+   - Figma 수치 기반
+========================================= */
+
+/* 기존 summary-card는 새 구조에서 배경 카드 역할 제거 */
+.summary-card {
+    width: 347px;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+
+/* =========================================
+   전 주 대비
+========================================= */
+
+.weekly-diff {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 0;
+}
+
+.weekly-diff__value {
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 39px;
+
+    text-align: center;
+
+    color: #4DAD44;
+}
+
+.weekly-diff__value.diff-green {
+    color: #4DAD44;
+}
+
+.weekly-diff__value.diff-orange {
+    color: #FF7A00;
+}
+
+.weekly-diff__label {
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 16px;
+
+    text-align: center;
+
+    color: #70737C;
+}
+
+
+/* =========================================
+   사용시간 / 수입시간 카드
+========================================= */
+
+.weekly-metrics {
+    width: 347px;
+
+    display: flex;
+    flex-direction: row;
+
+    gap: 14px;
+}
+
+.weekly-metric {
+    width: 169px;
+    height: 112px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+
+    padding: 15px 19px;
+    gap: 13px;
+
+    border-radius: 10px;
+}
+
+.weekly-metric--spend {
+    background: rgba(255, 122, 0, 0.1);
+}
+
+.weekly-metric--earn {
+    background: rgba(81, 183, 71, 0.1);
+}
+
+.weekly-metric__label {
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 16px;
+}
+
+.weekly-metric--spend .weekly-metric__label {
+    color: #8F4400;
+}
+
+.weekly-metric--earn .weekly-metric__label {
+    color: #2B5F27;
+}
+
+.weekly-metric__value {
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 24px;
+
+    white-space: nowrap;
+}
+
+.weekly-metric--spend .weekly-metric__value {
+    color: #8F4400;
+}
+
+.weekly-metric--earn .weekly-metric__value {
+    color: #2B5F27;
+}
+
+.weekly-metric__sub {
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 16px;
+
+    color: #8F4400;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================
+   활동 내역
+========================================= */
+
+.history-section {
+    margin-top: 20px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    width: 100%;
+}
+
+.section-title {
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 16px;
+
+    color: #000000;
+
+    margin-bottom: 14px;
+}
+
+
+/* =========================================
+  카테고리별 비중
+========================================= */
+
+.category-summary {
+    width: 325px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    gap: 8px;
+
+    margin-bottom: 20px;
+}
+
+.category-summary__title {
+    width: 100%;
+
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 16px;
+
+    color: #000000;
+}
+
+.category-summary__bar {
+    width: 325px;
+    height: 10px;
+
+    display: flex;
+
+    overflow: hidden;
+
+    background: #D9D9D9;
+    border-radius: 10px;
+}
+
+.category-segment {
+    height: 10px;
+    flex-shrink: 0;
+}
+
+/* 첫 번째 카테고리 */
+.category-segment--0 {
+    background: #4DAD44;
+}
+
+/* 두 번째 카테고리 */
+.category-segment--1 {
+    background: #FF7A00;
+}
+
+.category-segment--2 {
+    background: #F2C94C;
+}
+
+.category-segment--3 {
+    background: #56C7B2;
+}
+
+
+/* 범례 */
+.category-summary__legend {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 8px 24px;
+}
+
+.category-legend-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    gap: 5px;
+
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 16px;
+
+    color: #70737C;
+}
+
+.category-legend-item strong {
+    font-weight: 700;
+    color: #70737C;
+}
+
+.category-dot {
+    width: 10px;
+    height: 10px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+}
+
+.category-dot--0 {
+    background: #4DAD44;
+}
+
+.category-dot--1 {
+    background: #FF7A00;
+}
+
+.category-dot--2 {
+    background: #F2C94C;
+}
+
+.category-dot--3 {
+    background: #56C7B2;
+}
+
+/* 전 주 대비 숫자 ↔ 설명 간격 */
+.weekly-diff {
+    gap: 6px;
+}
+
+/* 활동 아이콘 ↔ 제목 간격 */
+.activity-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    flex-shrink: 0;
 }
