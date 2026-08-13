@@ -181,7 +181,28 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    max-height: 250px;        /* 카드 4개 높이(64*4 + gap 12*3 = 292)에 여백 */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;       /* 스크롤바가 카드에 안 겹치게 */
 }
+.rate-list--full {
+    max-height: none;
+    overflow-y: visible;
+    gap: 8px;
+}
+.rate-list--full .rate-item {
+    height: 48px;
+    padding: 10px 20px;
+}
+.rate-list--full .rate-input {
+    height: 34px;
+}
+
+/* 환율 리스트 스크롤바 (결산 화면과 동일 톤) */
+.rate-list::-webkit-scrollbar { width: 6px; }
+.rate-list::-webkit-scrollbar-track { background: transparent; }
+.rate-list::-webkit-scrollbar-thumb { background: #C7C7C7; border-radius: 10px; }
 .rate-item {
     display: flex;
     align-items: center;
@@ -206,8 +227,161 @@
 }
 .rate-unit { font-size: 16px; color: #70737C; }
 
+.rate-delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    padding: 2px;
+    margin-left: 10px;
+    flex-shrink: 0;
+    color: #E05252;
+}
+.rate-delete-btn:hover { opacity: 0.7; }
+
 .unit-row {
     display: flex;
     gap: 10px;
 }
 .unit-row .settings-input { flex: 1; }
+
+.activity-manage, .activity-add { margin-top: 28px; }
+.manage-label { font-size: 14px; color: var(--gray); margin-bottom: 10px; }
+
+.delete-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #F0F0F0;
+}
+.btn-delete-activity {
+    background: #fff;
+    border: 1px solid #E05252;
+    color: #E05252;
+    border-radius: 10px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+}
+.add-row { display: flex; gap: 8px; align-items: center; }
+.add-row .rate-input { flex: 1; }
+.btn-add-activity {
+    background: var(--orange, #FF7A00);
+    border: none;
+    color: #fff;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.add-limit-note { font-size: 13px; color: var(--gray); margin-top: 20px; text-align: center; }
+
+/* ── 활동 추가 카드 (개선된 UI) ── */
+.add-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #FFF;
+    border: 1px solid #C7C7C7;
+    border-radius: 15px;
+    padding: 10px 12px;
+}
+.add-input {
+    border: none;
+    background: transparent;
+    font-size: 15px;
+    font-family: inherit;
+    color: #000;
+    height: 40px;
+}
+.add-input:focus { outline: none; }
+.add-input::placeholder {
+    color: #AEB0B6;
+    font-weight: 400;
+    font-family: inherit;
+}
+
+/* 활동 이름: 남는 공간 다 차지 */
+.add-input--name {
+    flex: 1;
+    min-width: 0;
+    font-weight: 600;
+    padding-left: 4px;
+}
+
+/* 분 입력 + 단위를 묶은 작은 박스 */
+.add-input-minute {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.add-input--min {
+    border: 1px solid #C7C7C7;
+    border-radius: 10px;
+    background: #FFF;
+    width: 72px;
+    height: 38px;
+    text-align: center;
+    font-weight: 600;
+    color: #FF7A00;
+}
+/* 크롬 number 화살표 제거 (깔끔하게) */
+.add-input--min::-webkit-outer-spin-button,
+.add-input--min::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.add-input--min {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+.add-min-unit {
+    font-size: 14px;
+    color: #70737C;
+    flex-shrink: 0;
+}
+
+/* 추가 버튼 */
+.btn-add-activity {
+    background: #FF7A00;
+    border: none;
+    color: #fff;
+    border-radius: 10px;
+    padding: 0 18px;
+    height: 40px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* 활동별 환율 화면: 본문을 세로로 채우고 하단 영역을 바닥에 고정 */
+.rate-edit-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+/* 환율 폼(리스트 영역)은 필요한 만큼만 차지 */
+.rate-form {
+    flex-shrink: 0;
+}
+
+/* 활동 추가 + 수정하기 묶음: 바닥으로 밀기 */
+.rate-bottom {
+    margin-top: auto;
+    padding-top: 24px;
+}
+
+/* 수정하기 버튼 (settings-bottom 안 쓰므로 여기서 높이 지정) */
+.rate-bottom .btn-save {
+    width: 100%;
+    height: 50px;
+}

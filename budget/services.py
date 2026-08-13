@@ -271,7 +271,7 @@ def get_today_activity_summary(user):
         })
 
     # 2) 적립 활동 — 사용자에게 등록된 활동들
-    activities = Activity.objects.filter(users=user)
+    activities = Activity.objects.filter(users=user, is_active=True)
     for activity in activities:
         activity_type = activity.activity_type
         total = earn_totals.get(activity_type, 0) or Decimal(0)

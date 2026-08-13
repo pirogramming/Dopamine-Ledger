@@ -190,18 +190,18 @@
             categoryLegend.innerHTML = "";
 
             if (data.category_breakdown && data.category_breakdown.length > 0) {
-              data.category_breakdown.forEach((category, index) => {
+              data.category_breakdown.forEach((category) => {
                 // 막대
                 const segment = document.createElement("div");
-                segment.className = `category-segment category-segment--${index % 4}`;
+                segment.className = "category-segment";
                 segment.style.width = `${category.percent}%`;
+                segment.style.background = category.color;
                 categoryBar.appendChild(segment);
-
                 // 범례
                 const legendItem = document.createElement("div");
                 legendItem.className = "category-legend-item";
                 legendItem.innerHTML = `
-                  <span class="category-dot category-dot--${index % 4}"></span>
+                  <span class="category-dot" style="background:${category.color}"></span>
                   <span>${category.name}</span>
                   <strong>${formatHoursMins(category.minutes)}</strong>
                 `;

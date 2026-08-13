@@ -27,6 +27,8 @@ from .serializers import (
 
 User = get_user_model()
 
+# 활동 최대 개수: 온보딩 3(독서·운동·공부) + 사용자 추가 3
+MAX_ACTIVITIES = 6
 
 # ==========================================
 # Template Render Views (페이지 화면 반환)
@@ -404,15 +406,77 @@ def budget_edit(request):
 
 @login_required
 def rate_edit(request):
-    """활동별 환율 수정. 각 활동의 '1시간당 적립 분'을 입력받아 rate로 저장.
-    검증: 0 < 분 < 60 (0분 초과 60분 미만)."""
+    """활동별 환율 수정 + 추가/삭제."""
     user = request.user
-    activities = Activity.objects.filter(users=user)
+    activities = Activity.objects.filter(users=user, is_active=True)
 
     if request.method == 'POST':
-        error = None
-        updates = []   # (activity, new_rate) 임시 저장 후 일괄 반영
+        action = request.POST.get('action', 'update')
 
+        if action == 'add':
+            active_count = Activity.objects.filter(users=user, is_active=True).count()
+            if active_count >= MAX_ACTIVITIES:
+                messages.error(request, f'활동은 최대 {MAX_ACTIVITIES}개까지예요.')
+                return redirect('rate-edit')
+
+            name = request.POST.get('new_name', '').strip()
+            raw = request.POST.get('new_minutes', '').strip()
+            try:
+                minutes = int(raw)
+            except (ValueError, TypeError):
+                messages.error(request, '적립 시간을 숫자로 입력해주세요.')
+                return redirect('rate-edit')
+
+            if not name:
+                messages.error(request, '활동 이름을 입력해주세요.')
+                return redirect('rate-edit')
+            if minutes <= 0 or minutes >= 60:
+                messages.error(request, '적립 시간은 0분 초과 60분 미만이어야 해요.')
+                return redirect('rate-edit')
+
+            new_rate = round(Decimal(minutes) / Decimal(60), 4)
+
+            # 이미 활성인 같은 이름 → 중복이라 막음
+            if Activity.objects.filter(
+                users=user, activity_type=name, is_active=True
+            ).exists():
+                messages.error(request, f'"{name}" 활동은 이미 있어요.')
+                return redirect('rate-edit')
+
+            # 비활성(삭제됨) 같은 이름 → 재활성화해서 과거 기록 이어붙임
+            revived = Activity.objects.filter(
+                users=user, activity_type=name, is_active=False
+            ).first()
+            if revived:
+                revived.is_active = True
+                revived.rate = new_rate
+                revived.save(update_fields=['is_active', 'rate'])
+                messages.success(request, f'"{name}" 활동을 다시 추가했어요.')
+            else:
+                Activity.objects.create(
+                    users=user, activity_type=name, rate=new_rate, is_active=True
+                )
+                messages.success(request, f'"{name}" 활동을 추가했어요.')
+            return redirect('rate-edit')
+
+        # ── 활동 삭제(비활성화) ──
+        if action == 'delete':
+            act_id = request.POST.get('activity_id')
+            active_count = Activity.objects.filter(users=user, is_active=True).count()
+            if active_count <= 1:
+                messages.error(request, '활동은 최소 1개는 있어야 해요.')
+                return redirect('rate-edit')
+
+            act = Activity.objects.filter(id=act_id, users=user, is_active=True).first()
+            if act:
+                act.is_active = False
+                act.save(update_fields=['is_active'])
+                messages.success(request, f'"{act.activity_type}" 활동을 삭제했어요.')
+            return redirect('rate-edit')
+
+        # ── 환율 수정 (기존 로직) ──
+        error = None
+        updates = []
         for act in activities:
             raw = request.POST.get(f'activity_{act.id}', '').strip()
             try:
@@ -420,18 +484,10 @@ def rate_edit(request):
             except (ValueError, TypeError):
                 error = '숫자를 입력해주세요.'
                 break
-
-            # 0분 초과 60분 미만 검증
             if minutes <= 0 or minutes >= 60:
                 error = '적립 시간은 0분 초과 60분 미만이어야 해요.'
                 break
-
             new_rate = round(Decimal(minutes) / Decimal(60), 4)
-            # 경계 방어 (0이나 1 나오지 않게)
-            if new_rate <= Decimal('0'):
-                new_rate = Decimal('0.0001')
-            elif new_rate >= Decimal('1'):
-                new_rate = Decimal('0.9999')
             updates.append((act, new_rate))
 
         if error:
@@ -443,13 +499,13 @@ def rate_edit(request):
             messages.success(request, '저장했어요.')
             return redirect('settings-page')
 
-    # 화면 표시용: 각 활동에 '분' 값 부착 (rate × 60)
     for act in activities:
         act.minutes = int(round(float(act.rate) * 60))
 
     return render(request, 'accounts/rate_edit.html', {
         'active_tab': 'setting',
         'activities': activities,
+        'can_add': activities.count() < MAX_ACTIVITIES,   # 추가 버튼 표시용 (최대 6개)
     })
 
 @login_required
