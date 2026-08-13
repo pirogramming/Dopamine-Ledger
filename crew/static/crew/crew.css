@@ -494,11 +494,13 @@
     overflow-x: auto;
     padding: 4px 0 12px;
     scrollbar-width: none;        /* Firefox 스크롤바 숨김 */
+    flex-shrink: 0;            /* ★ 스크롤 영역에서 안 눌리게 */
 }
 .feed-filter::-webkit-scrollbar { display: none; }   /* Chrome 스크롤바 숨김 */
 
 .filter-pill {
     flex: none;                   /* 줄바꿈 없이 옆으로 (가로 스크롤) */
+    line-height: 1.4;         /* 텍스트 세로 여유 */
     padding: 7px 18px;
     border: 1px solid #C7C7C7;
     border-radius: 20px;
