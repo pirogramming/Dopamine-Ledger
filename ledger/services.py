@@ -1,25 +1,4 @@
 from datetime import timedelta
-
-from django.db import transaction
-from django.db.models import Sum
-from django.utils import timezone
-
-from .models import DailyClose, EarnRecord, SpendRecord
-
-
-# ============================================================
-# 주간 결산 공유 카드 (Pillow)
-# - 매 요청마다 새로 그림, 저장하지 않음
-# - 규격/색/폰트: common.css & weekly_report.css 값 그대로
-# ============================================================
-from io import BytesIO
-from pathlib import Path
-
-from PIL import Image, ImageDraw, ImageFont
-from django.conf import settings
-
-#==========
-from datetime import timedelta
 from io import BytesIO
 from pathlib import Path
 
@@ -32,6 +11,10 @@ from PIL import Image, ImageDraw, ImageFont
 
 from .models import DailyClose, EarnRecord, SpendRecord
 
+
+# ============================================================
+# 오늘 요약 & 하루 마감
+# ============================================================
 
 def get_today_record_summary(user):
     """
@@ -135,7 +118,11 @@ def close_today(user):
     return daily_close
 
 
-
+# ============================================================
+# 주간 결산 공유 카드 (Pillow)
+# - 매 요청마다 새로 그림, 저장하지 않음
+# - 규격/색/폰트: common.css & weekly_report.css 값 그대로
+# ============================================================
 
 # 카드 규격 (폰 프레임 393×852의 2배 해상도)
 CARD_WIDTH = 786
@@ -145,18 +132,22 @@ CARD_HEIGHT = 1200
 COLOR_BG = "#fdfcf9"          # phone-frame 배경
 COLOR_CARD = "#ffffff"         # summary-card 흰 카드
 COLOR_BLACK = "#000000"
-COLOR_ORANGE = "#ff7a00"       # 강조(지출/증가)
-COLOR_GREEN = "#4dad44"        # 절감(감소)
+COLOR_ORANGE = "#ff7a00"       # 강조(지출 테마)
+COLOR_GREEN = "#4dad44"        # 강조(수입 테마)
 COLOR_GRAY_SUB = "#70737c"     # 라벨/보조 텍스트
 COLOR_GRAY_LINE = "#c7c7c7"    # 카드 테두리/구분선
+COLOR_GREEN_BG = "#eaf7ea"     # 좋은 방향 배지 연한 배경 (초록)
+COLOR_ORANGE_BG = "#fff1e6"    # 나쁜 방향 배지 연한 배경 (주황)
+COLOR_GRAY_BG = "#f0f0f0"      # 변화 없음 배지 연한 배경 (회색)
 
-# 폰트 경로 (1단계에서 넣은 파일)
+# 폰트 경로
 _FONT_DIR = Path(settings.BASE_DIR) / "ledger" / "static" / "ledger" / "fonts"
 FONT_REGULAR_PATH = str(_FONT_DIR / "Pretendard-Regular.otf")
 FONT_BOLD_PATH = str(_FONT_DIR / "Pretendard-Bold.otf")
 
 
 def _format_hours_mins(total_mins) -> str:
+    """분을 'X시간 Y분' 문자열로."""
     total_mins = int(total_mins or 0)
     hrs = total_mins // 60
     mins = total_mins % 60
@@ -165,58 +156,101 @@ def _format_hours_mins(total_mins) -> str:
     return f"{mins}분"
 
 
-def _earn_diff_message(diff_min: int) -> str:
-    """수입 차이 → 자연어 문구."""
+def _earn_diff_style(diff_min: int):
+    """
+    수입 차이 → (배지 텍스트, 텍스트 색, 배경 색) 튜플.
+    수입은 늘면 좋음(초록), 줄면 나쁨(주황), 같으면 중립(회색).
+    """
+    diff_min = int(diff_min or 0)
     if diff_min > 0:
-        return f"벌어들인 시간이 저번 주 대비 {_format_hours_mins(diff_min)}이 늘었어요!"
+        text = f"↑ 저번 주보다 {_format_hours_mins(diff_min)} 늘었어요"
+        return text, COLOR_GREEN, COLOR_GREEN_BG
     if diff_min < 0:
-        return f"벌어들인 시간이 저번 주 대비 {_format_hours_mins(abs(diff_min))} 줄었어요."
-    return "벌어들인 시간이 저번 주와 같아요."
+        text = f"↓ 저번 주보다 {_format_hours_mins(abs(diff_min))} 줄었어요"
+        return text, COLOR_ORANGE, COLOR_ORANGE_BG
+    text = "— 저번 주와 같아요"
+    return text, COLOR_GRAY_SUB, COLOR_GRAY_BG
 
 
-def _spend_diff_message(diff_min: int) -> str:
-    """지출 차이 → 자연어 문구."""
-    if diff_min < 0:
-        return f"숏폼을 전 주 대비 {_format_hours_mins(abs(diff_min))} 덜 사용하셨어요!"
+def _spend_diff_style(diff_min: int):
+    """
+    지출 차이 → (배지 텍스트, 텍스트 색, 배경 색) 튜플.
+    지출은 줄면 좋음(초록), 늘면 나쁨(주황), 같으면 중립(회색).
+    """
+    diff_min = int(diff_min or 0)
     if diff_min > 0:
-        return f"숏폼을 전 주 대비 {_format_hours_mins(diff_min)} 더 사용하셨어요."
-    return "숏폼 사용 시간이 저번 주와 같아요."
+        text = f"↑ 저번 주보다 {_format_hours_mins(diff_min)} 늘었어요"
+        return text, COLOR_ORANGE, COLOR_ORANGE_BG
+    if diff_min < 0:
+        text = f"↓ 저번 주보다 {_format_hours_mins(abs(diff_min))} 줄었어요"
+        return text, COLOR_GREEN, COLOR_GREEN_BG
+    text = "— 저번 주와 같아요"
+    return text, COLOR_GRAY_SUB, COLOR_GRAY_BG
+
+
+def _draw_pill(draw, cx, cy, text, text_color, bg_color, font,
+               padding_x=26, padding_y=14):
+    """
+    둥근 알약 모양 배지를 (cx, cy) 중심에 그린다.
+    텍스트 크기를 먼저 재서 배지 크기를 텍스트에 맞춰 자동 조정.
+    반환값: 배지 하단 y좌표 (다음 요소 배치용)
+    """
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_w = bbox[2] - bbox[0]
+    text_h = bbox[3] - bbox[1]
+
+    pill_w = text_w + padding_x * 2
+    pill_h = text_h + padding_y * 2
+
+    x1 = cx - pill_w / 2
+    y1 = cy - pill_h / 2
+    x2 = cx + pill_w / 2
+    y2 = cy + pill_h / 2
+
+    draw.rounded_rectangle(
+        [(x1, y1), (x2, y2)],
+        radius=pill_h / 2,   # 반원형 캡슐 모양
+        fill=bg_color,
+    )
+    draw.text((cx, cy), text, fill=text_color, font=font, anchor="mm")
+
+    return y2
 
 
 def _draw_block(draw, cx, y_top, label_text, value_text, value_color,
-                alt_text, alt_color, diff_message,
+                alt_text, alt_color, diff_text, diff_text_color, diff_bg_color,
                 font_label, font_value, font_alt, font_diff) -> int:
     """
     수입/지출 블록 하나를 그린다. 시작 y좌표를 받아 마지막 y좌표를 반환.
     구조 (위→아래):
         [라벨]              — 회색
-        [큰 값]             — value_color (초록/주황)
-        [= 환산문구]         — alt_color (초록/주황)
-        [차이 문구]         — 검정
+        [큰 값]             — value_color (초록/주황, 블록 테마 색)
+        [= 환산문구]         — alt_color (초록/주황, 블록 테마 색)
+        [증감 배지]          — 아이콘+문구, 방향 기반 색 (초록/주황/회색)
     """
-    # 라벨 (좌측정렬 느낌으로 중앙에서 살짝 왼쪽 배치는 생략하고 중앙정렬 통일)
     draw.text((cx, y_top), label_text,
               fill=COLOR_GRAY_SUB, font=font_label, anchor="mm")
 
-    # 큰 값
-    y_value = y_top + 90
+    y_value = y_top + 70
     draw.text((cx, y_value), value_text,
               fill=value_color, font=font_value, anchor="mm")
 
-    # 대체재 환산 (환산 활동 미설정 시 스킵)
-    y_alt = y_value + 85
+    y_alt = y_value + 65
     if alt_text:
         draw.text((cx, y_alt), f"= {alt_text}",
                   fill=alt_color, font=font_alt, anchor="mm")
-        y_diff = y_alt + 70
+        y_pill_center = y_alt + 90
     else:
-        y_diff = y_alt
+        y_pill_center = y_alt + 25
 
-    # 차이 문구 (검정)
-    draw.text((cx, y_diff), diff_message,
-              fill=COLOR_BLACK, font=font_diff, anchor="mm")
+    y_bottom = _draw_pill(
+        draw, cx, y_pill_center, diff_text,
+        text_color=diff_text_color,
+        bg_color=diff_bg_color,
+        font=font_diff,
+    )
 
-    return y_diff  # 이 블록의 마지막 y
+    return y_bottom
 
 
 def generate_weekly_share_card(
@@ -232,31 +266,31 @@ def generate_weekly_share_card(
     """
     주간 결산을 카드 이미지(PNG 바이트)로 반환한다.
 
-    새 구조:
+    구조:
         상단 타이틀·주차
         [흰 카드]
-            [수입 블록 - 초록]
-                이번주 벌어들인 시간:
+            [수입 블록 - 큰 값은 초록 테마]
+                이번주 벌어들인 시간
                     2시간 0분 (초록, 큰)
                 = 코딩공부 6.0페이지 (초록)
-                벌어들인 시간이 저번 주 대비 30분이 늘었어요! (검정)
-            [지출 블록 - 주황]
-                이번주 숏폼에 사용한 시간:
-                    2시간 0분 (주황, 큰)
-                = 코딩공부 6.0페이지 (주황)
-                숏폼을 전 주 대비 30분 덜 사용하셨어요! (검정)
+                [증감 배지: 방향 기반 색]
+            [지출 블록 - 큰 값은 주황 테마]
+                이번주 숏폼에 사용한 시간
+                    2시간 30분 (주황, 큰)
+                = 코딩공부 7.5페이지 (주황)
+                [증감 배지: 방향 기반 색]
         하단: 닉네임 + 서비스명
     """
     img = Image.new("RGB", (CARD_WIDTH, CARD_HEIGHT), COLOR_BG)
     draw = ImageDraw.Draw(img)
 
-    # --- 폰트 (기존 크기 유지) ---
+    # --- 폰트 ---
     font_title = ImageFont.truetype(FONT_BOLD_PATH, 56)       # "이번 주 결산"
     font_week = ImageFont.truetype(FONT_REGULAR_PATH, 30)     # 주차 라벨
-    font_block_label = ImageFont.truetype(FONT_REGULAR_PATH, 32)  # "이번주 벌어들인 시간:"
-    font_block_value = ImageFont.truetype(FONT_BOLD_PATH, 70)     # 큰 숫자
+    font_block_label = ImageFont.truetype(FONT_REGULAR_PATH, 32)  # "이번주 벌어들인 시간"
+    font_block_value = ImageFont.truetype(FONT_BOLD_PATH, 50)     # 큰 숫자
     font_block_alt = ImageFont.truetype(FONT_REGULAR_PATH, 32)    # 대체재 환산
-    font_block_diff = ImageFont.truetype(FONT_REGULAR_PATH, 28)   # 차이 문구
+    font_block_diff = ImageFont.truetype(FONT_REGULAR_PATH, 28)   # 증감 배지
     font_footer_sub = ImageFont.truetype(FONT_REGULAR_PATH, 26)
     font_footer_brand = ImageFont.truetype(FONT_BOLD_PATH, 30)
 
@@ -279,39 +313,47 @@ def generate_weekly_share_card(
         width=2,
     )
 
-    # --- 수입 블록 (초록) ---
+    # --- 수입 블록 ---
+    earn_diff_text, earn_diff_color, earn_diff_bg = _earn_diff_style(earn_diff_min)
+
     earn_block_top = card_y1 + 80
     earn_block_bottom = _draw_block(
         draw, center_x, earn_block_top,
         label_text="이번주 벌어들인 시간",
         value_text=_format_hours_mins(this_earn_min),
-        value_color=COLOR_GREEN,
+        value_color=COLOR_GREEN,           # 큰 값은 항상 초록 (수입 = 초록 테마)
         alt_text=earn_alt,
         alt_color=COLOR_GREEN,
-        diff_message=_earn_diff_message(earn_diff_min),
+        diff_text=earn_diff_text,
+        diff_text_color=earn_diff_color,   # 배지 텍스트 색: 방향 기반
+        diff_bg_color=earn_diff_bg,        # 배지 배경 색: 방향 기반
         font_label=font_block_label,
         font_value=font_block_value,
         font_alt=font_block_alt,
         font_diff=font_block_diff,
     )
 
-    # --- 블록 사이 구분선 (얇은 회색 선) ---
-    divider_y = earn_block_bottom + 60
+    # --- 블록 사이 구분선 ---
+    divider_y = earn_block_bottom + 50
     draw.line(
         [(card_x1 + 60, divider_y), (card_x2 - 60, divider_y)],
         fill=COLOR_GRAY_LINE, width=1,
     )
 
-    # --- 지출 블록 (주황) ---
-    spend_block_top = divider_y + 60
+    # --- 지출 블록 ---
+    spend_diff_text, spend_diff_color, spend_diff_bg = _spend_diff_style(spend_diff_min)
+
+    spend_block_top = divider_y + 80
     _draw_block(
         draw, center_x, spend_block_top,
         label_text="이번주 숏폼에 사용한 시간",
         value_text=_format_hours_mins(this_spend_min),
-        value_color=COLOR_ORANGE,
+        value_color=COLOR_ORANGE,          # 큰 값은 항상 주황 (지출 = 주황 테마)
         alt_text=spend_alt,
         alt_color=COLOR_ORANGE,
-        diff_message=_spend_diff_message(spend_diff_min),
+        diff_text=spend_diff_text,
+        diff_text_color=spend_diff_color,  # 배지 텍스트 색: 방향 기반
+        diff_bg_color=spend_diff_bg,       # 배지 배경 색: 방향 기반
         font_label=font_block_label,
         font_value=font_block_value,
         font_alt=font_block_alt,
