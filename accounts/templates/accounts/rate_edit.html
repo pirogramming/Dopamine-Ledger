@@ -8,9 +8,10 @@
 {% endblock %}
 
 {% block content %}
-    <a class="settings-back" href="{% url 'settings-page' %}">‹</a>
-    <h1 class="settings-title">활동별 환율</h1>
-
+    <div class="settings-topbar">
+        <a class="settings-back" href="{% url 'settings-page' %}">‹</a>
+        <h1 class="settings-title">활동별 환율</h1>
+    </div>
     <p class="rate-desc">활동 1시간당 숏폼을 얼마나 쌓을지 정해요 (0분 초과 60분 미만)</p>
 
     <form method="post" action="{% url 'rate-edit' %}">

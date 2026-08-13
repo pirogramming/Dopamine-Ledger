@@ -8,9 +8,10 @@
 {% endblock %}
 
 {% block content %}
-    <a class="settings-back" href="{% url 'settings-page' %}">‹</a>
-    <h1 class="settings-title">주간 예산·시급 수정</h1>
-
+    <div class="settings-topbar">
+        <a class="settings-back" href="{% url 'settings-page' %}">‹</a>
+        <h1 class="settings-title">주간 예산·시급 수정</h1>
+    </div>
     <form method="post" action="{% url 'budget-edit' %}">
         {% csrf_token %}
 
