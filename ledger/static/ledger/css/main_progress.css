@@ -193,7 +193,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 }
 
 .today-record__title {
@@ -266,7 +266,7 @@
 .alert-banner {
   background: #fdf0ee;
   border-radius: 10px;
-  padding: 10px;
+  padding: 5px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -302,7 +302,7 @@
 .budget-card {
   background: #ffffff;
   border-radius: 10px;
-  padding: 20px;
+  padding: 20px 20px 8px;
   display: flex;
   flex-direction: column;
   gap: 20px;
