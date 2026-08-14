@@ -3,8 +3,10 @@
 {% block title %}크루 관리{% endblock %}
 
 {% block content %}
-    <a class="back-link" href="{% url 'crew:detail' crew_id=crew.id %}">‹</a>
-    <h1 class="page-title">크루 관리</h1>
+    <div class="page-topbar" style="margin-bottom:8px;">
+        <a class="back-link" href="{% url 'crew:detail' crew_id=crew.id %}">‹</a>
+        <h1 class="page-title">크루 관리</h1>
+    </div>
     <p class="section-label" style="text-align:center;">방장만 볼 수 있어요</p>
 
     <!-- 이름 수정 -->
@@ -12,7 +14,7 @@
     <form method="post">
         {% csrf_token %}
         <input type="hidden" name="action" value="rename">
-        <div class="join-row">
+        <div class="join-row" style="margin-bottom: 12px;">
             <input class="text-input" type="text" name="name" value="{{ crew.name }}" maxlength="50" style="margin-bottom:0;">
             <button type="submit" style="background:var(--card); border:1px solid var(--orange); border-radius:10px; color:var(--orange); font-weight:700; padding:0 16px; cursor:pointer;">저장</button>
         </div>
@@ -23,19 +25,19 @@
     <form method="post">
         {% csrf_token %}
         <input type="hidden" name="action" value="goal">
-        <div class="code-box" style="text-align:left;">
+        <div class="code-box" style="text-align:left; margin-bottom:12px;">
             <div class="label" style="text-align:left;">목표 시간</div>
             <input class="text-input" type="number" name="target_hours" min="1"
                    value="{% if goal %}{{ goal.target_hours }}{% else %}20{% endif %}" style="margin:8px 0 16px;">
             <div class="label" style="text-align:left;">보상 문구</div>
             <input class="text-input" type="text" name="reward_text"
-                   value="{% if goal %}{{ goal.reward_text }}{% endif %}" placeholder="예: 목표 달성 시 크루 회식🍗" style="margin-top:8px;">
+                   value="{% if goal %}{{ goal.reward_text }}{% endif %}" placeholder="예: 목표 달성 시 크루 회식🍗" style="margin-top:8px 0 0;">
+            <button class="btn-primary" type="submit" style="margin-top:16px;">목표 저장</button>
         </div>
-        <button class="btn-primary" type="submit">목표 저장</button>
     </form>
 
     <!-- 멤버 관리 -->
-    <div class="section-label" style="margin-top:30px;">멤버 {{ member_count }}명</div>
+    <div class="section-label" style="margin-top:12px;">멤버 {{ member_count }}명</div>
     <div class="member-box">
         {% for member in members %}
             <div class="member-row" style="justify-content:space-between;">

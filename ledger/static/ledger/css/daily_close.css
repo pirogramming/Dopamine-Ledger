@@ -111,17 +111,27 @@
     flex: none;
     flex-shrink: 0;
 
-    border: 2px solid #FF7A00;
-    border-radius: 50%;
+}
+/* ▼ 새로 추가 — 체크 아이콘 (mask-image 방식) */
+.summary-card__check__icon {
+    width: 24px;
+    height: 24px;
+    display: block;
+    background-color: #FF7A00;
 
-    color: #FF7A00;
-
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1;
+    -webkit-mask-image: var(--icon-src);
+    mask-image: var(--icon-src);
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
 }
 
+.summary-card__check--empty .summary-card__check__icon {
+    background-color: #C7C7C7;
+}
 
 /* =========================================
     카드 제목
