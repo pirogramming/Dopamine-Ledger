@@ -142,7 +142,9 @@ LOGIN_REDIRECT_URL = "/"
 LOGIN_URL = "login-page"
 ACCOUNT_LOGOUT_REDIRECT_URL = "login-page"
 AUTH_USER_MODEL = "accounts.Users"
-CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()
+]
 
 # ── DRF 인증 방식 설정 (세션 인증 적용) ──
 REST_FRAMEWORK = {

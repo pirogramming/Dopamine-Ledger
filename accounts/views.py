@@ -527,7 +527,7 @@ def unit_edit(request):
         else:
             user.converting_activity = activity
             # 저장은 "1단위당 분" = 60 ÷ 시간당 개수
-            user.conversion_base = round(Decimal('60') / Decimal(str(units_per_hour)), 2)
+            user.conversion_base = round(Decimal('60') / Decimal(str(units_per_hour)), 6)
             user.conversion_unit = unit
             user.save(update_fields=['converting_activity', 'conversion_base', 'conversion_unit'])
             messages.success(request, '저장했어요.')
