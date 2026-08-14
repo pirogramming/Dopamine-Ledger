@@ -113,7 +113,7 @@ class EarnRecordForm(forms.ModelForm):
         """
         super().__init__(*args, **kwargs)
         if user is not None:
-            self.fields['activity'].queryset = Activity.objects.filter(users=user)
+            self.fields['activity'].queryset = Activity.objects.filter(users=user, is_active=True)
         else:
             # user 없이 생성되면 실수로 전체 유저 활동이 노출될 위험이 있어 방어적으로 빈 쿼리셋 처리
             self.fields['activity'].queryset = Activity.objects.none()

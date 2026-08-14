@@ -14,27 +14,64 @@
     </div>
     <p class="rate-desc">활동 1시간당 숏폼을 얼마나 쌓을지 정해요 (0분 초과 60분 미만)</p>
 
-    <form method="post" action="{% url 'rate-edit' %}">
-        {% csrf_token %}
+    <div class="rate-edit-body">
+        <!-- 환율 수정 폼 -->
+        <form method="post" action="{% url 'rate-edit' %}" class="rate-form" id="rate-update-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update">
 
-        <div class="rate-list">
-            {% for act in activities %}
-            <div class="rate-item">
-                <span class="rate-name">{{ act.activity_type }}</span>
-                <div class="rate-input-group">
-                    <input type="number" name="activity_{{ act.id }}"
-                           value="{{ act.minutes }}" min="1" max="59" class="rate-input">
-                    <span class="rate-unit">분</span>
+            <div class="rate-list {% if activities|length >= 6 %}rate-list--full{% endif %}">
+                {% for act in activities %}
+                <div class="rate-item">
+                    <span class="rate-name">{{ act.activity_type }}</span>
+                    <div class="rate-input-group">
+                        <input type="number" name="activity_{{ act.id }}"
+                               value="{{ act.minutes }}" min="1" max="59" class="rate-input">
+                        <span class="rate-unit">분</span>
+                        <!-- 삭제 버튼 (실제 폼은 카드 밖, 아래 hidden 폼을 JS로 submit) -->
+                        <button type="button" class="rate-delete-btn"
+                                data-activity-id="{{ act.id }}"
+                                aria-label="{{ act.activity_type }} 삭제">🗑</button>
+                    </div>
                 </div>
+                {% empty %}
+                <p class="empty">등록된 활동이 없어요.</p>
+                {% endfor %}
             </div>
-            {% empty %}
-            <p class="empty">등록된 활동이 없어요.</p>
-            {% endfor %}
-        </div>
+        </form>
 
-        <div class="settings-bottom">
-            <button type="submit" class="btn-save">수정하기</button>
+        <!-- 활동 추가: 환율 리스트 바로 아래 -->
+        {% if can_add %}
+        <div class="activity-add">
+            <div class="manage-label">활동 추가</div>
+            <form method="post" action="{% url 'rate-edit' %}" class="add-card">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                <input type="text" name="new_name" placeholder="활동 이름" maxlength="30"
+                       class="add-input add-input--name" required>
+                <div class="add-input-minute">
+                    <input type="number" name="new_minutes" placeholder="1시간당" min="1" max="59"
+                           class="add-input add-input--min" required>
+                    <span class="add-min-unit">분</span>
+                </div>
+                <button type="submit" class="btn-add-activity">추가</button>
+            </form>
         </div>
+        {% else %}
+        <p class="add-limit-note">활동은 최대 6개까지 만들 수 있어요.</p>
+        {% endif %}
+
+        <!-- 수정하기만 바닥 고정 -->
+        <div class="rate-bottom">
+            <button type="submit" form="rate-update-form" class="btn-save">수정하기</button>
+        </div>
+    </div>
+
+    <!-- 삭제 전용 폼 (수정 폼 밖에 하나만 둠, JS로 activity_id 채워 submit) -->
+    <form method="post" action="{% url 'rate-edit' %}" id="delete-form" style="display:none;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="activity_id" id="delete-activity-id">
     </form>
 
     {% if messages %}
@@ -54,5 +91,12 @@
 {% block extra_js %}
 <script>
     function closeMessageModal() { document.getElementById('message-modal').classList.remove('open'); }
+
+    document.querySelectorAll('.rate-delete-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.getElementById('delete-activity-id').value = this.dataset.activityId;
+            document.getElementById('delete-form').submit();
+        });
+    });
 </script>
 {% endblock %}

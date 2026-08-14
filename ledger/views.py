@@ -14,7 +14,7 @@ from django.http import JsonResponse
 from collections import defaultdict
 
 from django.http import HttpResponse
-from .services import generate_weekly_share_card
+from .services import generate_weekly_share_card, get_category_color
 from budget.services import format_unit_display
 
 # 요일 변환용 튜플 (weekly_report)
@@ -208,13 +208,14 @@ def weekly_report(request):
             key=lambda name: first_record_order[name]
         )
 
-        for activity_name in ordered_activity_names:
+        for idx, activity_name in enumerate(ordered_activity_names):
             minutes = this_activity_map[activity_name]
 
             category_breakdown.append({
                 "name": activity_name,
                 "minutes": minutes,
                 "percent": round((minutes / category_total) * 100, 1),
+                "color": get_category_color(idx),
             })
 
     best_activity = None
@@ -405,7 +406,7 @@ def main_progress(request):
         'spent_display':    format_minutes_display(summary['spent']),
         'earned_display':   format_minutes_display(summary['earned']),
         'budget_desc': (
-            f"이번 주 예산 {format_minutes_display(summary['budget'])} 중 "
+            f"이번 주 예산 {format_minutes_display(summary['budget'] + summary['earned'])} 중 "
             f"{format_minutes_display(summary['spent'])} 사용"
         ),
         'today_records': records,

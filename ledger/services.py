@@ -11,6 +11,11 @@ from PIL import Image, ImageDraw, ImageFont
 
 from .models import DailyClose, EarnRecord, SpendRecord
 
+# 활동 이름 정렬 인덱스 → 고정 색 (weekly_report 카테고리 비중용, 6색)
+CATEGORY_COLORS = ['#4DAD44', '#FF7A00', '#F2C94C', '#56C7B2', '#9B72E0', '#E05A8D']
+def get_category_color(index):
+    """정렬 인덱스 → 색. 6개까지 안 겹치고, 그 이상은 순환."""
+    return CATEGORY_COLORS[index % len(CATEGORY_COLORS)]
 
 # ============================================================
 # 오늘 요약 & 하루 마감
