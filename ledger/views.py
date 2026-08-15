@@ -362,7 +362,7 @@ def daily_close(request):
 
             is_closed = True
 
-            # return redirect("ledger:daily_close")
+            return redirect("ledger:daily_close")
 
         except ValueError as error:
             error_message = str(error)
