@@ -128,15 +128,14 @@
                 </div>
             </div>
 
-            <!-- 커스텀 추가 가변 항목 -->
-            <div class="activity-item">
-                <input type="text" id="custom_activity_name" style="width: 140px; border: none; padding: 0;" placeholder="기타 (선택)">
-                <div class="activity-input-group">
-                    <input type="number" id="custom_activity_min" class="minute-box" placeholder="0">
-                    <span class="unit-text">분</span>
-                </div>
+            <!-- 커스텀 활동 (동적 추가, 최대 3개) -->
+                <div id="custom-activity-container"></div>
             </div>
-        </div>
+
+            <!-- 활동 추가 버튼 (커스텀 3개 미만일 때만 노출) -->
+            <button type="button" id="add-activity-btn" class="btn-add-onboarding" onclick="addCustomActivityRow()">
+                + 활동 추가
+            </button>
     </div>
 
             <div class="btn-group">
@@ -207,6 +206,40 @@
             return cookieValue;
         }
 
+        // ── 커스텀 활동 동적 추가/삭제 ──
+        const MAX_CUSTOM = 3;   // 고정 3 + 커스텀 3 = 6
+
+        function addCustomActivityRow() {
+            const container = document.getElementById('custom-activity-container');
+            const current = container.querySelectorAll('.custom-activity-item').length;
+            if (current >= MAX_CUSTOM) return;
+
+            const row = document.createElement('div');
+            row.className = 'activity-item custom-activity-item';
+            row.innerHTML = `
+                <input type="text" class="custom-name" style="width: 120px; border: none; padding: 0;" placeholder="활동 이름" maxlength="30">
+                <div class="activity-input-group">
+                    <input type="number" class="minute-box custom-min" placeholder="0" min="1" max="59">
+                    <span class="unit-text">분</span>
+                    <button type="button" class="btn-remove-row" onclick="removeCustomRow(this)" aria-label="삭제">ㅡ</button>
+                </div>
+            `;
+            container.appendChild(row);
+            updateAddBtnVisibility();
+        }
+
+        function removeCustomRow(btn) {
+            btn.closest('.custom-activity-item').remove();
+            updateAddBtnVisibility();
+        }
+
+        function updateAddBtnVisibility() {
+            const container = document.getElementById('custom-activity-container');
+            const count = container.querySelectorAll('.custom-activity-item').length;
+            const btn = document.getElementById('add-activity-btn');
+            btn.style.display = count >= MAX_CUSTOM ? 'none' : 'block';
+        }
+
         // 3. 백엔드 전송 함수
         async function submitOnboarding() {
             const convertingActivity = document.getElementById('converting_activity').value;
@@ -232,14 +265,20 @@
                 }
             ];
 
-            const customName = document.getElementById('custom_activity_name').value.trim();
-            const customMin = parseInt(document.getElementById('custom_activity_min').value);
-
-            if (customName && !isNaN(customMin) && customMin > 0) {
-                activities.push({
-                    activity_type: customName,
-                    minutes: customMin
-                });
+            // 커스텀 활동들 순회 (이름·분 둘 다 유효한 것만)
+            const customRows = document.querySelectorAll('.custom-activity-item');
+            const seen = new Set(["독서", "운동", "공부"]);   // 고정과 중복 방지
+            for (const row of customRows) {
+                const name = row.querySelector('.custom-name').value.trim();
+                const min = parseInt(row.querySelector('.custom-min').value);
+                if (!name || isNaN(min) || min <= 0) continue;   // 빈 행/무효 무시
+                if (min >= 60) {
+                    showModal("적립 시간은 0분 초과 60분 미만이어야 해요.");
+                    return;
+                }
+                if (seen.has(name)) continue;   // 이름 중복 무시
+                seen.add(name);
+                activities.push({ activity_type: name, minutes: min });
             }
 
             const payload = {

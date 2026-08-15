@@ -286,3 +286,28 @@ input::placeholder {
     font-weight: 700;
     cursor: pointer;
 }
+
+.btn-add-onboarding {
+    width: 100%;
+    padding: 12px;
+    margin-top: 12px;
+    background: #fff;
+    border: 1px dashed #C7C7C7;
+    border-radius: 12px;
+    color: #70737C;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-add-onboarding:hover { border-color: #FF7A00; color: #FF7A00; }
+
+.btn-remove-row {
+    background: none;
+    border: none;
+    color: #E05252;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 6px;
+    margin-bottom: 4px;
+    flex-shrink: 0;
+}
