@@ -152,12 +152,21 @@ def format_unit_display(minutes, conversion_base, unit_label):
 
     # 원 단위이거나 1000 이상이면 정수, 아니면 소수 첫째 자리
     label = (unit_label or '').strip()
-    if unit_label == '원' or raw >= 1000:
+    if label == '원' or raw >= 1000:
         val = raw.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
     else:
         val = raw.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
 
     return f"{sign}{val}{unit_label or ''}"
+
+def get_conversion_base_precise(user):
+    """환산에 쓸 정밀 base(1단위당 분)를 반환.
+    원본(units_per_hour)이 있으면 그걸로 즉석 계산(오차 없음),
+    없으면(온보딩 유저) 저장된 conversion_base로 폴백."""
+    uph = getattr(user, 'conversion_units_per_hour', None)
+    if uph and Decimal(str(uph)) > 0:
+        return Decimal('60') / Decimal(str(uph))
+    return user.conversion_base
 
 # ---------- 표시용 카테고리 매핑 ----------
 # category에 실제 저장되는 영문 값 → 화면에 보여줄 한글 이름

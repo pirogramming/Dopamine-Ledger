@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import SpendRecordForm, EarnRecordForm
 from .models import SpendRecord, EarnRecord
 from .services import close_today, get_today_record_summary
-from budget.services import get_current_balance
+from budget.services import get_current_balance, get_conversion_base_precise
 from accounts.services import (
     calculate_grade_by_streak,
     calculate_reward_minutes,
@@ -476,7 +476,7 @@ def main_convert(request):
     진행률 설명: 오늘 지출한 시간을 환산해서 2줄(둘째 줄 강조)로 표시."""
     user = request.user
     summary = get_week_summary(user)
-    base = user.conversion_base
+    base = get_conversion_base_precise(user)
     unit = user.conversion_unit or ''
     activity = user.converting_activity or '환산 활동'
 
@@ -635,7 +635,7 @@ def weekly_share_card(request):
     )
 
     # 4) 대체재 환산 (수입/지출 각각)
-    conversion_base = getattr(user, 'conversion_base', None)
+    conversion_base = get_conversion_base_precise(user)
     conversion_unit = getattr(user, 'conversion_unit', '') or ''
     converting_activity = getattr(user, 'converting_activity', '') or ''
 
