@@ -3,7 +3,15 @@
 {% block title %}내 크루{% endblock %}
 
 {% block content %}
-    <h1 class="page-title">내 크루</h1>
+    <div class="page-head-row">
+        <h1 class="page-title">내 크루</h1>
+        <div class="help-wrap">
+            <button type="button" class="help-btn" onclick="toggleHelp('help-crew')" aria-label="도움말">?</button>
+            <div class="help-tooltip" id="help-crew">
+                크루원들과 활동 시간을 모아 함께 목표를 달성하는 곳이에요. 초대 코드로 친구를 부를 수 있어요.
+            </div>
+        </div>
+    </div>
 
     {% if crews %}
         {% for crew in crews %}
@@ -24,4 +32,16 @@
         </form>
         <a class="btn-primary" href="{% url 'crew:create' %}">새 크루 만들기</a>
     </div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+    function toggleHelp(id) {
+        const tip = document.getElementById(id);
+        document.querySelectorAll('.help-tooltip.open').forEach(el => {
+            if (el.id !== id) el.classList.remove('open');
+        });
+        tip.classList.toggle('open');
+    }
+</script>
 {% endblock %}

@@ -9,7 +9,15 @@
 {% block content %}
 <div class="report-container">
   <header class="report-header">
-    <h1 class="page-title">이번 주 결산</h1>
+    <div class="report-head-row">
+      <h1 class="page-title">이번 주 결산</h1>
+      <div class="help-wrap">
+        <button type="button" class="help-btn" onclick="toggleHelp('help-report')" aria-label="도움말">?</button>
+        <div class="help-tooltip" id="help-report">
+          이번 주 활동을 요약해서 보여줘요. 절약한 시간을 카드로 만들어 크루나 친구에게 공유할 수 있어요.
+        </div>
+      </div>
+    </div>
 
     <div class="summary-card">
 
@@ -448,6 +456,14 @@ async function handleShareAction(action) {
     function hideToast() {
       if (toastEl) toastEl.classList.remove("share-toast--visible");
       if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+    }
+
+    function toggleHelp(id) {
+        const tip = document.getElementById(id);
+        document.querySelectorAll('.help-tooltip.open').forEach(el => {
+            if (el.id !== id) el.classList.remove('open');
+        });
+        tip.classList.toggle('open');
     }
   </script>
 {% endblock %}

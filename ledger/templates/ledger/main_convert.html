@@ -13,6 +13,12 @@
       <img class="app-header__logo" src="{% static 'ledger/images/logo.png' %}" alt="도파민 가계부">
       <span class="app-header__nickname">{{ request.user.nickname }}님</span>
     </div>
+    <div class="help-wrap">
+      <button type="button" class="help-btn" onclick="toggleHelp('help-home')" aria-label="도움말">?</button>
+      <div class="help-tooltip" id="help-home">
+        이번 주 숏폼 예산과 잔액을 보는 곳이에요. 숏폼을 보면 차감되고, 책·운동 같은 활동을 하면 적립돼요.
+      </div>
+    </div>
   </header>
 {% endblock %}
 
@@ -118,6 +124,12 @@
 
 {% block extra_js %}
 <script>
-  // 리그 알약+툴팁 스크립트 제거됨 (캐릭터 카드로 대체)
+    function toggleHelp(id) {
+        const tip = document.getElementById(id);
+        document.querySelectorAll('.help-tooltip.open').forEach(el => {
+            if (el.id !== id) el.classList.remove('open');
+        });
+        tip.classList.toggle('open');
+    }
 </script>
 {% endblock %}

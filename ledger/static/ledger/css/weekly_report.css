@@ -698,3 +698,76 @@ body {
 
     overflow: hidden;
 }
+
+.help-wrap { position: relative; }
+
+.help-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid #FF7A00;
+    background: #FFF7EB;
+    color: #FF7A00;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.help-btn:hover {
+    background: #FF7A00;
+    color: #fff;
+}
+
+.help-tooltip {
+    display: none;
+    position: absolute;
+    top: 34px;
+    right: 0;
+    width: 240px;
+    background: #FDFCF9;
+    border: 1px solid #FFE3C2;
+    border-radius: 16px;
+    padding: 16px 18px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #333;
+    box-shadow: 0 6px 20px rgba(255, 122, 0, 0.12);
+    z-index: 10;
+    text-align: left;
+}
+.help-tooltip.open { display: block; }
+
+.help-tooltip::before {
+    content: "";
+    position: absolute;
+    top: -7px;
+    right: 14px;
+    width: 12px;
+    height: 12px;
+    background: #FDFCF9;
+    border-left: 1px solid #FFE3C2;
+    border-top: 1px solid #FFE3C2;
+    transform: rotate(45deg);
+}
+
+/* 결산 헤더: 제목 중앙, 물음표 오른쪽 끝 */
+.report-head-row {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;             /* ← 이거 추가 */
+    padding: 0 8px;
+    box-sizing: border-box;  /* ← 패딩이 너비 안에 포함되게 */
+}
+.report-head-row .page-title {
+    margin: 0;
+    padding: 0 40px;
+}
+.report-head-row .help-wrap {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+}
