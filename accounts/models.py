@@ -33,6 +33,12 @@ class Users(AbstractUser):
     )
     conversion_unit = models.CharField('환산단위', max_length=30, blank=True, null=True)
 
+    conversion_units_per_hour = models.DecimalField(
+        '1시간당 활동량(입력 원본)', max_digits=12, decimal_places=2,
+        blank=True, null=True,
+        help_text='사용자가 입력한 "1시간에 N개" 원본값. 표시 전용(왕복 변환 오차 방지). 계산은 conversion_base 사용.'
+    )
+
     groups = models.ManyToManyField(
         'auth.Group',
         related_name='accounts_users_set',
