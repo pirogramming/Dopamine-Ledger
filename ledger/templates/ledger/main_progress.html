@@ -123,7 +123,6 @@
 
 {% block extra_js %}
 <script>
-<<<<<<<<< Temporary merge branch 1
   (function () {
     const pillBtn = document.getElementById('leaguePillBtn');
     const tooltip = document.getElementById('leagueTooltip');
@@ -145,10 +144,8 @@
       console.error('리그 요소를 찾을 수 없습니다:', { pillBtn, tooltip });
     }
   })();
-=========
-    document.querySelectorAll('.budget-progress__bar-fill').forEach(function (el) {
-        el.style.width = el.dataset.percent + '%';
-    });
->>>>>>>>> Temporary merge branch 2
+  document.querySelectorAll('.budget-progress__bar-fill').forEach(function (el) {
+      el.style.width = el.dataset.percent + '%';
+  });
 </script>
 {% endblock %}
