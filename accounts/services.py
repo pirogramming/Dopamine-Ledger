@@ -38,6 +38,49 @@ GRADE_CONFIG = {
     },
 }
 
+GRADE_JOURNEY_LIST = [
+    {
+        'key': 'LEVEL_0',
+        'level_num': 0,
+        'name': '도파민 노예',
+        'min_days': 0,
+        'benefit': '기본 환율',
+        'color': '#8E9AAF',
+    },
+    {
+        'key': 'LEVEL_1',
+        'level_num': 1,
+        'name': '도파민 디톡서',
+        'min_days': 3,
+        'benefit': '환율 우대 +0%',
+        'color': '#68B087',
+    },
+    {
+        'key': 'LEVEL_2',
+        'level_num': 2,
+        'name': '시간 연금술사',
+        'min_days': 7,
+        'benefit': '환율 우대 +3%',
+        'color': '#E59866',
+    },
+    {
+        'key': 'LEVEL_3',
+        'level_num': 3,
+        'name': '도파민 정복자',
+        'min_days': 14,
+        'benefit': '환율 우대 +5%',
+        'color': '#E06D53',
+    },
+    {
+        'key': 'LEVEL_4',
+        'level_num': 4,
+        'name': '절제의 신',
+        'min_days': 21,
+        'benefit': '최고 우대 +10%',
+        'color': '#8B78E6',
+    }
+]
+
 GRADE_ORDER = ['LEVEL_0', 'LEVEL_1', 'LEVEL_2', 'LEVEL_3', 'LEVEL_4']
 
 
@@ -89,3 +132,56 @@ def get_league_dialogue(grade_key: str, is_closed: bool) -> str:
     """마감 전/후 상태에 따른 캐릭터 말풍선 멘트 반환"""
     config = GRADE_CONFIG.get(grade_key, GRADE_CONFIG['LEVEL_0'])
     return config['dialogue_after'] if is_closed else config['dialogue_before']
+
+
+def get_league_journey_data(user) -> dict:
+    """리그 여정 화면에 필요한 상단 게이지 바 및 5단계 로드맵 데이터 계산"""
+    streak = user.streak_days
+    current_grade_key = user.credit_grade
+
+    # 1. 현재 등급 인덱스 조회
+    current_idx = 0
+    for idx, item in enumerate(GRADE_JOURNEY_LIST):
+        if item['key'] == current_grade_key:
+            current_idx = idx
+            break
+    current_grade_info = GRADE_JOURNEY_LIST[current_idx]
+
+    # 2. 상단 프로그레스 바 계산 (다음 등급까지)
+    if current_idx < len(GRADE_JOURNEY_LIST) - 1:
+        next_grade_info = GRADE_JOURNEY_LIST[current_idx + 1]
+        range_days = next_grade_info['min_days'] - current_grade_info['min_days']
+        current_progress = max(0, streak - current_grade_info['min_days'])
+        
+        # 0 나누기 방지 및 백분율(0~100) 계산
+        progress_percent = min(100, int((current_progress / max(1, range_days)) * 100))
+        days_left = max(0, next_grade_info['min_days'] - streak)
+        
+        target_text = f"{streak} / {next_grade_info['min_days']}일 달성"
+        left_text = f"다음 리그까지 {days_left}일"
+    else:
+        # 최고 등급 (LEVEL 4)
+        progress_percent = 100
+        days_left = 0
+        target_text = f"최고 등급 달성 ({streak}일 연속)"
+        left_text = "절제의 신 강림 중"
+
+    # 3. 5단계 전체 로드맵 데이터 구성
+    journey_steps = []
+    for idx, g in enumerate(GRADE_JOURNEY_LIST):
+        step_status = 'current' if idx == current_idx else ('passed' if idx < current_idx else 'locked')
+        journey_steps.append({
+            **g,
+            'image_url': f"images/characters/closure/{g['key']}.png",
+            'status': step_status,
+            'is_current': (idx == current_idx),
+        })
+
+    return {
+        'current_grade': current_grade_info,
+        'progress_percent': progress_percent,
+        'target_text': target_text,
+        'left_text': left_text,
+        'journey_steps': journey_steps,
+        'streak_days': streak,
+    }

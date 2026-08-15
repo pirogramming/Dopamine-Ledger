@@ -10,6 +10,7 @@ from accounts.services import (
     calculate_reward_minutes,
     get_exchange_bonus_rate,
     get_league_dialogue,
+    get_league_journey_data,
 )
 
 from datetime import timedelta
@@ -592,6 +593,18 @@ def weekly_share_card(request):
     response['Content-Disposition'] = f'inline; filename="{filename}"'
     response['Cache-Control'] = 'no-store'
     return response"""
+
+@login_required
+def league_journey(request):
+    """리그 여정(로드맵) 화면 뷰"""
+    journey_data = get_league_journey_data(request.user)
+
+    context = {
+        **journey_data,
+        'closure_character_url': request.user.closure_character_url,
+        'active_tab': 'deadline', # 필요에 따른 활성 탭
+    }
+    return render(request, 'ledger/league_journey.html', context)
 
 @login_required
 def weekly_share_card(request):
