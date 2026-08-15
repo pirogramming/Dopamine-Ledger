@@ -5,6 +5,12 @@ from .forms import SpendRecordForm, EarnRecordForm
 from .models import SpendRecord, EarnRecord
 from .services import close_today, get_today_record_summary
 from budget.services import get_current_balance
+from accounts.services import (
+    calculate_grade_by_streak,
+    calculate_reward_minutes,
+    get_exchange_bonus_rate,
+    get_league_dialogue,
+)
 
 from datetime import timedelta
 from django.utils import timezone
@@ -19,6 +25,15 @@ from budget.services import format_unit_display
 
 # 요일 변환용 튜플 (weekly_report)
 WEEKDAYS_KR = ("월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일")
+
+NEXT_GRADE_TARGETS = {
+    'LEVEL_0': 3,
+    'LEVEL_1': 7,
+    'LEVEL_2': 14,
+    'LEVEL_3': 30,
+    'LEVEL_4': None,
+}
+
 from budget.services import (
     get_week_summary,
     get_today_activity_summary,
@@ -100,6 +115,13 @@ def earn_record_create(request):
         if form.is_valid():
             instance = form.save(commit=False)
             instance.users = request.user  # user -> users
+
+            bonus_rate = Decimal(
+                str(get_exchange_bonus_rate(request.user.credit_grade))
+            )
+            total_rate = instance.activity.rate + bonus_rate
+            instance.earn_min = Decimal(min(int(form.cleaned_data['duration_min'] * total_rate), 59))
+
             instance.save()
 
             # 크루 피드에 벌이 이벤트 생성 (내가 속한 모든 크루)
@@ -367,16 +389,24 @@ def daily_close(request):
         or summary["has_spend_record"]
     )
     error_message = None
+    is_closed = False
 
     if request.method == "POST":
         try:
             close_today(request.user)
+            request.user.credit_grade = calculate_grade_by_streak(request.user.streak_days)
+            request.user.save()
+
+            is_closed = True
+
             request.user.refresh_from_db()      # streak_days 갱신값 반영
             from crew.services import create_close_feed
             create_close_feed(request.user, request.user.streak_days)
             return redirect("ledger:daily_close")
         except ValueError as error:
             error_message = str(error)
+
+    is_closed = summary.get("is_closed", False)
 
     context = {
         **summary,
@@ -385,6 +415,16 @@ def daily_close(request):
         "streak_days": request.user.streak_days,
         "error_message": error_message,
         "active_tab": "deadline",
+        "credit_grade": request.user.credit_grade,
+        "grade_name": request.user.grade_name,
+        "bonus_rate_percent": int(
+            get_exchange_bonus_rate(request.user.credit_grade) * 100
+        ),
+        "closure_character_url": request.user.closure_character_url,
+        "profile_character_url": request.user.profile_character_url,
+        "league_dialogue": get_league_dialogue(
+            request.user.credit_grade, is_closed=is_closed
+        ),
     }
 
     return render(
@@ -399,6 +439,13 @@ def main_progress(request):
     records = attach_value_displays(
         get_today_activity_summary(request.user), mode='minutes'
     )
+
+    target_days = NEXT_GRADE_TARGETS.get(request.user.credit_grade)
+    if target_days:
+        days_to_next_grade = max(target_days - request.user.streak_days, 0)
+    else:
+        days_to_next_grade = None  # 최고 등급일 때
+
     context = {
         **summary,
         'balance_display':  format_minutes_display(summary['balance']),
@@ -411,7 +458,14 @@ def main_progress(request):
         ),
         'today_records': records,
         'today_record_count': get_today_record_count(request.user),
-        'active_tab': 'home', 
+        'active_tab': 'home',
+        'credit_grade': request.user.credit_grade,
+        'grade_name': request.user.grade_name,
+        'streak_days': request.user.streak_days,
+        'days_to_next_grade': days_to_next_grade,
+        'bonus_rate_percent': int(
+            get_exchange_bonus_rate(request.user.credit_grade) * 100
+        ),
     }
     return render(request, 'ledger/main_progress.html', context)
 
@@ -431,6 +485,13 @@ def main_convert(request):
     records = attach_value_displays(
         get_today_activity_summary(user), mode='minutes',
     )
+
+    target_days = NEXT_GRADE_TARGETS.get(request.user.credit_grade)
+    if target_days:
+        days_to_next_grade = max(target_days - request.user.streak_days, 0)
+    else:
+        days_to_next_grade = None  # 최고 등급일 때
+
     context = {
         **summary,
         'balance_display':  format_unit_display(summary['spent'], base, unit),
@@ -444,6 +505,13 @@ def main_convert(request):
         'today_records': records,
         'today_record_count': get_today_record_count(user),
         'active_tab': 'home',
+        'credit_grade': request.user.credit_grade,
+        'grade_name': request.user.grade_name,
+        'streak_days': request.user.streak_days,
+        'days_to_next_grade': days_to_next_grade,
+        'bonus_rate_percent': int(
+            get_exchange_bonus_rate(request.user.credit_grade) * 100
+        ),
     }
     return render(request, 'ledger/main_convert.html', context)
 
