@@ -21,6 +21,15 @@ from collections import defaultdict
 
 # 요일 변환용 튜플 (weekly_report)
 WEEKDAYS_KR = ("월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일")
+
+NEXT_GRADE_TARGETS = {
+    'LEVEL_0': 3,
+    'LEVEL_1': 7,
+    'LEVEL_2': 14,
+    'LEVEL_3': 30,
+    'LEVEL_4': None,
+}
+
 from budget.services import (
     get_week_summary,
     get_today_activity_summary,
@@ -391,6 +400,13 @@ def main_progress(request):
     records = attach_value_displays(
         get_today_activity_summary(request.user), mode='minutes'
     )
+
+    target_days = NEXT_GRADE_TARGETS.get(request.user.credit_grade)
+    if target_days:
+        days_to_next_grade = max(target_days - request.user.streak_days, 0)
+    else:
+        days_to_next_grade = None  # 최고 등급일 때
+
     context = {
         **summary,
         'balance_display':  format_minutes_display(summary['balance']),
@@ -407,6 +423,7 @@ def main_progress(request):
         'credit_grade': request.user.credit_grade,
         'grade_name': request.user.grade_name,
         'streak_days': request.user.streak_days,
+        'days_to_next_grade': days_to_next_grade,
         'bonus_rate_percent': int(
             get_exchange_bonus_rate(request.user.credit_grade) * 100
         ),
@@ -429,6 +446,13 @@ def main_convert(request):
     records = attach_value_displays(
         get_today_activity_summary(user), mode='minutes',
     )
+
+    target_days = NEXT_GRADE_TARGETS.get(request.user.credit_grade)
+    if target_days:
+        days_to_next_grade = max(target_days - request.user.streak_days, 0)
+    else:
+        days_to_next_grade = None  # 최고 등급일 때
+
     context = {
         **summary,
         'balance_display':  format_unit_display(summary['spent'], base, unit),
@@ -442,5 +466,12 @@ def main_convert(request):
         'today_records': records,
         'today_record_count': get_today_record_count(user),
         'active_tab': 'home',
+        'credit_grade': request.user.credit_grade,
+        'grade_name': request.user.grade_name,
+        'streak_days': request.user.streak_days,
+        'days_to_next_grade': days_to_next_grade,
+        'bonus_rate_percent': int(
+            get_exchange_bonus_rate(request.user.credit_grade) * 100
+        ),
     }
     return render(request, 'ledger/main_convert.html', context)
