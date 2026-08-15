@@ -8,18 +8,19 @@
   <link rel="stylesheet" href="{% static 'ledger/css/league_journey.css' %}">
 {% endblock %}
 
-{% block header %}
-  <header class="ledger-topbar">
-    <a href="{% url 'ledger:main_progress' %}" class="ledger-back" aria-label="뒤로가기">&lsaquo;</a>
-    <span class="ledger-title">리그 여정</span>
-    <!-- TODO: 도움말(?) 팝업 아직 내용 미정 - 자리만 잡아둠 -->
-    <span class="journey-help-icon" aria-hidden="true">?</span>
-  </header>
-{% endblock %}
-
 {% block content %}
 <div class="ledger-screen">
   <!-- 리그 경로: LEVEL 0부터 4까지 전부 표시 -->
+  <div class="ledger-topbar">
+    <a href="{% url 'ledger:main_progress' %}" class="ledger-back" aria-label="뒤로가기">&lsaquo;</a>
+    <span class="ledger-title">리그 여정</span>
+    <div class="help-wrap">
+      <button type="button" class="help-btn" onclick="toggleHelp('help-journey')" aria-label="도움말">?</button>
+      <div class="help-tooltip" id="help-journey">
+      연속으로 하루 마감을 하면 리그가 올라가요. 등급이 오르면 환율 우대(수입 적립 보너스)가 늘어나요.
+      </div>
+    </div>
+  </div>
   <div class="journey-path-wrap">
     <!-- 배경 물결선. 카드 높이가 유동적이라 정확한 좌표 대신 컨테이너 전체에
          늘어나는 SVG로 근사치만 표현 (preserveAspectRatio="none") -->
@@ -40,7 +41,9 @@
               {% if step.is_current %}
                 <span class="journey-node__current-badge">현재</span>
               {% endif %}
-              <img class="journey-node__img" src="{% static step.image_url %}" alt="">
+              <div class="journey-node__img-wrapper">
+                <img class="journey-node__img" src="{% static step.image_url %}" alt="">
+              </div>
               <div class="journey-node__body">
                 <div class="journey-node__badge" style="background: {{ step.color }};">LEVEL {{ step.level_num }}</div>
                 <p class="journey-node__name">{{ step.name }}</p>
@@ -75,7 +78,9 @@
             <div class="journey-node
               {% if step.is_current %}journey-node--highlighted{% endif %}
               {% if step.status == 'locked' %}journey-node--locked{% endif %}">
-              <img class="journey-node__img" src="{% static step.image_url %}" alt="">
+              <div class="journey-node__img-wrapper">
+                <img class="journey-node__img" src="{% static step.image_url %}" alt="">
+              </div>
               <div class="journey-node__body">
                 <div class="journey-node__badge" style="background: {{ step.color }};">LEVEL {{ step.level_num }}</div>
                 <p class="journey-node__name">{{ step.name }}</p>
@@ -107,4 +112,22 @@
   </div>
 
 </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+  function toggleHelp(id) {
+    const tip = document.getElementById(id);
+    const btn = event.currentTarget;   // 클릭한 버튼 자기 자신
+
+    document.querySelectorAll('.help-tooltip.open').forEach(el => {
+        if (el.id !== id) el.classList.remove('open');
+    });
+    document.querySelectorAll('.help-btn.active').forEach(el => {
+        if (el !== btn) el.classList.remove('active');
+    });
+
+    tip.classList.toggle('open');
+    btn.classList.toggle('active');   // 버튼 자기 자신도 같이 토글
+  }
+</script>
 {% endblock %}
