@@ -118,6 +118,7 @@ class OnboardingSerializer(serializers.ModelSerializer):
             'weekly_budget_min',
             'converting_activity',
             'conversion_base',
+            'conversion_units_per_hour',
             'conversion_unit',
             'activities',
         ]
