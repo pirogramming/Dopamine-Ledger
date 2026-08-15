@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}도파민 가계부 - 전체 기록{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'ledger/css/record.css' %}">
+    <link rel="stylesheet" href="{% static 'ledger/css/record_history.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="ledger-screen">
+    <div class="ledger-topbar">
+    <a href="{% url 'ledger:main_progress' %}" class="ledger-back" aria-label="뒤로가기">&lsaquo;</a>
+        <span class="ledger-title">전체 기록</span>
+    </div>
+  <!-- 주 단위 네비게이션 -->
+  <div class="week-nav">
+    <a href="?date={{ prev_week_date }}&filter={{ filter_type }}" class="week-nav__arrow">&lt;</a>
+    <span class="week-nav__label">{{ week_label }}</span>
+    <a href="?date={{ next_week_date }}&filter={{ filter_type }}" class="week-nav__arrow">&gt;</a>
+  </div>
+
+  <!-- 요일/날짜 스트립 -->
+  <div class="week-days">
+    {% for day in week_days %}
+      <a href="?date={{ day.date|date:'Y-m-d' }}&filter={{ filter_type }}"
+         class="week-days__item {% if day.is_selected %}week-days__item--selected{% endif %}">
+        <span class="week-days__label">{{ day.label }}</span>
+        <span class="week-days__number">{{ day.date.day }}</span>
+      </a>
+    {% endfor %}
+  </div>
+
+  <!-- 선택된 날짜 요약 카드 -->
+  <section class="day-summary-card">
+    <p class="day-summary-card__title">{{ selected_date_label }} 기록</p>
+    <div class="day-summary-card__row">
+      <div class="day-summary-card__col">
+        <p class="day-summary-card__label">수입</p>
+        <p class="day-summary-card__value day-summary-card__value--positive">{{ earn_total_display }}</p>
+      </div>
+      <div class="day-summary-card__divider"></div>
+      <div class="day-summary-card__col">
+        <p class="day-summary-card__label">지출</p>
+        <p class="day-summary-card__value day-summary-card__value--negative">{{ spend_total_display }}</p>
+      </div>
+    </div>
+    <div class="day-summary-card__balance">
+      <p class="day-summary-card__label">오늘 잔액</p>
+      <p class="day-summary-card__value {% if is_balance_negative %}day-summary-card__value--negative{% else %}day-summary-card__value--positive{% endif %}">
+        {{ today_balance_display }}
+      </p>
+    </div>
+  </section>
+
+  <!-- 전체/수입/지출 필터 탭 -->
+  <div class="filter-tabs">
+    <a href="?date={{ selected_date|date:'Y-m-d' }}&filter=all"
+       class="filter-tabs__item {% if filter_type == 'all' %}filter-tabs__item--active{% endif %}">전체 {{ total_count }}</a>
+    <a href="?date={{ selected_date|date:'Y-m-d' }}&filter=earn"
+       class="filter-tabs__item {% if filter_type == 'earn' %}filter-tabs__item--active{% endif %}">수입 {{ earn_count }}</a>
+    <a href="?date={{ selected_date|date:'Y-m-d' }}&filter=spend"
+       class="filter-tabs__item {% if filter_type == 'spend' %}filter-tabs__item--active{% endif %}">지출 {{ spend_count }}</a>
+  </div>
+
+  <!-- 기록 내역 리스트 -->
+  <section class="history-list">
+    <h2 class="history-list__title">기록 내역</h2>
+    {% for item in items %}
+      <!-- TODO: 기록 상세/수정 화면 아직 없어서 항목 클릭은 비활성 상태 (div로만 표시) -->
+      <div class="history-list__item">
+        <img class="history-list__icon" src="{% static item.icon %}" alt="">
+        <div class="history-list__info">
+          <p class="history-list__label">{{ item.label }}</p>
+          <p class="history-list__meta">
+            {{ item.time_display }}{% if item.method_display %} · {{ item.method_display }}{% endif %}
+          </p>
+        </div>
+        <span class="history-list__value {% if item.is_positive %}history-list__value--positive{% else %}history-list__value--negative{% endif %}">
+          {{ item.value_display }}
+        </span>
+      </div>
+    {% empty %}
+      <p class="history-list__empty">이 날은 기록이 없어요</p>
+    {% endfor %}
+  </section>
+
+  <a href="{% url 'ledger:record_choice' %}" class="history-add-link">+ 기록 추가</a>
+</div>
+{% endblock %}

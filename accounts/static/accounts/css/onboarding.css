@@ -192,6 +192,23 @@ input::placeholder {
     white-space: nowrap;
 }
 
+/* 커스텀 활동 항목끼리도 고정 항목과 동일한 간격으로 */
+#custom-activity-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* 커스텀 활동 이름 입력칸을 .activity-name과 동일한 굵기로 */
+.custom-name {
+    font-weight: 600;
+}
+
+.custom-name::placeholder {
+    color: #c7c7c7;
+    font-weight: 400;
+}
+
 .activity-input-group {
     display: flex;
     align-items: center;
@@ -285,4 +302,29 @@ input::placeholder {
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
+}
+
+.btn-add-onboarding {
+    width: 100%;
+    padding: 12px;
+    margin-top: 12px;
+    background: #fff;
+    border: 1px dashed #C7C7C7;
+    border-radius: 12px;
+    color: #70737C;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-add-onboarding:hover { border-color: #FF7A00; color: #FF7A00; }
+
+.btn-remove-row {
+    background: none;
+    border: none;
+    color: #E05252;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 6px;
+    margin-bottom: 4px;
+    flex-shrink: 0;
 }
