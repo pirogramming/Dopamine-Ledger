@@ -3,12 +3,19 @@ from django.db import models
 from decimal import Decimal
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+GRADE_NAMES = {
+    'LEVEL_0': '도파민 노예',
+    'LEVEL_1': '도파민 디톡서',
+    'LEVEL_2': '시간 연금술사',
+    'LEVEL_3': '도파민 정복자',
+    'LEVEL_4': '절제의 신',
+}
 
 class Users(AbstractUser):
     email = models.EmailField('이메일', max_length=255, unique=True)
     nickname = models.CharField('닉네임', max_length=30, unique=True)
     streak_days = models.IntegerField('연속 기록 일수', default=0)
-    credit_grade = models.CharField('신용 등급', max_length=20, default='BRONZE')
+    credit_grade = models.CharField('신용 등급', max_length=20, default='LEVEL_0', help_text='LEVEL_0 ~ LEVEL_4 등급키 저장')
     weekly_budget_min = models.DecimalField(
         '주간 예산(분)', max_digits=10, decimal_places=2, default=210
     )
@@ -45,6 +52,18 @@ class Users(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
+
+    @property
+    def grade_name(self) -> str:
+        return GRADE_NAMES.get(self.credit_grade, '도파민 노예')
+
+    @property
+    def closure_character_url(self) -> str:
+        return f'images/characters/closure/{self.credit_grade}.png'
+
+    @property
+    def profile_character_url(self) -> str:
+        return f'images/characters/profile/{self.credit_grade}.png'
 
     class Meta:
         db_table = 'users'

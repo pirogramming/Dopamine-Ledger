@@ -100,6 +100,23 @@
         연속 마감이 깨지고 기록이 없으면 마감 버튼이 비활성화돼요.
     </p>
 
+    <!-- 🌟 캐릭터 및 말풍선 영역 -->
+    <div class="closure-character-section">
+        <!-- 좌측 말풍선 (마감 전/후 멘트 동적 반영) -->
+        <div class="closure-speech-bubble">
+            <p class="bubble-text">{{ league_dialogue|linebreaksbr }}</p>
+            <div class="bubble-tail"></div>
+        </div>
+
+        <!-- 우측 전신 캐릭터 이미지 -->
+        <div class="closure-character-wrap">
+            <img 
+            src="{% static closure_character_url %}" 
+            alt="{{ grade_name }}" 
+            class="closure-character-img"
+            >
+        </div>
+    </div>
 
     {% if error_message %}
         <p class="daily-close__error">

@@ -13,9 +13,27 @@
       <img class="app-header__logo" src="{% static 'ledger/images/logo.png' %}" alt="도파민 가계부">
       <span class="app-header__nickname">{{ request.user.nickname }}</span>
     </div>
-    <a class="app-header__notification-link" href="#" aria-label="알림 보기">
-      <img class="app-header__notification" src="{% static 'ledger/images/icon-bell.svg' %}" alt="">
-    </a>
+    <!-- 헤더 우측: 리그 뱃지 & 피그마 툴팁 팝업 -->
+    <div class="league-pill-container">
+      <!-- 피그마 디자인 뱃지 버튼 -->
+      <button type="button" class="league-pill-btn" id="leaguePillBtn">
+        <span class="league-pill-text">{{ grade_name }}</span>
+      </button>
+
+      <!-- 클릭 시 뜨는 팝업 카드 -->
+      <div class="league-tooltip-box" id="leagueTooltip">
+        <div class="tooltip-rate">+ {{ bonus_rate_percent }}%</div>
+        <div class="tooltip-streak">
+          연속 {{ streak_days }}일
+          {% if days_to_next_grade %}
+            (다음 등급까지 {{ days_to_next_grade }}일)
+          {% else %}
+            (최고 등급 달성!)
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
   </header>
 {% endblock %}
 
@@ -105,8 +123,29 @@
 
 {% block extra_js %}
 <script>
-    document.querySelectorAll('.budget-progress__bar-fill').forEach(function (el) {
-        el.style.width = el.dataset.percent + '%';
-    });
+  (function () {
+    const pillBtn = document.getElementById('leaguePillBtn');
+    const tooltip = document.getElementById('leagueTooltip');
+
+    if (pillBtn && tooltip) {
+      // 1. 버튼 클릭 시 토글
+      pillBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        tooltip.classList.toggle('show');
+      });
+
+      // 2. 바깥 영역 클릭 시 닫기
+      document.addEventListener('click', function (e) {
+        if (!tooltip.contains(e.target) && !pillBtn.contains(e.target)) {
+          tooltip.classList.remove('show');
+        }
+      });
+    } else {
+      console.error('리그 요소를 찾을 수 없습니다:', { pillBtn, tooltip });
+    }
+  })();
+  document.querySelectorAll('.budget-progress__bar-fill').forEach(function (el) {
+      el.style.width = el.dataset.percent + '%';
+  });
 </script>
 {% endblock %}
