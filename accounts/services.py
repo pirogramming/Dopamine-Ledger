@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 GRADE_CONFIG = {
     'LEVEL_0': {
         'name': '도파민 노예',
@@ -64,12 +66,23 @@ def demote_grade_one_step(current_grade_key: str) -> str:
         return 'LEVEL_0'
 
 
-def calculate_reward_minutes(base_minutes: int, bonus_rate: float) -> int:
+def calculate_reward_minutes(
+    duration_min: int,
+    base_rate: Decimal | float,
+    bonus_rate: Decimal | float,
+) -> int:
     """
-    활동 시간을 숏폼 시간으로 적립할 때 우대율 적용 (상한선 제약: 1시간당 최대 59분까지만 적립)
+    활동 시간(duration_min)에 (활동 환산율 rate + 리그 우대율 bonus_rate)을 더해 최종 적립 분을 계산.
+    최종 적립 시간은 최대 59분으로 제한.
     """
-    rewarded = base_minutes * (1 + bonus_rate)
-    return int(min(rewarded, 59))
+    # Decimal로 안전하게 합산 (0.5000 + 0.03 = 0.5300)
+    total_rate = Decimal(str(base_rate)) + Decimal(str(bonus_rate))
+
+    # 활동 분 * 최종 환산율 (버림 처리 후 int 변환)
+    earned = int(Decimal(duration_min) * total_rate)
+
+    # 1회 최대 59분 상한선 적용
+    return min(earned, 59)
 
 
 def get_league_dialogue(grade_key: str, is_closed: bool) -> str:

@@ -5,6 +5,12 @@ from .forms import SpendRecordForm, EarnRecordForm
 from .models import SpendRecord, EarnRecord
 from .services import close_today, get_today_record_summary
 from budget.services import get_current_balance
+from accounts.services import (
+    calculate_grade_by_streak,
+    calculate_reward_minutes,
+    get_exchange_bonus_rate,
+    get_league_dialogue,
+)
 
 from datetime import timedelta
 from django.utils import timezone
@@ -96,6 +102,13 @@ def earn_record_create(request):
         if form.is_valid():
             instance = form.save(commit=False)
             instance.users = request.user  # user -> users
+
+            bonus_rate = Decimal(
+                str(get_exchange_bonus_rate(request.user.credit_grade))
+            )
+            total_rate = instance.activity.rate + bonus_rate
+            instance.earn_min = Decimal(min(int(form.cleaned_data['duration_min'] * total_rate), 59))
+
             instance.save()
 
             # 크루 피드에 벌이 이벤트 생성 (내가 속한 모든 크루)
@@ -329,15 +342,23 @@ def daily_close(request):
         or summary["has_spend_record"]
     )
     error_message = None
+    is_closed = False
 
     if request.method == "POST":
 
         try:
             close_today(request.user)
-            return redirect("ledger:daily_close")
+            request.user.credit_grade = calculate_grade_by_streak(request.user.streak_days)
+            request.user.save()
+
+            is_closed = True
+
+            # return redirect("ledger:daily_close")
 
         except ValueError as error:
             error_message = str(error)
+
+    is_closed = summary.get("is_closed", False)
 
     context = {
         **summary,
@@ -346,6 +367,16 @@ def daily_close(request):
         "streak_days": request.user.streak_days,
         "error_message": error_message,
         "active_tab": "deadline",
+        "credit_grade": request.user.credit_grade,
+        "grade_name": request.user.grade_name,
+        "bonus_rate_percent": int(
+            get_exchange_bonus_rate(request.user.credit_grade) * 100
+        ),
+        "closure_character_url": request.user.closure_character_url,
+        "profile_character_url": request.user.profile_character_url,
+        "league_dialogue": get_league_dialogue(
+            request.user.credit_grade, is_closed=is_closed
+        ),
     }
 
     return render(
@@ -372,7 +403,13 @@ def main_progress(request):
         ),
         'today_records': records,
         'today_record_count': get_today_record_count(request.user),
-        'active_tab': 'home', 
+        'active_tab': 'home',
+        'credit_grade': request.user.credit_grade,
+        'grade_name': request.user.grade_name,
+        'streak_days': request.user.streak_days,
+        'bonus_rate_percent': int(
+            get_exchange_bonus_rate(request.user.credit_grade) * 100
+        ),
     }
     return render(request, 'ledger/main_progress.html', context)
 
