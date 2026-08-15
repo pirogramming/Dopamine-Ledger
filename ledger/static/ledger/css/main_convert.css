@@ -1,4 +1,40 @@
-/* ===== 리그 안내 알약 버튼 ===== */
+/* ===== 상단 헤더 (로고 + 닉네임) ===== */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 20px;
+}
+
+.app-header__logo {
+  width: 134px;
+  height: 49px;
+  object-fit: cover;
+}
+
+.app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-header__nickname {
+  font-size: 13px;
+  font-weight: 600;
+  color: #70737c;
+}
+
+.app-header__notification-link {
+  display: inline-flex;   /* 이미지 크기에 딱 맞춰서 불필요한 클릭 영역/여백 방지 */
+  line-height: 0;         /* 인라인 요소 특유의 하단 여백 제거 */
+}
+
+/* =====================================================================
+   ⚠ LEGACY - 리그 알약+툴팁 관련 스타일.
+   main_progress.html / main_convert.html에서는 캐릭터 카드로 대체되어
+   더 이상 안 쓰지만, 혹시 다른 화면에서 재사용 중일 수 있어 일단 남겨둠.
+   다른 화면에서도 안 쓰는 게 확인되면 정리 대상.
+   ===================================================================== */
 .league-pill-container {
   position: relative;
   display: inline-flex;
@@ -24,14 +60,6 @@
   font-weight: 700;
   color: #ff7a45;
   line-height: 1;
-}
-
-.league-pill-icon {
-  font-size: 12px;
-  color: #ff7a45;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
 }
 
 .league-tooltip-box {
@@ -61,45 +89,461 @@
 }
 
 .tooltip-streak {
-  font-size: 11px;
+  font-size: 12px;
   color: #718096;
   font-weight: 500;
   white-space: nowrap;
 }
+/* ===== LEGACY 끝 ===== */
 
-/* ===== 환산된 기록 리스트 (박스형 카드) ===== */
-.converted-record-list {
-  list-style: none;
+
+/* ===== 캐릭터 카드 (리그 알약+툴팁 대체, 한 줄 레이아웃) ===== */
+.character-card {
+  background: #f7ecd9;
+  border-radius: 16px;
+  padding: 12px 16px;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
-.converted-record-list__item {
+.character-card__img {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;   /* 동그라미(50%) 대신 둥근 사각형 - 캐릭터가 덜 잘려 보임 */
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #eee;      /* 이미지 로드 전/실패 시 배경 */
+}
+
+.character-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.character-card__top-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.level-badge {
+  display: inline-block;
+  background: #222222;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+.character-card__name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #000000;
+}
+
+.character-card__sub {
+  font-size: 12px;
+  color: #70737c;
+  margin-top: 2px;
+}
+
+/* 여정 보기: 화면 미구현이라 클릭은 막아뒀지만, 색은 스크린샷대로 오렌지 유지 (TODO: 화면 완성 후 링크로 교체) */
+.journey-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ff7a00;
+  background: none;
+  border: none;
+  cursor: not-allowed;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ===== 보기 방식 토글 (카드 + 언더라인) ===== */
+.view-toggle {
   background: #ffffff;
   border: 1px solid #c7c7c7;
-  border-radius: 15px;
-  padding: 12px;
+  border-radius: 10px;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+
+.view-toggle__option {
+  flex: 1;
+  box-sizing: border-box;
+  border: none;
+  background: none;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #70737c;
+  padding: 15px 10px;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+}
+
+/* 두 번째 옵션 앞에 세로 구분선 (line-4 대체) */
+.view-toggle__option + .view-toggle__option {
+  border-left: 1px solid #c7c7c7;
+}
+
+.view-toggle__option--active {
+  color: #ff7a00;
+}
+
+/* 활성 옵션 하단 언더라인 (rectangle-27 대체) */
+.view-toggle__option--active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: #ff7a00;
+  border-radius: 10px;
+}
+
+/* ===== 이번 주 남은 시간 ===== */
+.remaining-time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0
+}
+
+.remaining-time__label {
+  font-size: 13px;
+  font-weight: 400;
+  color: #000000;
+  padding: 0;
+  margin : 10 0 0 0;
+}
+
+.remaining-time__value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #000000;
+  padding: 0;
+  margin: 10px
+}
+
+/* ===== 예산 진행률 ===== */
+.budget-progress__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
-.converted-record-list__label {
+.budget-progress__desc {
   font-size: 13px;
+  font-weight: 400;
+  color: #70737c;
+  line-height: 1.45;
+}
+
+/* convert의 둘째 줄 강조 */
+.budget-progress__desc-strong {
+  font-weight: 700;
+  color: #70737c;
+}
+
+.budget-progress__percent {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ff7a00;
+}
+.budget-progress__percent--over {
+  color: #d32f2f;
+}
+/* 바깥 트랙: 안 채워진 부분 */
+.budget-progress__bar {
+  background: #f0e5d5;
+  border-radius: 30px;
+  width: 100%;
+  height: 8px;
+  overflow: hidden;              /* fill이 혹시라도 넘쳐도 트랙 밖으로 안 삐져나옴 */
+}
+
+/* 안쪽 채움: width는 HTML의 인라인 style 또는 extra_js의 data-percent로 주입 */
+.budget-progress__bar-fill {
+  background: #ff7a00;
+  border-radius: 30px;
+  height: 8px;
+  width: 0;                      /* 기본값. 인라인 style/JS가 덮어씀 */
+  transition: width 0.4s ease;   /* 값이 바뀔 때 부드럽게 */
+}
+
+.budget-progress__bar-fill--over {
+  background: #d32f2f;
+}
+
+/* ===== 예산 카드 경고문구 (3열 요약 + alert-banner 대체) ===== */
+.budget-warning {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ff7a00; /* 남은 예산이 있을 때: 오렌지 */
+  /* border-top/padding-top 없음 - budget-card의 gap(10px)이 위 섹션과의 간격을 이미 만들어줌 */
+}
+
+.budget-warning--over {
+  color: #d32f2f; /* 예산 초과: 확정 경고색 */
+}
+
+/* =====================================================================
+   ⚠ LEGACY - 3열 요약(예산/사용/적립) 관련 스타일.
+   예산 카드를 퍼센트+경고문구로 단순화하면서 main_progress/main_convert에서는
+   더 이상 안 쓰지만, 다른 화면(주간결산 등)에서 재사용 중일 수 있어 남겨둠.
+   ===================================================================== */
+.budget-summary {
+  border-top: 1px solid #c7c7c7;
+}
+
+.budget-summary__list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px; 
+  padding: 0;
+}
+
+.budget-summary__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+}
+
+.budget-summary__label {
+  font-size: 13px;
+  font-weight: 400;
+  color: #70737c;
+  white-space: nowrap; 
+}
+
+.budget-summary__value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #000000;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.budget-summary__value--negative {
+  color: #ff7a00;
+}
+
+.budget-summary__value--positive {
+  color: #51b747;
+}
+/* ===== LEGACY 끝 ===== */
+
+/* ===== 오늘의 기록 ===== */
+.today-record {
+  margin-top: 0;
+}
+.today-record__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.today-record__title {
+  font-size: 16px;
   font-weight: 600;
   color: #000000;
 }
 
-.converted-record-list__value {
+.today-record__count {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 400;
+  color: #70737c;
 }
 
-.converted-record-list__value--positive {
-  color: #4dad44;
+/* ===== 오늘의 기록: 2열 아이콘 박스 그리드 (세로 리스트 대체) ===== */
+.today-record-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
 
-.converted-record-list__value--negative {
+.today-record-grid__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.today-record-grid__icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.today-record-grid__icon-box img {
+  width: 18px;
+  height: 18px;
+}
+
+.today-record-grid__icon-box--positive { background: rgba(81, 183, 71, 0.12); }
+.today-record-grid__icon-box--negative { background: rgba(255, 122, 0, 0.12); }
+.today-record-grid__icon-box--muted { background: rgba(112, 115, 124, 0.12); }
+
+.today-record-grid__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.today-record-grid__label {
+  font-size: 13px;
+  color: #70737c;
+}
+
+.today-record-grid__value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.today-record-grid__empty {
+  grid-column: 1 / -1;
+  font-size: 13px;
+  color: #70737c;
+  text-align: center;
+  padding: 8px 0;
+}
+
+/* 아이콘 박스 안 금액 색상 - 2열 그리드에서도 기존 색상 값(record-list__value--*) 그대로 재사용 */
+.record-list__value--positive {
+  color: #51b747;
+}
+
+.record-list__value--negative {
   color: #ff7a00;
+}
+
+.record-list__value--muted {
+  color: #70737c;         /* 0분일 때 회색 표시 */
+}
+
+/* =====================================================================
+   ⚠ LEGACY - 세로 리스트(record-list) 관련 스타일.
+   2열 그리드로 대체되어 main_progress/main_convert에서는 더 이상 안 쓰지만
+   *_value--positive/negative/muted 색상 값은 위에서 재사용 중이니 그 3개는 지우지 말 것.
+   ===================================================================== */
+.record-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 150px;      /* 대략 아이템 3.5개 정도 높이. 원하는 값으로 조정 */
+  overflow-y: auto;       /* 세로 넘치면 리스트 내부에서만 스크롤 */
+  overflow-x: hidden;
+}
+
+.record-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #c7c7c7;
+  padding: 15px 0;
+}
+
+.record-list__item:last-child {
+  border-bottom: none;
+}
+
+.record-list__info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.record-list__icon {
+  width: 24px;
+  height: 24px;
+}
+
+.record-list__label {
+  font-size: 16px;
+  font-weight: 400;
+  color: #000000;
+}
+
+.record-list__value {
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+/* ===== LEGACY 끝 ===== */
+
+/* =====================================================================
+   ⚠ LEGACY - 예산 초과 경고 배너(alert-banner).
+   budget-warning으로 대체되어 main_progress/main_convert에서는 더 이상 안 쓰지만
+   다른 화면에서 재사용 중일 수 있어 남겨둠.
+   ===================================================================== */
+.alert-banner {
+  background: #fdf0ee;
+  border-radius: 10px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.alert-banner__icon {
+  width: 24px;
+  height: 24px;
+}
+
+.alert-banner__text {
+  font-size: 13px;
+  font-weight: 700;
+  color: #a23a2f;
+}
+/* ===== LEGACY 끝 ===== */
+
+/* ===== 기록하기 버튼 ===== */
+.btn-record {
+  background: #ff7a00;
+  width: 100%;
+  max-width: 327px;
+  border-radius: 15px;
+  height: 50px;
+  margin: auto auto 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ===== 진행률+경고문구 감싸는 흰 카드 ===== */
+.budget-card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 20px 20px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;   /* budget-progress ↔ budget-warning 사이 간격. 예전엔 20px + budget-warning의 padding-top 12px가 겹쳐서 너무 벌어져 있었음 */
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.25);
 }

@@ -26,4 +26,7 @@ urlpatterns = [
     path('report/share-card/', views.weekly_share_card, name='weekly_share_card'),
     # 하루 마감
     path('daily-close/', views.daily_close, name='daily_close'),
+    
+    # 전체 기록 (날짜별 캘린더 + 기록 리스트)
+    path('records/', views.record_history, name='record_history'),
 ]
