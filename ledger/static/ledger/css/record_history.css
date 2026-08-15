@@ -1,0 +1,199 @@
+/* ===== 주 단위 네비게이션 ===== */
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+
+.week-nav__arrow {
+  font-size: 16px;
+  color: #70737c;
+  text-decoration: none;
+  padding: 4px 8px;
+}
+
+.week-nav__label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #000000;
+}
+
+/* ===== 요일/날짜 스트립 ===== */
+.week-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.week-days__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0;
+  text-decoration: none;
+  border-radius: 12px;
+}
+
+.week-days__label {
+  font-size: 12px;
+  color: #70737c;
+}
+
+.week-days__number {
+  font-size: 14px;
+  font-weight: 600;
+  color: #000000;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.week-days__item--selected .week-days__number {
+  background: #ff7a00;
+  color: #ffffff;
+}
+
+/* ===== 선택 날짜 요약 카드 ===== */
+.day-summary-card {
+  background: #f9f4ec;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.day-summary-card__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #000000;
+  margin-bottom: 12px;
+}
+
+.day-summary-card__row {
+  display: flex;
+  align-items: center;
+}
+
+.day-summary-card__col {
+  flex: 1;
+  text-align: center;
+}
+
+.day-summary-card__divider {
+  width: 1px;
+  height: 36px;
+  background: #c7c7c7;
+}
+
+.day-summary-card__label {
+  font-size: 13px;
+  color: #70737c;
+  margin-bottom: 4px;
+}
+
+.day-summary-card__value {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.day-summary-card__value--positive { color: #4dad44; }
+.day-summary-card__value--negative { color: #ff7a00; }
+
+.day-summary-card__balance {
+  text-align: center;
+  border-top: 1px solid #e5dcc8;
+  margin-top: 12px;
+  padding-top: 12px;
+}
+
+/* ===== 필터 탭 ===== */
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-tabs__item {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid #c7c7c7;
+  font-size: 13px;
+  font-weight: 600;
+  color: #70737c;
+  text-decoration: none;
+}
+
+.filter-tabs__item--active {
+  background: #ff7a00;
+  border-color: #ff7a00;
+  color: #ffffff;
+}
+
+/* ===== 기록 내역 리스트 ===== */
+.history-list__title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.history-list__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #c7c7c7;
+}
+
+.history-list__icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.history-list__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.history-list__label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #000000;
+}
+
+.history-list__meta {
+  font-size: 12px;
+  color: #70737c;
+  margin-top: 2px;
+}
+
+.history-list__value {
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.history-list__value--positive { color: #4dad44; }
+.history-list__value--negative { color: #ff7a00; }
+
+.history-list__empty {
+  font-size: 13px;
+  color: #70737c;
+  text-align: center;
+  padding: 24px 0;
+}
+
+/* ===== 기록 추가 링크 ===== */
+.history-add-link {
+  display: block;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ff7a00;
+  text-decoration: none;
+  padding: 12px 0;
+}

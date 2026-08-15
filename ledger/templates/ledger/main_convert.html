@@ -11,31 +11,35 @@
   <header class="app-header">
     <div class="app-header__brand">
       <img class="app-header__logo" src="{% static 'ledger/images/logo.png' %}" alt="도파민 가계부">
-      <span class="app-header__nickname">{{ request.user.nickname }}</span>
-    </div>
-    <div class="league-pill-container">
-      <!-- 피그마 디자인 뱃지 버튼 -->
-      <button type="button" class="league-pill-btn" id="leaguePillBtn">
-        <span class="league-pill-text">{{ grade_name }}</span>
-      </button>
-
-      <!-- 클릭 시 뜨는 팝업 카드 -->
-      <div class="league-tooltip-box" id="leagueTooltip">
-        <div class="tooltip-rate">+ {{ bonus_rate_percent }}%</div>
-        <div class="tooltip-streak">
-          연속 {{ streak_days }}일
-          {% if days_to_next_grade %}
-            (다음 등급까지 {{ days_to_next_grade }}일)
-          {% else %}
-            (최고 등급 달성!)
-          {% endif %}
-        </div>
-      </div>
+      <span class="app-header__nickname">{{ request.user.nickname }}님</span>
     </div>
   </header>
 {% endblock %}
 
 {% block content %}
+
+  <!-- 캐릭터 카드: 한 줄 레이아웃 (progress 화면과 동일) -->
+  <section class="character-card">
+    <!-- profile 폴더가 아직 없어서 daily_close와 같은 closure 캐릭터 이미지를 재사용 (TODO: profile 이미지 준비되면 교체) -->
+    <img class="character-card__img" src="{% static character_image_url %}" alt="내 캐릭터">
+    <div class="character-card__body">
+      <div class="character-card__top-row">
+        <span class="level-badge">LEVEL {{ level_number }}</span>
+        <!-- 닉네임이 아니라 등급 이름(GRADE_CONFIG의 name) — "도파민 노예" 등 -->
+        <p class="character-card__name">{{ grade_name }}</p>
+      </div>
+      <p class="character-card__sub">
+        {% if days_to_next_grade %}
+          다음 등급까지 {{ days_to_next_grade }}일
+        {% else %}
+          최고 등급 달성!
+        {% endif %}
+      </p>
+    </div>
+    <!-- 여정 보기 화면 아직 미구현 → 비활성 버튼으로만 자리 잡아둠 -->
+    <!-- TODO: 여정 화면 완성되면 아래 버튼을 <a href="..."> 태그로 바꾸고 ledger:journey URL로 연결 -->
+    <button type="button" class="journey-link" disabled>여정 보기 &gt;</button>
+  </section>
 
   <!-- 시간으로 보기 / 변환해서 보기 토글 -->
   <div class="view-toggle">
@@ -43,65 +47,70 @@
     <button type="button" class="view-toggle__option view-toggle__option--active">변환해서 보기</button>
   </div>
 
-  <!-- 큰 값: 남은 시간의 활동 환산 (예: "독서 50페이지") -->
+  <!-- 큰 값: 남은 시간의 활동 환산 -->
   <section class="remaining-time">
     <p class="remaining-time__label">{{ converted_unit_label }}</p>
     <p class="remaining-time__value">{{ balance_display }}</p>
   </section>
 
-<!-- ✅ 수정: budget-card로 감싸고, is_overspent 조건부 클래스 추가 -->
-<section class="budget-card">
-  <div class="budget-progress">
-    <div class="budget-progress__header">
-      <div class="budget-progress__desc">
-        <div>{{ desc_line1 }}</div>
-        <div class="budget-progress__desc-strong">{{ desc_line2 }}</div>
+  <section class="budget-card">
+    <div class="budget-progress">
+      <div class="budget-progress__header">
+        <div class="budget-progress__desc">
+          <div>{{ desc_line1 }}</div>
+          <div class="budget-progress__desc-strong">{{ desc_line2 }}</div>
+        </div>
+        <span class="budget-progress__percent {% if is_overspent %}budget-progress__percent--over{% endif %}">
+          {{ percent_used }}%
+        </span>
       </div>
-      <span class="budget-progress__percent {% if is_overspent %}budget-progress__percent--over{% endif %}">
-        {{ percent_used }}%
-      </span>
+      <div class="budget-progress__bar">
+        <div class="budget-progress__bar-fill {% if is_overspent %}budget-progress__bar-fill--over{% endif %}"
+             style="width: {{ percent_used_capped }}%"></div>
+      </div>
     </div>
-    <div class="budget-progress__bar">
-      <div class="budget-progress__bar-fill {% if is_overspent %}budget-progress__bar-fill--over{% endif %}"
-          style="width: {{ percent_used_capped }}%"></div>
-    </div>
-  </div>
-</section>
 
-  {# 예산/사용/적립 요약은 convert에서는 표시 안 함 (디자인 변경) #}
-
-  <!-- 오늘의 기록 (progress와 동일 구조) -->
-  <section class="today-record">
-    <div class="today-record__header">
-      <h2 class="today-record__title">오늘의 기록</h2>
-      <span class="today-record__count">{{ today_record_count }}건</span>
-    </div>
-    <ul class="record-list">
-      {% for record in today_records %}
-        <li class="record-list__item">
-          <div class="record-list__info">
-            <img class="record-list__icon" src="{% static record.icon %}" alt="">
-            <span class="record-list__label">{{ record.label }}</span>
-          </div>
-          <span class="record-list__value
-            {% if not record.has_record %}record-list__value--muted
-            {% elif record.is_positive %}record-list__value--positive
-            {% else %}record-list__value--negative{% endif %}">{{ record.value_display }}</span>
-        </li>
-      {% empty %}
-        <li class="record-list__item">
-          <span class="record-list__label">오늘 기록이 아직 없어요</span>
-        </li>
-      {% endfor %}
-    </ul>
+    <!-- progress 화면과 동일한 경고문구를 여기도 통일해서 넣음 -->
+    <p class="budget-warning {% if is_overspent %}budget-warning--over{% endif %}">
+      {% if is_overspent %}
+        예산을 다 써서 초과 사용 중이에요
+      {% else %}
+        예산이 {{ remaining_display }} 남았어요
+      {% endif %}
+    </p>
   </section>
 
-  {% if is_overspent %}
-    <div class="alert-banner">
-      <img class="alert-banner__icon" src="{% static 'ledger/images/icon-warning.svg' %}" alt="경고">
-      <p class="alert-banner__text">예산 시간을 다 썼어요.</p>
+  <!-- 오늘의 기록: progress와 동일한 2열 아이콘 박스 그리드 -->
+  <section class="today-record">
+    <div class="today-record__header">
+      <div class="today-record__heading">
+        <h2 class="today-record__title">오늘의 기록</h2>
+        <span class="today-record__count">{{ today_record_count }}건</span>
+      </div>
+      <a href="{% url 'ledger:record_history' %}" class="today-record__link">전체 기록 &gt;</a>
     </div>
-  {% endif %}
+    <div class="today-record-grid">
+      {% for record in today_records %}
+        <div class="today-record-grid__item">
+          <span class="today-record-grid__icon-box
+            {% if not record.has_record %}today-record-grid__icon-box--muted
+            {% elif record.is_positive %}today-record-grid__icon-box--positive
+            {% else %}today-record-grid__icon-box--negative{% endif %}">
+            <img src="{% static record.icon %}" alt="">
+          </span>
+          <span class="today-record-grid__text">
+            <span class="today-record-grid__label">{{ record.label }}</span>
+            <span class="today-record-grid__value
+              {% if not record.has_record %}record-list__value--muted
+              {% elif record.is_positive %}record-list__value--positive
+              {% else %}record-list__value--negative{% endif %}">{{ record.value_display }}</span>
+          </span>
+        </div>
+      {% empty %}
+        <p class="today-record-grid__empty">오늘 기록이 아직 없어요</p>
+      {% endfor %}
+    </div>
+  </section>
 
   <a href="{% url 'ledger:record_choice' %}" class="btn-record">기록하기</a>
 
@@ -109,26 +118,6 @@
 
 {% block extra_js %}
 <script>
-  (function () {
-    const pillBtn = document.getElementById('leaguePillBtn');
-    const tooltip = document.getElementById('leagueTooltip');
-
-    if (pillBtn && tooltip) {
-      // 1. 버튼 클릭 시 토글
-      pillBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        tooltip.classList.toggle('show');
-      });
-
-      // 2. 바깥 영역 클릭 시 닫기
-      document.addEventListener('click', function (e) {
-        if (!tooltip.contains(e.target) && !pillBtn.contains(e.target)) {
-          tooltip.classList.remove('show');
-        }
-      });
-    } else {
-      console.error('리그 요소를 찾을 수 없습니다:', { pillBtn, tooltip });
-    }
-  })();
+  // 리그 알약+툴팁 스크립트 제거됨 (캐릭터 카드로 대체)
 </script>
 {% endblock %}

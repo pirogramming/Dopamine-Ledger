@@ -332,3 +332,63 @@ def get_ro_particle(word):
     if jong in (0, 8):
         return '로'
     return '으로'
+
+def get_today_home_summary(user, max_earn_items=3):
+    """
+    홈 화면 '오늘의 기록' 박스 전용 요약.
+    get_today_activity_summary와 다른 점:
+    - 지출: 항상 고정으로 포함 (오늘 0분이어도 표시, has_record=False로 회색 처리)
+    - 수입: '오늘 실제로 기록된 활동'만, 최근 기록(earn_start) 순으로 최대 max_earn_items개.
+      등록만 해두고 오늘 안 한 활동은 아예 목록에서 빠짐 (0분 항목 안 보여줌).
+    "전체 기록" 화면은 이거 말고 get_today_activity_summary/get_today_records를 그대로 씀.
+    """
+    from ledger.models import EarnRecord, SpendRecord
+
+    today = get_today_kst()
+
+    # 1) 지출 - 카테고리별 총합 (지금은 short_form 하나뿐이라 사실상 1개 고정)
+    spend_records = []
+    for category, icon_path in SPEND_CATEGORY_ICONS.items():
+        total = SpendRecord.objects.filter(
+            users=user, spend_date=today, category=category,
+        ).aggregate(total=Sum('duration_min'))['total'] or 0
+        spend_records.append({
+            'label': get_category_display(category),
+            'icon': icon_path,
+            'signed_min': Decimal(-total),
+            'is_positive': False,
+            'has_record': total > 0,
+        })
+
+    # 2) 수입 - 오늘 실제 기록된 활동만, 최근 기록 순으로 활동당 1개씩(합산해서)
+    earn_qs = (
+        EarnRecord.objects
+        .filter(users=user, earn_date=today)
+        .select_related('activity')
+        .order_by('-earn_start')
+    )
+
+    seen_activity_ids = set()
+    earn_records = []
+    for e in earn_qs:
+        if e.activity_id in seen_activity_ids:
+            continue  # 이 활동은 이미 목록에 넣었음 (최신 기록 기준 1번만)
+        seen_activity_ids.add(e.activity_id)
+
+        # 이 활동을 오늘 여러 번 기록했으면 합산해서 하나로 보여줌
+        total = EarnRecord.objects.filter(
+            users=user, earn_date=today, activity_id=e.activity_id,
+        ).aggregate(total=Sum('earn_min'))['total'] or Decimal(0)
+
+        earn_records.append({
+            'label': e.activity.activity_type,
+            'icon': EARN_ACTIVITY_ICONS.get(e.activity.activity_type, DEFAULT_EARN_ICON),
+            'signed_min': total,
+            'is_positive': True,
+            'has_record': True,
+        })
+
+        if len(earn_records) >= max_earn_items:
+            break
+
+    return spend_records + earn_records
