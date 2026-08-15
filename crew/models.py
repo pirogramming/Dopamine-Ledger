@@ -65,8 +65,11 @@ class CrewMember(models.Model):
         related_name='crew_memberships'
     )
     joined_date = models.DateField('가입일', auto_now_add=True)
-    # 멤버별 캐릭터 (추후 캐릭터 부여 기능용). 기본 캐릭터=1
-    character = models.PositiveSmallIntegerField('캐릭터', default=1)
+    
+    @property
+    def profile_character_url(self) -> str:
+        """연결된 User 객체의 프로필 두상 캐릭터 URL을 가져옴"""
+        return self.users.profile_character_url
 
     class Meta:
         db_table = 'crew_member'
