@@ -170,7 +170,7 @@
 
 .time-display-inputs input[type="number"] {
   box-sizing: border-box;
-  margin-right: 10px; /* 우측 여백 확보 */
+  width: 80px; /* 우측 여백 확보 */
     /* iOS 줌 방지 및 가독성 확보 */
   line-height: normal;  /* 폰트 높이 잘림 방지 */
   overflow: visible;    /* 경계선 밖 글자 잘림 방지 */
