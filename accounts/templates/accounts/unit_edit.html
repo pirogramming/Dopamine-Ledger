@@ -8,9 +8,10 @@
 {% endblock %}
 
 {% block content %}
-    <a class="settings-back" href="{% url 'settings-page' %}">‹</a>
-    <h1 class="settings-title">환산 단위 변경</h1>
-
+    <div class="settings-topbar">
+        <a class="settings-back" href="{% url 'settings-page' %}">‹</a>
+        <h1 class="settings-title">환산 단위 변경</h1>
+    </div>
     <p class="rate-desc">숏폼 시간을 무엇과 비교할지 정해요</p>
 
     <form method="post" action="{% url 'unit-edit' %}">

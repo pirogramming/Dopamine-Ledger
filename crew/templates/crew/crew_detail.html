@@ -7,9 +7,9 @@
     <div id="crew-data"
          data-crew-id="{{ crew.id }}"
          data-invite-link="{{ request.scheme }}://{{ request.get_host }}{% url 'crew:join_by_link' invite_code=crew.invite_code %}"></div>
-    <a class="back-link" href="{% url 'crew:list' %}">‹</a>
 
     <div class="detail-header">
+        <a class="back-link" href="{% url 'crew:list' %}">‹</a>
         <h1 class="detail-title">{{ crew.name }}</h1>
         {% if crew.owner == request.user %}
             <a class="manage-icon" href="{% url 'crew:manage' crew_id=crew.id %}">

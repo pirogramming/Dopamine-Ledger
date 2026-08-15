@@ -10,6 +10,7 @@ class Activity(models.Model):
         related_name='activities'
     )
     activity_type = models.CharField('활동 종류', max_length=30)
+    is_active = models.BooleanField('활성 여부', default=True)
     rate = models.DecimalField(
         '환산율', max_digits=5, decimal_places=4,
         validators=[

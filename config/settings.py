@@ -142,6 +142,9 @@ LOGIN_REDIRECT_URL = "/"
 LOGIN_URL = "login-page"
 ACCOUNT_LOGOUT_REDIRECT_URL = "login-page"
 AUTH_USER_MODEL = "accounts.Users"
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()
+]
 
 # ── DRF 인증 방식 설정 (세션 인증 적용) ──
 REST_FRAMEWORK = {
@@ -154,6 +157,10 @@ REST_FRAMEWORK = {
 KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY", "")
 KAKAO_REDIRECT_URI = os.getenv(
     "KAKAO_REDIRECT_URI", "http://localhost:8000/accounts/kakao/callback/"
+)
+KAKAO_CONNECT_REDIRECT_URI = os.getenv(
+    "KAKAO_CONNECT_REDIRECT_URI",
+    "http://localhost:8000/accounts/kakao/connect/callback/"
 )
 KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET", "")
 

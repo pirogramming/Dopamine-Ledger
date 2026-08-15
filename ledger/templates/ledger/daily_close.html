@@ -28,7 +28,11 @@
         <!-- 오늘의 지출 -->
         <div class="summary-card">
             <span class="summary-card__check {% if not has_spend_record %}summary-card__check--empty{% endif %}">
-                {% if has_spend_record %}✓{% endif %}
+                {% if has_spend_record %}
+                    <span class="summary-card__check__icon" style="--icon-src: url('{% static 'ledger/images/icon-check-filled.svg' %}')"></span>
+                {% else %}
+                    <span class="summary-card__check__icon" style="--icon-src: url('{% static 'ledger/images/icon-check-empty.svg' %}')"></span>
+                {% endif %}
             </span>
 
             <strong class="summary-card__title">
@@ -50,7 +54,11 @@
         <!-- 오늘의 수입 -->
         <div class="summary-card">
             <span class="summary-card__check {% if not has_earn_record %}summary-card__check--empty{% endif %}">
-                {% if has_earn_record %}✓{% endif %}
+                {% if has_earn_record %}
+                    <span class="summary-card__check__icon" style="--icon-src: url('{% static 'ledger/images/icon-check-filled.svg' %}')"></span>
+                {% else %}
+                    <span class="summary-card__check__icon" style="--icon-src: url('{% static 'ledger/images/icon-check-empty.svg' %}')"></span>
+                {% endif %}
             </span>
 
             <strong class="summary-card__title">
@@ -72,7 +80,7 @@
         <!-- 잔액 확인 -->
         <div class="summary-card">
             <span class="summary-card__check">
-                ✓
+                <span class="summary-card__check__icon" style="--icon-src: url('{% static 'ledger/images/icon-check-filled.svg' %}')"></span>
             </span>
 
             <strong class="summary-card__title">

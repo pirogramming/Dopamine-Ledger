@@ -8,9 +8,10 @@
 {% endblock %}
 
 {% block content %}
-    <a class="settings-back" href="{% url 'settings-page' %}">‹</a>
-    <h1 class="settings-title">개인정보 수정</h1>
-
+    <div class="settings-topbar">
+        <a class="settings-back" href="{% url 'settings-page' %}">‹</a>
+        <h1 class="settings-title">개인정보 수정</h1>
+    </div>
     {% if messages %}
     <div class="modal-overlay open" id="message-modal">
         <div class="modal">

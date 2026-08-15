@@ -3,8 +3,10 @@
 {% block title %}크루 만들기{% endblock %}
 
 {% block content %}
-    <a class="back-link" href="{% url 'crew:list' %}">‹</a>
-    <h1 class="page-title">크루 만들기</h1>
+    <div class="page-topbar">
+        <a class="back-link" href="{% url 'crew:list' %}">‹</a>
+        <h1 class="page-title">크루 만들기</h1>
+    </div>
 
     {% if created_crew %}
         <!-- 생성 완료 화면 -->

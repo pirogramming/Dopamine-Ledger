@@ -30,6 +30,11 @@
         </div>
       </div>
     </div>
+    <div class="app-header__brand">
+      <img class="app-header__logo" src="{% static 'ledger/images/logo.png' %}" alt="도파민 가계부">
+      <span class="app-header__nickname">{{ request.user.nickname }}</span>
+    </div>
+
   </header>
 {% endblock %}
 
@@ -52,17 +57,20 @@
     <div class="budget-progress">
       <div class="budget-progress__header">
         <div class="budget-progress__desc">{{ budget_desc }}</div>
-        <span class="budget-progress__percent">{{ percent_used }}%</span>
+        <span class="budget-progress__percent {% if is_overspent %}budget-progress__percent--over{% endif %}">
+          {{ percent_used }}%
+        </span>
       </div>
       <div class="budget-progress__bar">
-        <div class="budget-progress__bar-fill" style="width: {{ percent_used_capped }}%"></div>
+        <div class="budget-progress__bar-fill {% if is_overspent %}budget-progress__bar-fill--over{% endif %}"
+        data-percent="{{ percent_used_capped }}"></div>
       </div>
     </div>
 
     <div class="budget-summary">
       <ul class="budget-summary__list">
         <li class="budget-summary__item">
-          <span class="budget-summary__label">이번 주 예산</span>
+          <span class="budget-summary__label">예산</span>
           <span class="budget-summary__value">{{ budget_display }}</span>
         </li>
         <li class="budget-summary__item">
@@ -104,7 +112,7 @@
   </section>
 
   {% if is_overspent %}
-    <div class="alert-banner">
+    <div class="alert-banner {% if not is_overspent %}alert-banner--hidden{% endif %}">
       <img class="alert-banner__icon" src="{% static 'ledger/images/icon-warning.svg' %}" alt="경고">
       <p class="alert-banner__text">예산 시간을 다 썼어요. 초과분은 크루가 보고 있어요.</p>
     </div>
@@ -137,5 +145,8 @@
       console.error('리그 요소를 찾을 수 없습니다:', { pillBtn, tooltip });
     }
   })();
+  document.querySelectorAll('.budget-progress__bar-fill').forEach(function (el) {
+     el.style.width = el.dataset.percent + '%';
+  });
 </script>
 {% endblock %}

@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block content %}
-    <h1 class="settings-title">설정</h1>
+    <h1 class="settings-title--top settings-title">설정</h1>
 
     {% if messages %}
     <div class="modal-overlay open" id="message-modal">
@@ -43,7 +43,7 @@
     </div>
 
     <div class="settings-bottom">
-        <button type="button" class="btn-kakao-connect" onclick="alert('준비 중이에요')">카카오 계정 연결</button>
+        <a href="{% url 'kakao-connect' %}" class="btn-kakao-connect">카카오 계정 연결</a>
         <button type="button" class="btn-logout" onclick="handleLogout()">로그아웃</button>
     </div>
 {% endblock %}
