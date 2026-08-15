@@ -270,28 +270,6 @@
 }
 
 /* =========================================
-    안내 문구
-========================================= */
-
-.daily-close__description {
-    width: 100%;
-
-    margin: 22px 0 0;
-
-    font-family: 'Inter', sans-serif;
-    font-style: normal;
-    font-weight: 400;
-    font-size: 13px;
-    line-height: 16px;
-
-    display: flex;
-    align-items: center;
-
-    color: #70737C;
-}
-
-
-/* =========================================
     오류 메시지
 ========================================= */
 
