@@ -10,10 +10,18 @@
         <!-- ================= 온보딩 1 ================= -->
         <div id="step-1" class="step">
         <div class ="inner-container">
-            <div class="step-indicator">
-                <div class="dot active"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
+            <div class="step-top">
+                <div class="step-indicator">
+                    <div class="dot active"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                <div class="help-wrap">
+                    <button type="button" class="help-btn" onclick="toggleHelp('help-1')" aria-label="도움말">?</button>
+                    <div class="help-tooltip" id="help-1">
+                        여기서 정한 활동은 홈에서 "숏폼에 쓴 시간을 ○○로 바꾸면?"으로 환산해 보여줘요. 주간 예산은 이번 주 숏폼 한도예요.
+                    </div>
+                </div>
             </div>
 
             <div class="title">
@@ -52,17 +60,24 @@
 
         <div id="step-2" class="step" style="display: none;">
             <div class="inner-container">
-                <div class="step-indicator">
-                    <div class="dot"></div>
-                    <div class="dot active"></div>
-                    <div class="dot"></div>
+                <div class="step-top">
+                    <div class="step-indicator">
+                        <div class="dot"></div>
+                        <div class="dot active"></div>
+                        <div class="dot"></div>
+                    </div>
+                    <div class="help-wrap">
+                        <button type="button" class="help-btn" onclick="toggleHelp('help-2')" aria-label="도움말">?</button>
+                        <div class="help-tooltip" id="help-2">
+                            예산을 넘어도 기록을 막지 않아요. "얼마나 넘었는지"를 보여줘서 스스로 조절하게 돕는 방식이에요.
+                        </div>
+                    </div>
                 </div>
 
                 <div class="title">
                     예산을 다 쓰면<br>
                     어떻게 될까요?
                 </div>
-
                 <div class="step2-card-box">
                     <div class="step2-notice-item">
                         <div class="step2-badge">1</div>
@@ -88,10 +103,18 @@
         <!-- ================= 온보딩 3 ================= -->
 <div id="step-3" class="step" style="display: none;">
     <div class="inner-container">
-        <div class="step-indicator">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot active"></div>
+        <div class="step-top">
+            <div class="step-indicator">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot active"></div>
+            </div>
+            <div class="help-wrap">
+                <button type="button" class="help-btn" onclick="toggleHelp('help-3')" aria-label="도움말">?</button>
+                <div class="help-tooltip" id="help-3">
+                    책·운동 같은 활동을 하면 여기서 정한 만큼 숏폼 시간을 적립해요. 홈과 결산에 반영돼요.
+                </div>
+            </div>
         </div>
 
         <div class="title">
@@ -138,7 +161,6 @@
             </button>
         </div>
     </div>
-
             <div class="btn-group">
                 <button type="button" class="btn-prev" onclick="goToStep(2)">이전</button>
                 <button type="button" class="btn-submit" onclick="submitOnboarding()">시작하기</button>
@@ -175,6 +197,15 @@
             }
         }
 
+        // 도움말 툴팁 토글
+        function toggleHelp(id) {
+            const tip = document.getElementById(id);
+            document.querySelectorAll('.help-tooltip.open').forEach(el => {
+                if (el.id !== id) el.classList.remove('open');
+            });
+            tip.classList.toggle('open');
+        }
+
         // 1. 스텝 이동 함수
         function goToStep(stepNumber) {
             const step1 = document.getElementById('step-1');
@@ -185,12 +216,14 @@
             if (step2) step2.style.display = 'none';
             if (step3) step3.style.display = 'none';
 
+            // 스텝 이동 시 열린 도움말 닫기
+            document.querySelectorAll('.help-tooltip.open').forEach(el => el.classList.remove('open'));
+
             const target = document.getElementById(`step-${stepNumber}`);
             if (target) {
                 target.style.display = 'flex';
             }
         }
-
         // 2. CSRF 토큰 추출 함수
         function getCookie(name) {
             let cookieValue = null;
