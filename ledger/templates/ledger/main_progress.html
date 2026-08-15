@@ -19,7 +19,9 @@
 {% block content %}
   <!-- 캐릭터 카드: 한 줄 레이아웃으로 얇게, 진행 점 제거 -->
   <section class="character-card">
-    <img class="character-card__img" src="{% static character_image_url %}" alt="내 캐릭터">
+    <div class="img-wrapper">
+      <img class="character-card__img" src="{% static character_image_url %}" alt="내 캐릭터">
+    </div>
     <div class="character-card__body">
       <div class="character-card__top-row">
         <span class="level-badge">LEVEL {{ level_number }}</span>
@@ -35,7 +37,7 @@
     </div>
     <!-- 여정 보기 화면 아직 미구현 → 비활성 버튼으로만 자리 잡아둠 -->
     <!-- TODO: 여정 화면 완성되면 아래 버튼을 <a href="..."> 태그로 바꾸고 ledger:journey URL로 연결 -->
-    <button type="button" class="journey-link" disabled>여정 보기 &gt;</button>
+    <button type="button" class="journey-link" disabled>여정 &gt;</button>
   </section>
 
   <!-- 시간으로 보기 / 변환해서 보기 토글 -->
