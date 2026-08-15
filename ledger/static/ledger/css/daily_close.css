@@ -80,14 +80,15 @@
 
 .summary-card {
     width: 100%;
-    height: 68px;
+    min-height: 68px;
+    box-sizing: border-box; 
 
     display: flex;
     flex-direction: row;
     align-items: center;
 
-    padding: 20px 30px;
-    gap: 30px;
+    padding: 20px 20px;
+    gap: 12px;
 
     background: #FFFFFF;
 
@@ -138,7 +139,6 @@
 ========================================= */
 
 .summary-card__title {
-    width: 78px;
     flex-shrink: 0;
 
     font-family: 'Inter', sans-serif;
@@ -162,6 +162,7 @@
 
 .summary-card__value {
     flex: 1;
+    min-width: 0;
 
     font-family: 'Inter', sans-serif;
     font-style: normal;
@@ -176,12 +177,12 @@
     text-align: right;
 
     color: #000000;
-    white-space: nowrap;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
 }
 
 .summary-card__value--empty {
     font-family: 'Inter', sans-serif;
-    font-style: normal;
     font-weight: 400;
     font-size: 16px;
     line-height: 19px;
@@ -616,4 +617,85 @@
 .bottom-nav {
     border-bottom-left-radius: 28px;
     border-bottom-right-radius: 28px;
+}
+
+.help-wrap { position: relative; }
+
+.help-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid #FF7A00;
+    background: #FFF7EB;
+    color: #FF7A00;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.help-btn:hover {
+    background: #FF7A00;
+    color: #fff;
+}
+
+.help-tooltip {
+    display: none;
+    position: absolute;
+    top: 34px;
+    right: 0;
+    width: 240px;
+    background: #FDFCF9;
+    border: 1px solid #FFE3C2;
+    border-radius: 16px;
+    padding: 16px 18px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #333;
+    box-shadow: 0 6px 20px rgba(255, 122, 0, 0.12);
+    z-index: 10;
+}
+.help-tooltip.open { display: block; }
+
+.help-tooltip::before {
+    content: "";
+    position: absolute;
+    top: -7px;
+    right: 14px;
+    width: 12px;
+    height: 12px;
+    background: #FDFCF9;
+    border-left: 1px solid #FFE3C2;
+    border-top: 1px solid #FFE3C2;
+    transform: rotate(45deg);
+}
+
+.page-head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.help-tooltip--left {
+    right: auto;
+    left: 0;
+}
+.help-tooltip--left::before {
+    right: auto;
+    left: 14px;
+}
+
+.daily-close__head-row {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.daily-close__head-row .help-wrap {
+    position: absolute;
+    right: 0;
+}
+.daily-close__head-row .help-tooltip {
+    top: 34px;
+    right: 0;
 }
