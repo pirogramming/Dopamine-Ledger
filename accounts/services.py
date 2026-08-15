@@ -6,7 +6,7 @@ GRADE_CONFIG = {
         'min_days': 0,
         'bonus_rate': 0.00,
         'dialogue_before': '숏폼의 굴레에서 벗어날 준비가 되셨나요?',
-        'dialogue_after': '첫 걸음을 내디뎠어요! 3일만 채워보세요.',
+        'dialogue_after': '첫 걸음을 내디뎠어요! 다음 레벨을 향해 달려보아요.',
     },
     'LEVEL_1': {
         'name': '도파민 디톡서',
