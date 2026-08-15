@@ -56,7 +56,12 @@
         {% for member in members %}
             <a class="member-item {% if forloop.first %}member-item--top{% endif %}"
                href="{% url 'crew:member_detail' crew_id=crew.id member_id=member.id %}">
-                <div class="member-avatar"></div>
+                <div class="member-avatar">
+                    <img 
+                    src="{% static member.profile_character_url %}" 
+                    class="profile-character-img"
+                    >
+                </div>
                 <div class="member-main">
                     <div class="member-name">
                         {{ member.users }}
