@@ -28,6 +28,11 @@ async function refreshMembers() {
             const avatar = document.createElement('div');
             avatar.className = 'member-avatar';
 
+            const avatarImg = document.createElement('img');
+            avatarImg.className = 'profile-character-img';
+            avatarImg.src = '/static/' + m.profile_character_url;
+            avatar.appendChild(avatarImg);
+
             // 왼쪽: 이름 + 피드문구
             const main = document.createElement('div');
             main.className = 'member-main';

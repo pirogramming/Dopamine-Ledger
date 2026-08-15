@@ -10,6 +10,9 @@ from accounts.services import (
     calculate_reward_minutes,
     get_exchange_bonus_rate,
     get_league_dialogue,
+    get_league_journey_data,
+    GRADE_CONFIG,   # 캐릭터 카드 등급 정보 - 등급 기준을 여기서만 관리 (ledger에 따로 안 둠)
+    GRADE_ORDER,    # 등급 순서 리스트 ['LEVEL_0', ..., 'LEVEL_4']
 )
 
 from datetime import timedelta
@@ -26,25 +29,57 @@ from budget.services import format_unit_display
 # 요일 변환용 튜플 (weekly_report)
 WEEKDAYS_KR = ("월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일")
 
-NEXT_GRADE_TARGETS = {
-    'LEVEL_0': 3,
-    'LEVEL_1': 7,
-    'LEVEL_2': 14,
-    'LEVEL_3': 30,
-    'LEVEL_4': None,
-}
+# NOTE: 예전에 여기 있던 NEXT_GRADE_TARGETS 딕셔너리는 삭제함.
+# accounts.services.GRADE_CONFIG와 컷오프 기준이 중복/불일치할 위험이 있어서
+# 캐릭터 카드 계산은 전부 GRADE_CONFIG/GRADE_ORDER를 그대로 참조하도록 통일 (_get_character_card_context 참고)
 
 from budget.services import (
     get_week_summary,
-    get_today_activity_summary,
+    get_today_home_summary,
     get_today_record_count,
     attach_value_displays,
     format_minutes_display,
     format_unit_display,
     get_today_spent_minutes,
     get_ro_particle, 
+    get_week_range,          # 추가 - 선택 날짜가 속한 주 계산용
+    get_today_kst,            # 추가 - 기본 날짜(오늘)
+    get_category_display,     # 추가 - 지출 카테고리 한글 표시
+    SPEND_CATEGORY_ICONS,      # 추가
+    EARN_ACTIVITY_ICONS,       # 추가
+    DEFAULT_ICON,              # 추가
+    DEFAULT_EARN_ICON,         # 추가
+    KST,                       # 추가 - 시간대 계산용
 )
+def _get_character_card_context(user):
+    """
+    홈 캐릭터 카드에 필요한 값 모음.
+    main_progress / main_convert 둘 다 같은 카드를 쓰므로 중복 계산 방지용으로 함수로 뺌.
+ 
+    - 등급 컷오프(min_days)는 accounts.services.GRADE_CONFIG를 그대로 참조.
+      여기서 따로 하드코딩하지 않음 (기준이 두 곳에서 어긋나는 사고 방지).
+    - 캐릭터 이미지: profile용 에셋(static/images/characters/profile/)이 아직 없어서
+      daily_close.html과 동일한 closure 이미지를 임시로 재사용함.
+      TODO: profile 이미지 에셋 준비되면 아래 character_image_url 줄만
+            user.closure_character_url → user.profile_character_url 로 교체
+    """
+    grade_key = user.credit_grade
+    level_number = GRADE_ORDER.index(grade_key) if grade_key in GRADE_ORDER else 0
+    next_index = level_number + 1
 
+    if next_index < len(GRADE_ORDER):
+        next_grade_key = GRADE_ORDER[next_index]
+        next_min_days = GRADE_CONFIG[next_grade_key]['min_days']
+        days_to_next_grade = max(next_min_days - user.streak_days, 0)
+    else:
+        days_to_next_grade = None  # 최고 등급(LEVEL_4) - 다음 등급 없음
+        
+    return {
+        'level_number': level_number,
+        'character_image_url': user.closure_character_url,  # profile 폴더 없어서 closure 재사용
+        'days_to_next_grade': days_to_next_grade,
+    }
+    
 @login_required
 def spend_record_create(request):
     """
@@ -96,7 +131,7 @@ def spend_record_list(request):
     지출 기록 목록 조회 뷰.
     - 본인 기록만 조회(다른 유저 기록 노출 금지)
     - 최신순 정렬
-    * 이 쿼리셋은 나중에 홈 화면에서도 최근 지출 미리보기 용도로 재사용될 수 있음 - 2주차 담당자한테 공유 예정
+    * 이 쿼리셋은 나중에 홈 화면에서도 최근 지출 미리보기 용도로 재사용될 수 있음
     """
     # 필드명이 users라서 필터 키워드도 맞춰줘야 함 (안 그러면 FieldError)
     records = SpendRecord.objects.filter(users=request.user).order_by('-spend_start')
@@ -437,32 +472,23 @@ def main_progress(request):
     """홈 — 시간으로 보기."""
     summary = get_week_summary(request.user)
     records = attach_value_displays(
-        get_today_activity_summary(request.user), mode='minutes'
+        get_today_home_summary(request.user), mode='minutes'
     )
-
-    target_days = NEXT_GRADE_TARGETS.get(request.user.credit_grade)
-    if target_days:
-        days_to_next_grade = max(target_days - request.user.streak_days, 0)
-    else:
-        days_to_next_grade = None  # 최고 등급일 때
-
     context = {
         **summary,
+        **_get_character_card_context(request.user),
         'balance_display':  format_minutes_display(summary['balance']),
         'budget_display':   format_minutes_display(summary['budget']),
         'spent_display':    format_minutes_display(summary['spent']),
         'earned_display':   format_minutes_display(summary['earned']),
-        'budget_desc': (
-            f"이번 주 예산 {format_minutes_display(summary['budget'] + summary['earned'])} 중 "
-            f"{format_minutes_display(summary['spent'])} 사용"
-        ),
+        'remaining_display': format_minutes_display(summary['balance']),
+        'budget_available_display': format_minutes_display(summary['budget'] + summary['earned']),
         'today_records': records,
         'today_record_count': get_today_record_count(request.user),
         'active_tab': 'home',
         'credit_grade': request.user.credit_grade,
         'grade_name': request.user.grade_name,
         'streak_days': request.user.streak_days,
-        'days_to_next_grade': days_to_next_grade,
         'bonus_rate_percent': int(
             get_exchange_bonus_rate(request.user.credit_grade) * 100
         ),
@@ -483,21 +509,17 @@ def main_convert(request):
     today_spent = get_today_spent_minutes(user)
 
     records = attach_value_displays(
-        get_today_activity_summary(user), mode='minutes',
+        get_today_home_summary(user), mode='minutes',
     )
-
-    target_days = NEXT_GRADE_TARGETS.get(request.user.credit_grade)
-    if target_days:
-        days_to_next_grade = max(target_days - request.user.streak_days, 0)
-    else:
-        days_to_next_grade = None  # 최고 등급일 때
 
     context = {
         **summary,
+        **_get_character_card_context(user),  # 캐릭터 카드용 값들 (main_progress와 동일)
         'balance_display':  format_unit_display(summary['spent'], base, unit),
         'budget_display':   format_minutes_display(summary['budget']),
         'spent_display':    format_minutes_display(summary['spent']),
         'earned_display':   format_minutes_display(summary['earned']),
+        'remaining_display': format_minutes_display(summary['balance']),
         'converted_unit_label': f"이번 주 사용한 시간을 {activity}{get_ro_particle(activity)} 바꾸면",
         # 진행률 위 2줄 설명 (오늘 지출 기준)
         'desc_line1': f"오늘 숏폼에 사용한 {format_minutes_display(today_spent)}은",
@@ -508,90 +530,134 @@ def main_convert(request):
         'credit_grade': request.user.credit_grade,
         'grade_name': request.user.grade_name,
         'streak_days': request.user.streak_days,
-        'days_to_next_grade': days_to_next_grade,
         'bonus_rate_percent': int(
             get_exchange_bonus_rate(request.user.credit_grade) * 100
         ),
     }
     return render(request, 'ledger/main_convert.html', context)
 
-
-"""@login_required
-def weekly_share_card(request):
+@login_required
+def record_history(request):
+    """전체 기록 화면 - 선택한 날짜의 지출/수입 기록을 캘린더 형식으로 보여줌."""
+    import datetime as dt
     
-#    주간 결산 공유 카드 이미지(PNG)를 발행한다.
-#    weekly_report와 동일한 집계 로직을 쓰되, 화면이 아닌 이미지로 응답.
-    
-    user = request.user
+    def _format_md(d):
+            # "8월 15일" 포맷. strftime('%-m월 %-d일')은 macOS/Linux 전용이라
+            # Windows 팀원 환경에서도 동일하게 동작하도록 직접 조합함.
+            return f"{d.month}월 {d.day}일"
+        
+    # 선택된 날짜 (쿼리스트링 ?date=YYYY-MM-DD, 없으면 오늘)
+    date_str = request.GET.get('date')
+    if date_str:
+        try:
+            selected_date = dt.datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            selected_date = get_today_kst()
+    else:
+        selected_date = get_today_kst()
 
-    # 1) 이번 주 / 지난주 날짜 범위
-    # weekly_report와 동일하게 로컬타임 기준. (weekly_report의 UTC 버그는 PM이 별도 수정 중)
-    today = timezone.localdate()
-    this_start = today - timedelta(days=today.weekday())
-    this_end = this_start + timedelta(days=6)
-    last_start = this_start - timedelta(days=7)
-    last_end = this_start - timedelta(days=1)
+    filter_type = request.GET.get('filter', 'all')  # all | earn | spend
 
-    # 2) 집계 (weekly_report와 같은 방식)
-    this_spend = SpendRecord.objects.filter(
-        users=user, spend_date__range=[this_start, this_end]
-    ).aggregate(total=Sum('duration_min'))['total'] or 0
-
-    last_spend = SpendRecord.objects.filter(
-        users=user, spend_date__range=[last_start, last_end]
-    ).aggregate(total=Sum('duration_min'))['total'] or 0
-
-    this_earn = EarnRecord.objects.filter(
-        users=user, earn_date__range=[this_start, this_end]
-    ).aggregate(total=Sum('earn_min'))['total'] or 0
-
-    # 3) 주차 라벨 & 닉네임
-    week_label = (
-        f"{this_start.strftime('%Y년 %m월 %d일')} ~ "
-        f"{this_end.strftime('%m월 %d일')}"
+    # 선택된 날짜가 속한 주(월~일) 계산 - get_week_range가 '월요일 00:00 ~ 다음주 월요일 00:00'을
+    # 반환하므로 그 시작일 기준으로 7일치 날짜 리스트를 만듦
+    week_start, _ = get_week_range(
+        dt.datetime.combine(selected_date, dt.time.min, tzinfo=KST)
     )
-    nickname = (
-        getattr(user, 'nickname', None)
-        or getattr(user, 'username', None)
-        or '사용자'
-    )
-
-    # 4) 대체재 환산 문구 만들기
-    #    - 사용자가 온보딩에서 환산 활동을 설정했을 때만 넣음
-    #    - 지출 시간을 기준으로 "= 책 0.8권 / 숏폼에 쓴 만큼의 시간" 두 줄 구성
-    conversion_base = getattr(user, 'conversion_base', None)
-    conversion_unit = getattr(user, 'conversion_unit', '') or ''
-    converting_activity = getattr(user, 'converting_activity', '') or ''
-
-    alt_text = ""
-    if conversion_base and conversion_base > 0 and this_spend > 0:
-        # format_unit_display는 "0.8권" 같은 문자열을 만들어줌 (Decimal → 소수점 1자리 자동)
-        converted_str = format_unit_display(
-            int(round(this_spend)), conversion_base, conversion_unit,
-        )
-        alt_text = {
-            "converted": f"{converting_activity} {converted_str}",
-            "context": "숏폼에 쓴 만큼의 시간",
+    WEEKDAY_LABELS = ['월', '화', '수', '목', '금', '토', '일']
+    week_days = [
+        {
+            'date': week_start.date() + dt.timedelta(days=i),
+            'label': WEEKDAY_LABELS[i],
         }
+        for i in range(7)
+    ]
+    for d in week_days:
+        d['is_selected'] = d['date'] == selected_date
 
-    # 5) 이미지 생성
-    png_bytes = generate_weekly_share_card(
-        nickname=nickname,
-        this_spend_min=int(round(this_spend)),
-        this_earn_min=int(round(this_earn)),
-        spend_diff_min=int(round(this_spend - last_spend)),
-        week_label=week_label,
-        alt_text=alt_text,   # ← dict로 전달 (빈 값이면 카드에 안 그려짐)
-    )
+    # 해당 날짜의 기록 조회
+    earn_qs = EarnRecord.objects.filter(
+        users=request.user, earn_date=selected_date
+    ).select_related('activity').order_by('-earn_start')
+    spend_qs = SpendRecord.objects.filter(
+        users=request.user, spend_date=selected_date
+    ).order_by('-spend_start')
 
-    # 6) PNG로 응답 (다운로드 강제)
-    response = HttpResponse(png_bytes, content_type="image/png")
-    filename = f"weekly-report-{this_start.isoformat()}.png"
-    # inline: 브라우저가 다운로드 대화상자를 띄우지 않음 (JS가 처리)
-    # 그래도 filename은 남겨둠 — JS 폴백에서 다운로드할 때 이 이름 씀
-    response['Content-Disposition'] = f'inline; filename="{filename}"'
-    response['Cache-Control'] = 'no-store'
-    return response"""
+    earn_total = earn_qs.aggregate(total=Sum('earn_min'))['total'] or Decimal('0')
+    spend_total = Decimal(spend_qs.aggregate(total=Sum('duration_min'))['total'] or 0)
+    today_balance = earn_total - spend_total
+
+    # TODO: verify_method 실제 저장값이 영문('timer'/'manual')인지 한글인지 확인 필요.
+    # 확인되면 이 매핑에서 안 쓰는 쪽 지우면 됨.
+    EARN_METHOD_DISPLAY = {
+        'timer': '타이머', 'manual': '수동 입력',
+        '타이머': '타이머', '수동': '수동 입력',
+    }
+
+    items = []
+    for e in earn_qs:
+        local_time = timezone.localtime(e.earn_start)
+        items.append({
+            'type': 'earn',
+            'label': e.activity.activity_type,
+            'icon': EARN_ACTIVITY_ICONS.get(e.activity.activity_type, DEFAULT_EARN_ICON),
+            'time_display': local_time.strftime('%p %I:%M').replace('AM', '오전').replace('PM', '오후'),
+            'method_display': EARN_METHOD_DISPLAY.get(e.verify_method, e.verify_method),
+            'value_display': f"+{format_minutes_display(e.earn_min)}",
+            'is_positive': True,
+        })
+    for s in spend_qs:
+        local_time = timezone.localtime(s.spend_start)
+        items.append({
+            'type': 'spend',
+            'label': get_category_display(s.category),
+            'icon': SPEND_CATEGORY_ICONS.get(s.category, DEFAULT_ICON),
+            'time_display': local_time.strftime('%p %I:%M').replace('AM', '오전').replace('PM', '오후'),
+            # SpendRecord엔 기록 방식 필드가 없어서 method_display 없음 (TODO: 필드 생기면 채우기)
+            'method_display': None,
+            'value_display': f"-{format_minutes_display(s.duration_min)}",
+            'is_positive': False,
+        })
+
+    earn_count = len(items) and sum(1 for i in items if i['type'] == 'earn')
+    spend_count = len(items) and sum(1 for i in items if i['type'] == 'spend')
+
+    if filter_type == 'earn':
+        items = [i for i in items if i['type'] == 'earn']
+    elif filter_type == 'spend':
+        items = [i for i in items if i['type'] == 'spend']
+
+    context = {
+        'active_tab': 'home',
+        'week_days': week_days,
+        'selected_date': selected_date,
+        'week_label': f"{_format_md(week_start.date())} - {_format_md(week_start.date() + dt.timedelta(days=6))}",
+        'prev_week_date': (week_start.date() - dt.timedelta(days=7)).isoformat(),
+        'next_week_date': (week_start.date() + dt.timedelta(days=7)).isoformat(),
+        'selected_date_label': _format_md(selected_date),        'earn_total_display': f"+{format_minutes_display(earn_total)}",
+        'spend_total_display': f"-{format_minutes_display(spend_total)}",
+        'today_balance_display': (
+            f"+{format_minutes_display(today_balance)}" if today_balance >= 0
+            else format_minutes_display(today_balance)
+        ),
+        'is_balance_negative': today_balance < 0,
+        'filter_type': filter_type,
+        'total_count': earn_count + spend_count,
+        'earn_count': earn_count,
+        'spend_count': spend_count,
+        'items': items,
+    }
+    return render(request, 'ledger/record_history.html', context)
+@login_required
+def league_journey(request):
+    """리그 여정(로드맵) 화면 뷰"""
+    journey_data = get_league_journey_data(request.user)
+
+    context = {
+        **journey_data,
+        'closure_character_url': request.user.closure_character_url,
+        'active_tab': 'deadline', # 필요에 따른 활성 탭
+    }
+    return render(request, 'ledger/league_journey.html', context)
 
 @login_required
 def weekly_share_card(request):
