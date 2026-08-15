@@ -35,9 +35,7 @@
         {% endif %}
       </p>
     </div>
-    <!-- 여정 보기 화면 아직 미구현 → 비활성 버튼으로만 자리 잡아둠 -->
-    <!-- TODO: 여정 화면 완성되면 아래 버튼을 <a href="..."> 태그로 바꾸고 ledger:journey URL로 연결 -->
-    <button type="button" class="journey-link" disabled>여정 &gt;</button>
+    <a href="{% url 'ledger:league_journey' %}" class="journey-link">여정 보기 &gt;</a>
   </section>
 
   <!-- 시간으로 보기 / 변환해서 보기 토글 -->
