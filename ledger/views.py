@@ -10,6 +10,7 @@ from accounts.services import (
     calculate_reward_minutes,
     get_exchange_bonus_rate,
     get_league_dialogue,
+    get_league_journey_data,
     GRADE_CONFIG,   # 캐릭터 카드 등급 정보 - 등급 기준을 여기서만 관리 (ledger에 따로 안 둠)
     GRADE_ORDER,    # 등급 순서 리스트 ['LEVEL_0', ..., 'LEVEL_4']
 )
@@ -646,6 +647,18 @@ def record_history(request):
         'items': items,
     }
     return render(request, 'ledger/record_history.html', context)
+@login_required
+def league_journey(request):
+    """리그 여정(로드맵) 화면 뷰"""
+    journey_data = get_league_journey_data(request.user)
+
+    context = {
+        **journey_data,
+        'closure_character_url': request.user.closure_character_url,
+        'active_tab': 'deadline', # 필요에 따른 활성 탭
+    }
+    return render(request, 'ledger/league_journey.html', context)
+
 @login_required
 def weekly_share_card(request):
     """주간 결산 공유 카드 이미지(PNG)를 발행한다."""
