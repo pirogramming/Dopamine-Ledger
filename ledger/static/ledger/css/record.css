@@ -164,6 +164,8 @@
   font-weight: 800;
   color: var(--text-main);
   font-family: inherit;
+  font-variant-numeric:tabular-nums;
+  letter-spacing: 2px;
 }
 .time-display-inputs input:focus { outline: none; color: var(--spend-accent); }
 .time-display-inputs .colon { color: var(--text-faint); }
