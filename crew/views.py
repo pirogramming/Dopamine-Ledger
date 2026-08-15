@@ -340,6 +340,7 @@ def crew_members_api(request, crew_id):
                 'contribution_pct': m.contribution_pct,
                 'contribution_hm': m.contribution_hm,
                 'feed_text': m.feed_text,
+                'profile_character_url': m.profile_character_url,
                 'is_top': (i == 0 and m.contribution > 0),   # 1등(기여>0)만 초록
             }
             for i, m in enumerate(members)
