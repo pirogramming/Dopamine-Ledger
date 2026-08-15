@@ -96,6 +96,8 @@ class FeedEvent(models.Model):
         SPEND = 'spend', '과예산 지출'
         CHEER = 'cheer', '응원'
         CLOSE = 'close', '마감'
+        LEAVE = 'leave', '탈퇴'
+        KICK  = 'kick',  '내보내기'
 
     crew = models.ForeignKey(
         Crew, on_delete=models.CASCADE, related_name='feed_events'

@@ -59,10 +59,11 @@ def _sorted_members_with_contribution(crew, sort='contribution'):
     # 멤버별 최신 벌이 피드 (이번 주, earn 타입) 한 방에 조회
     latest_feed = {}
     feed_qs = (
-        FeedEvent.objects
-        .filter(crew=crew, event_type=FeedEvent.EventType.EARN,
-                created_at__date__range=[week_start, week_end])
-        .order_by('actor_id', '-created_at')
+    FeedEvent.objects
+    .filter(crew=crew,
+            event_type__in=[FeedEvent.EventType.EARN, FeedEvent.EventType.SPEND],
+            created_at__date__range=[week_start, week_end])
+    .order_by('actor_id', '-created_at')
     )
     for fe in feed_qs:
         if fe.actor_id not in latest_feed:   # actor별 첫 번째 = 최신
@@ -274,6 +275,12 @@ def crew_leave(request, crew_id):
             return redirect('crew:list')
 
         was_owner = (crew.owner_id == request.user.id)
+        FeedEvent.objects.create(
+            crew=crew,
+            actor=request.user,
+            event_type=FeedEvent.EventType.LEAVE,
+            message=f'{request.user}님이 크루를 떠났어요',
+        )
         membership.delete()
 
         remaining = CrewMember.objects.filter(crew=crew).order_by('joined_date')
@@ -454,6 +461,12 @@ def crew_kick(request, crew_id, member_id):
             messages.error(request, '크루장은 내보낼 수 없어요.')
         else:
             kicked_name = str(membership.users)
+            FeedEvent.objects.create(
+                crew=crew,
+                actor=membership.users,     # 내보내진 사람
+                event_type=FeedEvent.EventType.KICK,
+                message=f'{kicked_name}님이 크루에서 내보내졌어요',
+                )
             membership.delete()
             # 초대 코드 재발급 (내보낸 사람이 옛 코드로 다시 못 들어오게)
             crew.invite_code = generate_invite_code()
@@ -466,17 +479,58 @@ def crew_kick(request, crew_id, member_id):
 def crew_member_detail(request, crew_id, member_id):
     crew = get_object_or_404(Crew, id=crew_id)
 
-    # 크루 멤버만 볼 수 있음
     if not _is_member(request.user, crew):
         messages.error(request, '그 크루의 멤버가 아니에요.')
         return redirect('crew:list')
 
     membership = get_object_or_404(CrewMember, id=member_id, crew=crew)
+    target_user = membership.users
 
-    return render(request, 'crew/crew_member_detail.html', {
+    # 이 멤버(target_user)의 실데이터 집계 — 기존 함수 재사용
+    from budget.services import (
+        get_week_summary, get_today_activity_summary,
+        format_minutes_display,
+    )
+    from ledger.models import EarnRecord, SpendRecord
+    from django.db.models import Sum
+    from django.utils import timezone
+
+    summary = get_week_summary(target_user)
+
+    # 오늘 지출/수입 합계 (KST 오늘)
+    today = timezone.localdate()
+    today_spend = SpendRecord.objects.filter(
+        users=target_user, spend_date=today
+    ).aggregate(t=Sum('duration_min'))['t'] or 0
+    today_earn = EarnRecord.objects.filter(
+        users=target_user, earn_date=today
+    ).aggregate(t=Sum('earn_min'))['t'] or 0
+
+    # 잔액 진행바 % (예산 대비 수입, 0~100 클램프)
+    balance = summary['balance']
+    budget = summary['budget'] or 0
+    earned = summary['earned'] or 0
+    total_available = budget + earned          # 예산 + 수입 = 바의 100%
+    if balance < 0:
+        balance_pct = 0                        # 초과(음수)면 바 비움
+    elif total_available > 0:
+        balance_pct = min(round(balance / total_available * 100), 100)
+    else:
+        balance_pct = 0
+
+    context = {
         'crew': crew,
         'membership': membership,
-    })
+        'streak_days': target_user.streak_days,
+        'today_spend_display': format_minutes_display(today_spend),
+        'today_earn_display': format_minutes_display(today_earn),
+        'balance_display': format_minutes_display(summary['balance']),
+        'budget_display': format_minutes_display(summary['budget']),
+        'earned_display': format_minutes_display(summary['earned']),
+        'spent_display': format_minutes_display(summary['spent']),
+        'balance_pct': balance_pct,
+    }
+    return render(request, 'crew/crew_member_detail.html', context)
 
 @login_required
 def crew_cheer(request, crew_id, member_id):
@@ -511,21 +565,34 @@ def crew_cheer(request, crew_id, member_id):
 
 @login_required
 def crew_feed(request, crew_id):
-    """크루 피드 화면. 벌이/과예산/응원 이벤트를 시간순으로."""
     crew = get_object_or_404(Crew, id=crew_id)
 
     if not _is_member(request.user, crew):
         messages.error(request, '그 크루의 멤버가 아니에요.')
         return redirect('crew:list')
 
-    events = (
-        FeedEvent.objects
-        .filter(crew=crew)
-        .select_related('actor', 'target')
-        .order_by('-created_at')[:100]   # 최근 100개
-    )
+    members = crew.members.select_related('users').order_by('joined_date')
+
+    selected_member = request.GET.get('member')
+    events = FeedEvent.objects.filter(crew=crew).select_related('actor', 'target')
+    if selected_member:
+        events = events.filter(actor_id=selected_member)
+    events = events.order_by('-created_at')[:100]
+
+    # 날짜별 그룹핑 (오늘 / N월 N일)
+    from collections import defaultdict
+    from django.utils import timezone
+    today = timezone.localdate()
+    grouped = defaultdict(list)
+    for ev in events:
+        d = timezone.localtime(ev.created_at).date()
+        label = '오늘' if d == today else f'{d.month}월 {d.day}일'
+        grouped[label].append(ev)
+    feed_groups = [{'label': k, 'events': v} for k, v in grouped.items()]
 
     return render(request, 'crew/crew_feed.html', {
         'crew': crew,
-        'events': events,
+        'feed_groups': feed_groups,
+        'members': members,
+        'selected_member': selected_member,
     })

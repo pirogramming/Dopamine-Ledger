@@ -19,6 +19,10 @@ from django.http import JsonResponse
 
 from collections import defaultdict
 
+from django.http import HttpResponse
+from .services import generate_weekly_share_card, get_category_color
+from budget.services import format_unit_display
+
 # 요일 변환용 튜플 (weekly_report)
 WEEKDAYS_KR = ("월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일")
 
@@ -190,6 +194,7 @@ def weekly_report(request):
 
     # 5. 수치 반올림 처리
     this_spend_int = int(round(this_spend_total))
+    last_spend_int = int(round(last_spend_total))
     spend_diff_int = int(round(spend_diff))
     this_earn_total_int = int(round(this_earn_total))
     earn_diff_int = int(round(earn_diff))
@@ -203,6 +208,37 @@ def weekly_report(request):
         item['activity__activity_type']: int(round(item['total'] or 0))
         for item in last_earn_qs.values('activity__activity_type').annotate(total=Sum('earn_min'))
     }
+
+    # 이번 주 카테고리별 비중 데이터
+    category_total = sum(this_activity_map.values())
+
+    category_breakdown = []
+
+    if category_total > 0:
+        # 이번 주에 해당 활동이 처음 기록된 시간 순서
+        first_record_order = {}
+
+        for earn in this_earn_qs.order_by("created_at"):
+            activity_name = earn.activity.activity_type
+
+            if activity_name not in first_record_order:
+                first_record_order[activity_name] = earn.created_at
+
+        # 최초 기록 순서대로 카테고리 정렬
+        ordered_activity_names = sorted(
+            this_activity_map.keys(),
+            key=lambda name: first_record_order[name]
+        )
+
+        for idx, activity_name in enumerate(ordered_activity_names):
+            minutes = this_activity_map[activity_name]
+
+            category_breakdown.append({
+                "name": activity_name,
+                "minutes": minutes,
+                "percent": round((minutes / category_total) * 100, 1),
+                "color": get_category_color(idx),
+            })
 
     best_activity = None
     max_increase = 0
@@ -332,9 +368,11 @@ def weekly_report(request):
         {
             "praise_message": praise_message,
             "this_spend_min": this_spend_int,
+            "last_spend_min": last_spend_int,
             "spend_diff_min": spend_diff_int,
             "this_earn_min": this_earn_total_int,
             "earn_diff_min": earn_diff_int,
+            "category_breakdown": category_breakdown,
             "history_by_date": history_by_date,
         },
         json_dumps_params={'ensure_ascii': False}
@@ -354,7 +392,6 @@ def daily_close(request):
     is_closed = False
 
     if request.method == "POST":
-
         try:
             close_today(request.user)
             request.user.credit_grade = calculate_grade_by_streak(request.user.streak_days)
@@ -362,8 +399,10 @@ def daily_close(request):
 
             is_closed = True
 
+            request.user.refresh_from_db()      # streak_days 갱신값 반영
+            from crew.services import create_close_feed
+            create_close_feed(request.user, request.user.streak_days)
             return redirect("ledger:daily_close")
-
         except ValueError as error:
             error_message = str(error)
 
@@ -414,7 +453,7 @@ def main_progress(request):
         'spent_display':    format_minutes_display(summary['spent']),
         'earned_display':   format_minutes_display(summary['earned']),
         'budget_desc': (
-            f"이번 주 예산 {format_minutes_display(summary['budget'])} 중 "
+            f"이번 주 예산 {format_minutes_display(summary['budget'] + summary['earned'])} 중 "
             f"{format_minutes_display(summary['spent'])} 사용"
         ),
         'today_records': records,
@@ -475,3 +514,159 @@ def main_convert(request):
         ),
     }
     return render(request, 'ledger/main_convert.html', context)
+
+
+"""@login_required
+def weekly_share_card(request):
+    
+#    주간 결산 공유 카드 이미지(PNG)를 발행한다.
+#    weekly_report와 동일한 집계 로직을 쓰되, 화면이 아닌 이미지로 응답.
+    
+    user = request.user
+
+    # 1) 이번 주 / 지난주 날짜 범위
+    # weekly_report와 동일하게 로컬타임 기준. (weekly_report의 UTC 버그는 PM이 별도 수정 중)
+    today = timezone.localdate()
+    this_start = today - timedelta(days=today.weekday())
+    this_end = this_start + timedelta(days=6)
+    last_start = this_start - timedelta(days=7)
+    last_end = this_start - timedelta(days=1)
+
+    # 2) 집계 (weekly_report와 같은 방식)
+    this_spend = SpendRecord.objects.filter(
+        users=user, spend_date__range=[this_start, this_end]
+    ).aggregate(total=Sum('duration_min'))['total'] or 0
+
+    last_spend = SpendRecord.objects.filter(
+        users=user, spend_date__range=[last_start, last_end]
+    ).aggregate(total=Sum('duration_min'))['total'] or 0
+
+    this_earn = EarnRecord.objects.filter(
+        users=user, earn_date__range=[this_start, this_end]
+    ).aggregate(total=Sum('earn_min'))['total'] or 0
+
+    # 3) 주차 라벨 & 닉네임
+    week_label = (
+        f"{this_start.strftime('%Y년 %m월 %d일')} ~ "
+        f"{this_end.strftime('%m월 %d일')}"
+    )
+    nickname = (
+        getattr(user, 'nickname', None)
+        or getattr(user, 'username', None)
+        or '사용자'
+    )
+
+    # 4) 대체재 환산 문구 만들기
+    #    - 사용자가 온보딩에서 환산 활동을 설정했을 때만 넣음
+    #    - 지출 시간을 기준으로 "= 책 0.8권 / 숏폼에 쓴 만큼의 시간" 두 줄 구성
+    conversion_base = getattr(user, 'conversion_base', None)
+    conversion_unit = getattr(user, 'conversion_unit', '') or ''
+    converting_activity = getattr(user, 'converting_activity', '') or ''
+
+    alt_text = ""
+    if conversion_base and conversion_base > 0 and this_spend > 0:
+        # format_unit_display는 "0.8권" 같은 문자열을 만들어줌 (Decimal → 소수점 1자리 자동)
+        converted_str = format_unit_display(
+            int(round(this_spend)), conversion_base, conversion_unit,
+        )
+        alt_text = {
+            "converted": f"{converting_activity} {converted_str}",
+            "context": "숏폼에 쓴 만큼의 시간",
+        }
+
+    # 5) 이미지 생성
+    png_bytes = generate_weekly_share_card(
+        nickname=nickname,
+        this_spend_min=int(round(this_spend)),
+        this_earn_min=int(round(this_earn)),
+        spend_diff_min=int(round(this_spend - last_spend)),
+        week_label=week_label,
+        alt_text=alt_text,   # ← dict로 전달 (빈 값이면 카드에 안 그려짐)
+    )
+
+    # 6) PNG로 응답 (다운로드 강제)
+    response = HttpResponse(png_bytes, content_type="image/png")
+    filename = f"weekly-report-{this_start.isoformat()}.png"
+    # inline: 브라우저가 다운로드 대화상자를 띄우지 않음 (JS가 처리)
+    # 그래도 filename은 남겨둠 — JS 폴백에서 다운로드할 때 이 이름 씀
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    response['Cache-Control'] = 'no-store'
+    return response"""
+
+@login_required
+def weekly_share_card(request):
+    """주간 결산 공유 카드 이미지(PNG)를 발행한다."""
+    user = request.user
+
+    # 1) 이번 주 / 지난주 날짜 범위
+    today = timezone.localdate()
+    this_start = today - timedelta(days=today.weekday())
+    this_end = this_start + timedelta(days=6)
+    last_start = this_start - timedelta(days=7)
+    last_end = this_start - timedelta(days=1)
+
+    # 2) 집계
+    this_spend = SpendRecord.objects.filter(
+        users=user, spend_date__range=[this_start, this_end]
+    ).aggregate(total=Sum('duration_min'))['total'] or 0
+
+    last_spend = SpendRecord.objects.filter(
+        users=user, spend_date__range=[last_start, last_end]
+    ).aggregate(total=Sum('duration_min'))['total'] or 0
+
+    this_earn = EarnRecord.objects.filter(
+        users=user, earn_date__range=[this_start, this_end]
+    ).aggregate(total=Sum('earn_min'))['total'] or 0
+
+    # 지난주 수입도 추가 (새 카드 디자인에서 수입 증감 표시용)
+    last_earn = EarnRecord.objects.filter(
+        users=user, earn_date__range=[last_start, last_end]
+    ).aggregate(total=Sum('earn_min'))['total'] or 0
+
+    # 3) 주차 라벨 & 닉네임
+    week_label = (
+        f"{this_start.strftime('%Y년 %m월 %d일')} ~ "
+        f"{this_end.strftime('%m월 %d일')}"
+    )
+    nickname = (
+        getattr(user, 'nickname', None)
+        or getattr(user, 'username', None)
+        or '사용자'
+    )
+
+    # 4) 대체재 환산 (수입/지출 각각)
+    conversion_base = getattr(user, 'conversion_base', None)
+    conversion_unit = getattr(user, 'conversion_unit', '') or ''
+    converting_activity = getattr(user, 'converting_activity', '') or ''
+
+    earn_alt = ""
+    spend_alt = ""
+    if conversion_base and conversion_base > 0:
+        if this_earn > 0:
+            earn_converted = format_unit_display(
+                int(round(this_earn)), conversion_base, conversion_unit,
+            )
+            earn_alt = f"{converting_activity} {earn_converted}"
+        if this_spend > 0:
+            spend_converted = format_unit_display(
+                int(round(this_spend)), conversion_base, conversion_unit,
+            )
+            spend_alt = f"{converting_activity} {spend_converted}"
+
+    # 5) 이미지 생성
+    png_bytes = generate_weekly_share_card(
+        nickname=nickname,
+        week_label=week_label,
+        this_earn_min=int(round(this_earn)),
+        this_spend_min=int(round(this_spend)),
+        earn_diff_min=int(round(this_earn - last_earn)),
+        spend_diff_min=int(round(this_spend - last_spend)),
+        earn_alt=earn_alt,
+        spend_alt=spend_alt,
+    )
+
+    response = HttpResponse(png_bytes, content_type="image/png")
+    filename = f"weekly-report-{this_start.isoformat()}.png"
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    response['Cache-Control'] = 'no-store'
+    return response

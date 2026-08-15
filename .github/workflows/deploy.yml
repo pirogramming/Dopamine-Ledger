@@ -1,12 +1,8 @@
 # ─────────────────────────────────────────────────────────
-# CI/CD 워크플로우 (기반 세팅 — 아직 자동 실행 안 됨)
+# CI/CD 워크플로우 (자동 배포 활성화됨)
 #
-# 현재 상태: 수동 실행(workflow_dispatch)만 가능.
-#   → develop에 push해도 자동 배포되지 않음 (안전)
-#   → GitHub → Actions 탭 → 이 워크플로우 선택 → "Run workflow" 버튼으로 수동 테스트
-#
-# 나중에 자동 배포를 켜려면:
-#   아래 "on:" 블록에서 push 부분 주석(#)을 풀면 됨.
+# develop에 push/머지되면 자동으로:
+#   build → Docker Hub push → EC2 pull → 재시작 → migrate → collectstatic
 # ─────────────────────────────────────────────────────────
 
 name: Deploy to EC2
@@ -14,11 +10,9 @@ name: Deploy to EC2
 on:
   workflow_dispatch: # 수동 실행 (Actions 탭에서 버튼으로)
 
-  # ▼▼▼ 준비되면 아래 3줄 주석을 풀어서 자동 배포 활성화 ▼▼▼
-  # push:
-  #   branches:
-  #     - develop
-  # ▲▲▲ develop에 머지되면 자동 빌드→push→배포 ▲▲▲
+  push:
+    branches:
+      - develop
 
 jobs:
   deploy:
@@ -49,3 +43,5 @@ jobs:
             cd ~/dopamine
             docker compose pull
             docker compose up -d
+            docker compose exec -T web python manage.py migrate
+            docker compose exec -T web python manage.py collectstatic --noinput
