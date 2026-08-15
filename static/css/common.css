@@ -11,8 +11,8 @@ body.app-shell {
 .phone-frame {
     width: 100%;
     /*width: 393px; 문제 되면 이거로 바꾸기*/
-    height: 852px;
-    max-height: 100vh;       /* 창이 작으면 창 높이까지만 */
+    height: 100vh;
+    max-height: 100dvh;       /* 창이 작으면 창 높이까지만 */
     background: #fdfcf9;
     position: relative;
     display: flex;
