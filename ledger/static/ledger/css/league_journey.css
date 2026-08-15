@@ -1,0 +1,201 @@
+.journey-help-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #c7c7c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #70737c;
+}
+
+/* ===== 리그 경로 (지그재그 + 물결선) ===== */
+.journey-path-wrap {
+  position: relative;
+  padding: 8px 0;
+}
+
+.journey-path-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.journey-path {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.journey-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.journey-row--right { justify-content: flex-end; }
+.journey-row--left { justify-content: flex-start; }
+
+.journey-connector {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  background: #fdfcf9;
+  box-shadow: 0 0 0 3px #fdfcf9;  /* 물결선이 커넥터 뒤로 안 비치게 여백 확보 */
+}
+
+.journey-connector--dot {
+  width: 14px;
+  height: 14px;
+  box-shadow: 0 0 0 4px #fdfcf9;
+}
+
+.journey-connector--lock {
+  background: #f0ece2;
+  border: 1px solid #e5dcc8; 
+  box-shadow: 0 0 0 3px #fdfcf9;
+
+}
+
+.journey-node {
+  width: 68%;
+  flex: 0 0 68%;   /* 추가 - grow/shrink 안 하고 68%로 고정 */
+  min-width: 0;    /* 추가 - 내용 때문에 68% 넘어서 늘어나는 것 방지 */
+  box-sizing: border-box;  /* 추가 - padding·border 포함해서 68% 계산되게 */
+  background: #ffffff;
+  border: 1px solid #c7c7c7;
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0.6;
+}
+
+.journey-node--highlighted {
+  position: relative;   /* 추가 - 현재 뱃지 절대 위치 기준점 */
+  opacity: 1;
+  border-color: #4dad44;
+  border-width: 2px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+/* 하이라이트 카드에 붙는 "현재" 뱃지 */
+.journey-node__current-badge {
+  position: absolute;
+  top: -10px;
+  left: 16px;
+  background: #fff;
+  border: 1px solid #ff7a00;
+  color: #ff7a00;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.journey-node--locked {
+  opacity: 0.5;
+}
+
+.journey-node__img {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #eee;
+}
+
+.journey-node--highlighted .journey-node__img {
+  width: 52px;
+  height: 52px;
+}
+
+.journey-node__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.journey-node__badge {
+  display: inline-block;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-bottom: 4px;
+}
+
+.journey-node__name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #000000;
+}
+
+.journey-node--highlighted .journey-node__name {
+  font-size: 15px;
+}
+
+.journey-node__benefit {
+  font-size: 11px;
+  color: #70737c;
+  margin-top: 2px;
+}
+
+.journey-node__status {
+  font-size: 12px;
+  color: #70737c;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.journey-node__status--achieved {
+  color: #4dad44;
+  font-weight: 700;
+}
+
+/* 하이라이트 카드 안 진행률 (막대바 + 목표 문구) */
+.journey-node__progress-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: #000000;
+  margin-top: 4px;
+}
+
+.journey-node__bar {
+  height: 6px;
+  border-radius: 30px;
+  background: #f0e5d5;
+  overflow: hidden;
+  margin: 6px 0;
+}
+
+.journey-node__bar-fill {
+  height: 100%;
+  background: #ff7a00;
+  border-radius: 30px;
+}
+
+/* ===== 하단 안내 문구 ===== */
+.journey-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f7ecd9;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-top: 32px;
+  font-size: 13px;
+  color: #70737c;
+}

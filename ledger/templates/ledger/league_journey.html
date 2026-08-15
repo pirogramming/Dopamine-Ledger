@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}도파민 가계부 - 리그 여정{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'ledger/css/record.css' %}">
+  <link rel="stylesheet" href="{% static 'ledger/css/league_journey.css' %}">
+{% endblock %}
+
+{% block header %}
+  <header class="ledger-topbar">
+    <a href="{% url 'ledger:main_progress' %}" class="ledger-back" aria-label="뒤로가기">&lsaquo;</a>
+    <span class="ledger-title">리그 여정</span>
+    <!-- TODO: 도움말(?) 팝업 아직 내용 미정 - 자리만 잡아둠 -->
+    <span class="journey-help-icon" aria-hidden="true">?</span>
+  </header>
+{% endblock %}
+
+{% block content %}
+<div class="ledger-screen">
+  <!-- 리그 경로: LEVEL 0부터 4까지 전부 표시 -->
+  <div class="journey-path-wrap">
+    <!-- 배경 물결선. 카드 높이가 유동적이라 정확한 좌표 대신 컨테이너 전체에
+         늘어나는 SVG로 근사치만 표현 (preserveAspectRatio="none") -->
+    <svg class="journey-path-svg" viewBox="0 0 100 500" preserveAspectRatio="none">
+      <path d="M50,0 C90,50 90,100 50,125 C10,150 10,200 50,225 C90,250 90,300 50,325 C10,350 10,400 50,425 C90,450 90,475 50,500"
+            stroke="#e5dcc8" stroke-width="1.2" fill="none" vector-effect="non-scaling-stroke" />
+    </svg>
+
+    <div class="journey-path">
+      {% for step in journey_steps %}
+        {% if step.level_num|divisibleby:2 %}
+          <!-- 짝수 레벨(0, 2, 4): 카드 왼쪽, 커넥터 오른쪽 -->
+          <div class="journey-row journey-row--left">
+            <div class="journey-node
+              {% if step.is_current %}journey-node--highlighted{% endif %}
+              {% if step.status == 'locked' %}journey-node--locked{% endif %}">
+
+              {% if step.is_current %}
+                <span class="journey-node__current-badge">현재</span>
+              {% endif %}
+              <img class="journey-node__img" src="{% static step.image_url %}" alt="">
+              <div class="journey-node__body">
+                <div class="journey-node__badge" style="background: {{ step.color }};">LEVEL {{ step.level_num }}</div>
+                <p class="journey-node__name">{{ step.name }}</p>
+
+                {% if step.is_current %}
+                  <p class="journey-node__progress-text">{{ target_text }}</p>
+                  <div class="journey-node__bar">
+                    <div class="journey-node__bar-fill" style="width: {{ progress_percent }}%;"></div>
+                  </div>
+                  <p class="journey-node__status">{{ left_text }}</p>
+                {% elif step.status == 'passed' %}
+                  <p class="journey-node__benefit">{{ step.benefit }}</p>
+                  <p class="journey-node__status journey-node__status--achieved">달성</p>
+                {% else %}
+                  <p class="journey-node__benefit">{{ step.benefit }}</p>
+                  <p class="journey-node__status">🔒 잠금</p>
+                {% endif %}
+              </div>
+            </div>
+            <span class="journey-connector {% if step.status == 'locked' %}journey-connector--lock{% else %}journey-connector--dot{% endif %}"
+                  style="{% if step.status != 'locked' %}background: {{ step.color }};{% endif %}">
+              {% if step.status == 'locked' %}🔒{% endif %}
+            </span>
+          </div>
+        {% else %}
+          <!-- 홀수 레벨(1, 3): 카드 오른쪽, 커넥터 왼쪽 -->
+          <div class="journey-row journey-row--right">
+            <span class="journey-connector {% if step.status == 'locked' %}journey-connector--lock{% else %}journey-connector--dot{% endif %}"
+                  style="{% if step.status != 'locked' %}background: {{ step.color }};{% endif %}">
+              {% if step.status == 'locked' %}🔒{% endif %}
+            </span>
+            <div class="journey-node
+              {% if step.is_current %}journey-node--highlighted{% endif %}
+              {% if step.status == 'locked' %}journey-node--locked{% endif %}">
+              <img class="journey-node__img" src="{% static step.image_url %}" alt="">
+              <div class="journey-node__body">
+                <div class="journey-node__badge" style="background: {{ step.color }};">LEVEL {{ step.level_num }}</div>
+                <p class="journey-node__name">{{ step.name }}</p>
+
+                {% if step.is_current %}
+                  <p class="journey-node__progress-text">{{ target_text }}</p>
+                  <div class="journey-node__bar">
+                    <div class="journey-node__bar-fill" style="width: {{ progress_percent }}%;"></div>
+                  </div>
+                  <p class="journey-node__status">{{ left_text }}</p>
+                {% elif step.status == 'passed' %}
+                  <p class="journey-node__benefit">{{ step.benefit }}</p>
+                  <p class="journey-node__status journey-node__status--achieved">달성</p>
+                {% else %}
+                  <p class="journey-node__benefit">{{ step.benefit }}</p>
+                  <p class="journey-node__status">🔒 잠금</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="journey-tip">
+    <span aria-hidden="true">ℹ️</span>
+    <p>주간 예산을 지킨 날이 쌓이면 다음 리그로 올라가요.</p>
+  </div>
+
+</div>
+{% endblock %}

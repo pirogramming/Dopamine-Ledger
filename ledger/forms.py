@@ -2,7 +2,7 @@ from django import forms
 from django.utils import timezone
 from .models import SpendRecord, EarnRecord
 from budget.models import Activity
-from budget.services import calculate_earn_minutes   # 환산 로직 단일화
+from budget.services import calculate_earn_minutes, KST   # 환산 로직 단일화
 
 class SpendRecordForm(forms.ModelForm):
     # 00:30처럼 시:분을 따로 입력받기 위해 별도 필드 두 개 사용
@@ -65,7 +65,7 @@ class SpendRecordForm(forms.ModelForm):
         instance.duration_min = duration_min
         instance.spend_end = now
         instance.spend_start = now - timezone.timedelta(minutes=duration_min)
-        instance.spend_date = now.date()
+        instance.spend_date = now.astimezone(KST).date()
         
         if commit:
             instance.save()
@@ -172,7 +172,7 @@ class EarnRecordForm(forms.ModelForm):
             instance.earn_end = now
             instance.earn_start = now - timezone.timedelta(minutes=duration_min)
 
-        instance.earn_date = instance.earn_end.date()
+        instance.earn_date = instance.earn_end.astimezone(KST).date()
         instance.verify_method = entry_mode
         
         # 적립분 계산은 공용 환산 함수로 단일화 (budget/services.py)

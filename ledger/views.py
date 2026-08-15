@@ -595,7 +595,7 @@ def record_history(request):
 
     items = []
     for e in earn_qs:
-        local_time = timezone.localtime(e.earn_start)
+        local_time = timezone.localtime(e.created_at)
         items.append({
             'type': 'earn',
             'label': e.activity.activity_type,
@@ -606,7 +606,7 @@ def record_history(request):
             'is_positive': True,
         })
     for s in spend_qs:
-        local_time = timezone.localtime(s.spend_start)
+        local_time = timezone.localtime(s.created_at)
         items.append({
             'type': 'spend',
             'label': get_category_display(s.category),
@@ -655,7 +655,7 @@ def league_journey(request):
     context = {
         **journey_data,
         'closure_character_url': request.user.closure_character_url,
-        'active_tab': 'deadline', # 필요에 따른 활성 탭
+        'active_tab': 'home', #'deadline'였던 것 -> 홈에서 들어오는 화면이랑 'home'으로 바꾸긴 한데 논의 필요
     }
     return render(request, 'ledger/league_journey.html', context)
 
