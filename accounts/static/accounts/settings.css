@@ -397,11 +397,3 @@
     color: #FF7A00;
     font-weight: 700;
 }
-
-.settings-hint {
-    font-size: 13px;
-    color: #70737C;
-    margin: 12px 4px 0;
-    line-height: 1.5;
-}
-.settings-hint strong { color: #FF7A00; font-weight: 600; }
