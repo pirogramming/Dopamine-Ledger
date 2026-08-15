@@ -17,9 +17,15 @@
             🔥 연속 마감 <strong class="streak-number">{{ streak_days }}</strong>일째
         </p>
 
-        <h1 class="daily-close__title">
-            하루 마감하기
-        </h1>
+        <div class="daily-close__head-row">
+            <h1 class="daily-close__title">하루 마감하기</h1>
+            <div class="help-wrap">
+                <button type="button" class="help-btn" onclick="toggleHelp('help-close')" aria-label="도움말">?</button>
+                <div class="help-tooltip" id="help-close">
+                    하루를 마감하면 연속 기록이 쌓여요. 꾸준히 마감할수록 등급이 오르고 크루에도 공유돼요.
+                </div>
+            </div>
+        </div>
     </header>
 
 
@@ -269,7 +275,16 @@
         }
     });
 </script>
-
 {% endif %}
+
+<script>
+    function toggleHelp(id) {
+        const tip = document.getElementById(id);
+        document.querySelectorAll('.help-tooltip.open').forEach(el => {
+            if (el.id !== id) el.classList.remove('open');
+        });
+        tip.classList.toggle('open');
+    }
+</script>
 
 {% endblock %}

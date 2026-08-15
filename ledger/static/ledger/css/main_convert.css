@@ -561,3 +561,64 @@
   gap: 10px;   /* budget-progress ↔ budget-warning 사이 간격. 예전엔 20px + budget-warning의 padding-top 12px가 겹쳐서 너무 벌어져 있었음 */
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.25);
 }
+
+/* 스텝 상단: 인디케이터 + 도움말 물음표 */
+.step-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+.help-wrap { position: relative; }
+
+/* 물음표 버튼 — 주황 포인트 */
+.help-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid #FF7A00;
+    background: #FFF7EB;      /* 연한 주황빛 크림 */
+    color: #FF7A00;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.help-btn:hover {
+    background: #FF7A00;
+    color: #fff;
+}
+
+/* 툴팁 — 팝업창과 같은 크림 배경·둥근 모서리 */
+.help-tooltip {
+    display: none;
+    position: absolute;
+    top: 34px;
+    right: 0;
+    width: 240px;
+    background: #FDFCF9;                     /* 팝업과 동일한 크림 배경 */
+    border: 1px solid #FFE3C2;              /* 연한 주황 테두리 */
+    border-radius: 16px;                    /* 팝업처럼 넉넉한 라운드 */
+    padding: 16px 18px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #333;
+    box-shadow: 0 6px 20px rgba(255, 122, 0, 0.12);  /* 주황빛 그림자 */
+    z-index: 10;
+}
+.help-tooltip.open { display: block; }
+
+/* 말풍선 꼬리 (물음표 쪽을 가리키는 작은 삼각형) */
+.help-tooltip::before {
+    content: "";
+    position: absolute;
+    top: -7px;
+    right: 14px;
+    width: 12px;
+    height: 12px;
+    background: #FDFCF9;
+    border-left: 1px solid #FFE3C2;
+    border-top: 1px solid #FFE3C2;
+    transform: rotate(45deg);
+}
