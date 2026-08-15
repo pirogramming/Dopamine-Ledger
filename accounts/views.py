@@ -534,7 +534,7 @@ def unit_edit(request):
             return redirect('settings-page')
 
     base = float(user.conversion_base) if user.conversion_base else 0
-    units_per_hour = round(60 / base, 2) if base > 0 else ''
+    units_per_hour = round(60 / base) if base > 0 else ''
     return render(request, 'accounts/unit_edit.html', {
         'active_tab': 'setting',
         'units_per_hour': units_per_hour,

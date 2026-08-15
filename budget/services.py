@@ -140,19 +140,24 @@ def format_minutes_display(m):
     if h:      return f"{sign}{h}시간"
     return f"{sign}{r}분"
 
-
 def format_unit_display(minutes, conversion_base, unit_label):
-    """분 → 환산 단위 (소수점 1자리). '3.8권' / '-0.5권'.
+    """분 → 환산 단위. 단위가 '원'이거나 값이 1000 이상이면 정수로,
+    그 외에는 소수 첫째 자리로 표시. '5500원' / '3.8권' / '-0.5권'.
     base가 없거나 0 이하면 시간 표시로 폴백."""
     if not conversion_base or Decimal(str(conversion_base)) <= 0:
         return format_minutes_display(minutes)
     m = Decimal(str(minutes))
     sign = "-" if m < 0 else ""
-    val = (abs(m) / Decimal(str(conversion_base))).quantize(
-        Decimal("0.1"), rounding=ROUND_HALF_UP,
-    )
-    return f"{sign}{val}{unit_label or ''}"
+    raw = abs(m) / Decimal(str(conversion_base))
 
+    # 원 단위이거나 1000 이상이면 정수, 아니면 소수 첫째 자리
+    label = (unit_label or '').strip()
+    if unit_label == '원' or raw >= 1000:
+        val = raw.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    else:
+        val = raw.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+
+    return f"{sign}{val}{unit_label or ''}"
 
 # ---------- 표시용 카테고리 매핑 ----------
 # category에 실제 저장되는 영문 값 → 화면에 보여줄 한글 이름
