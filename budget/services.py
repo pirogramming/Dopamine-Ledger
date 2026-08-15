@@ -140,28 +140,24 @@ def format_minutes_display(m):
     if h:      return f"{sign}{h}시간"
     return f"{sign}{r}분"
 
-
 def format_unit_display(minutes, conversion_base, unit_label):
-    """분 → 환산 단위 (소수점 1자리). '3.8권' / '-0.5권'.
+    """분 → 환산 단위. 단위가 '원'이거나 값이 1000 이상이면 정수로,
+    그 외에는 소수 첫째 자리로 표시. '5500원' / '3.8권' / '-0.5권'.
     base가 없거나 0 이하면 시간 표시로 폴백."""
     if not conversion_base or Decimal(str(conversion_base)) <= 0:
         return format_minutes_display(minutes)
     m = Decimal(str(minutes))
     sign = "-" if m < 0 else ""
-    val = (abs(m) / Decimal(str(conversion_base))).quantize(
-        Decimal("0.1"), rounding=ROUND_HALF_UP,
-    )
+    raw = abs(m) / Decimal(str(conversion_base))
+
+    # 원 단위이거나 1000 이상이면 정수, 아니면 소수 첫째 자리
+    label = (unit_label or '').strip()
+    if unit_label == '원' or raw >= 1000:
+        val = raw.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    else:
+        val = raw.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+
     return f"{sign}{val}{unit_label or ''}"
-
-def get_conversion_base_precise(user):
-    """환산에 쓸 정밀 base(1단위당 분)를 반환.
-    원본(units_per_hour)이 있으면 그걸로 즉석 계산(오차 없음),
-    없으면(온보딩 유저) 저장된 conversion_base로 폴백."""
-    uph = getattr(user, 'conversion_units_per_hour', None)
-    if uph and Decimal(str(uph)) > 0:
-        return Decimal('60') / Decimal(str(uph))   # 자르지 않음 → 정밀
-    return user.conversion_base   # 폴백 (기존 유저)
-
 
 # ---------- 표시용 카테고리 매핑 ----------
 # category에 실제 저장되는 영문 값 → 화면에 보여줄 한글 이름
