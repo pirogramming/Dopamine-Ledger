@@ -152,7 +152,7 @@ def format_unit_display(minutes, conversion_base, unit_label):
 
     # 원 단위이거나 1000 이상이면 정수, 아니면 소수 첫째 자리
     label = (unit_label or '').strip()
-    if unit_label == '원' or raw >= 1000:
+    if label == '원' or raw >= 1000:
         val = raw.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
     else:
         val = raw.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
