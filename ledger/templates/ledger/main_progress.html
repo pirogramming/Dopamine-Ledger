@@ -19,7 +19,9 @@
 {% block content %}
   <!-- 캐릭터 카드: 한 줄 레이아웃으로 얇게, 진행 점 제거 -->
   <section class="character-card">
-    <img class="character-card__img" src="{% static character_image_url %}" alt="내 캐릭터">
+    <div class="img-wrapper">
+      <img class="character-card__img" src="{% static character_image_url %}" alt="내 캐릭터">
+    </div>
     <div class="character-card__body">
       <div class="character-card__top-row">
         <span class="level-badge">LEVEL {{ level_number }}</span>

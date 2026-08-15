@@ -104,17 +104,28 @@
   padding: 12px 16px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
-.character-card__img {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;   /* 동그라미(50%) 대신 둥근 사각형 - 캐릭터가 덜 잘려 보임 */
-  object-fit: cover;
+.character-card__top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.character-card .img-wrapper {
+  width: 67px;
+  height: 67px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  background: #eee;      /* 이미지 로드 전/실패 시 배경 */
+}
+.character-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .character-card__body {
@@ -125,7 +136,7 @@
 .character-card__top-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
 }
 
 .level-badge {
@@ -140,15 +151,18 @@
 }
 
 .character-card__name {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: #000000;
+  white-space: nowrap;
+  word-break: keep-all;
 }
 
 .character-card__sub {
   font-size: 12px;
   color: #70737c;
-  margin-top: 2px;
+  margin-top: 0px;
+  margin-left: 10px;
 }
 
 /* 여정 보기: 화면 미구현이라 클릭은 막아뒀지만, 색은 스크린샷대로 오렌지 유지 (TODO: 화면 완성 후 링크로 교체) */
