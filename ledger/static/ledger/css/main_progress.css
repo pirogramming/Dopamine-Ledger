@@ -166,12 +166,12 @@
 
 /* 여정 보기: 화면 미구현이라 비활성 스타일만 */
 .journey-link {
+  text-decoration: none;
   font-size: 13px;
   font-weight: 600;
   color: #70737c;
   background: none;
   border: none;
-  cursor: not-allowed;
   flex-shrink: 0;
   white-space: nowrap;
 }
