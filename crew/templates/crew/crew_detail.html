@@ -40,8 +40,10 @@
     </div>
     {% endif %}
 
-    <p class="invite-info">초대 코드: <strong>{{ crew.invite_code }}</strong></p>
-    <a class="feed-link" href="{% url 'crew:feed' crew_id=crew.id %}">크루 피드 보기 ›</a>
+    <div id="crew-code-and-feed">
+        <span class="invite-info">초대 코드: <strong>{{ crew.invite_code }}</strong></span>
+        <a class="feed-link" href="{% url 'crew:feed' crew_id=crew.id %}">크루 피드 보기 ›</a>
+    </div>
 
     <div class="member-list-head">
         <span class="section-label" style="margin:0;">멤버 <span id="member-count">{{ member_count }}</span>명 · 상태 <span id="crew-status">{{ crew.get_status_display }}</span></span>

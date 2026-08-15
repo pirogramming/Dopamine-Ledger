@@ -231,6 +231,12 @@
     margin-bottom: 30px;
     text-decoration: none;
 }
+#crew-code-and-feed{
+    display: flex;
+    justify-content : space-between;
+    padding: 0 3px 0 3px;
+}
+
 .invite-info { font-size: 14px; color: var(--gray); margin-bottom: -8px; }
 .invite-info strong { color: var(--text); }
 
