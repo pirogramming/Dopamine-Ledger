@@ -146,9 +146,11 @@
 
 .time-display-inputs {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: center;
   gap: 6px;
+  width: 100%;
+  white-space: nowrap;
   font-size: var(--fs-hero);
   font-weight: 800;
 }
