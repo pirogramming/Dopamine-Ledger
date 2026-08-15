@@ -88,6 +88,7 @@
 }
 .join-row input {
     flex: 1;
+    min-width: 0;
     height: 47px;
     padding: 0 19px;
     border: 1px solid var(--line);
