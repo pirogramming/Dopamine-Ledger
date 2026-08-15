@@ -390,10 +390,10 @@
 }
 
 
-/* 마감 완료 → 주황색 */
+/* 마감 완료 → 회색 */
 
 .daily-close__button--completed {
-    background: #FF7A00;
+    background: #C7C7C7;
     cursor: default;
 }
 
