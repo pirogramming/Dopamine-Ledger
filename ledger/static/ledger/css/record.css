@@ -159,7 +159,7 @@
   width: 80px;
   text-align: center;
   border: none;
-  background: blue;
+  background: transparent;
   font-size: var(--fs-hero);
   font-weight: 800;
   color: var(--text-main);
@@ -174,9 +174,24 @@
     /* iOS 줌 방지 및 가독성 확보 */
   line-height: normal;  /* 폰트 높이 잘림 방지 */
   overflow: visible;    /* 경계선 밖 글자 잘림 방지 */
-  background-color: green;
 }
 
+/* 1. Chrome, Safari, Edge, Opera 등 WebKit 계열 브라우저 스피너 제거 */
+.time-display-inputs input[type="number"]::-webkit-outer-spin-button,
+.time-display-inputs input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* 2. Firefox 브라우저 스피너 제거 및 기본 styling 설정 */
+.time-display-inputs input[type="number"] {
+  -moz-appearance: textfield; /* Firefox 전용 */
+  appearance: textfield;      /* 표준 속성 */
+  
+  box-sizing: border-box;            /* iOS 자동 확대 방지 필수 */
+  line-height: normal;
+  overflow: visible;
+}
 
 .time-display-inputs input:focus { outline: none; color: var(--spend-accent); }
 .time-display-inputs .colon { color: var(--text-faint); margin-right: 10px;}
