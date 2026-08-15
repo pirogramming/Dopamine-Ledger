@@ -9,6 +9,7 @@
     <div class="mobile-container">
         <!-- ================= 온보딩 1 ================= -->
         <div id="step-1" class="step">
+        <div class ="inner-container">
             <div class="step-indicator">
                 <div class="dot active"></div>
                 <div class="dot"></div>
@@ -41,37 +42,40 @@
             <div class="step1-notice-box">
                 책 읽거나 운동할 때는 시간당 숏폼을 적립하고 숏폼을 볼 때는 그만큼 차감돼요.
             </div>
+        </div>
+            
 
             <div class="btn-group">
                 <button type="button" class="btn-next" onclick="goToStep(2)">다음</button>
             </div>
         </div>
 
-        <!-- ================= 온보딩 2 ================= -->
         <div id="step-2" class="step" style="display: none;">
-            <div class="step-indicator">
-                <div class="dot"></div>
-                <div class="dot active"></div>
-                <div class="dot"></div>
-            </div>
-
-            <div class="title">
-                예산을 다 쓰면<br>
-                어떻게 될까요?
-            </div>
-
-            <div class="step2-card-box">
-                <div class="step2-notice-item">
-                    <div class="step2-badge">1</div>
-                    <div class="step2-text">주간 예산을 다 쓰면 초과 경고를 보여드려요</div>
+            <div class="inner-container">
+                <div class="step-indicator">
+                    <div class="dot"></div>
+                    <div class="dot active"></div>
+                    <div class="dot"></div>
                 </div>
-                <div class="step2-notice-item">
-                    <div class="step2-badge">2</div>
-                    <div class="step2-text">그 뒤 지출은 차단되지 않고 계속 기록되지만 "초과지출"로 따로 표시돼요</div>
+
+                <div class="title">
+                    예산을 다 쓰면<br>
+                    어떻게 될까요?
                 </div>
-                <div class="step2-notice-item">
-                    <div class="step2-badge">3</div>
-                    <div class="step2-text">주간결산과 크루 피드에도 초과 여부가 표시돼요</div>
+
+                <div class="step2-card-box">
+                    <div class="step2-notice-item">
+                        <div class="step2-badge">1</div>
+                        <div class="step2-text">주간 예산을 다 쓰면 초과 경고를 보여드려요</div>
+                    </div>
+                    <div class="step2-notice-item">
+                        <div class="step2-badge">2</div>
+                        <div class="step2-text">그 뒤 지출은 차단되지 않고 계속 기록되지만 "초과지출"로 따로 표시돼요</div>
+                    </div>
+                    <div class="step2-notice-item">
+                        <div class="step2-badge">3</div>
+                        <div class="step2-text">주간결산과 크루 피드에도 초과 여부가 표시돼요</div>
+                    </div>
                 </div>
             </div>
 
@@ -82,55 +86,58 @@
         </div>
 
         <!-- ================= 온보딩 3 ================= -->
-        <div id="step-3" class="step" style="display: none;">
-            <div class="step-indicator">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot active"></div>
-            </div>
+<div id="step-3" class="step" style="display: none;">
+    <div class="inner-container">
+        <div class="step-indicator">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot active"></div>
+        </div>
 
-            <div class="title">
-                활동 1시간당<br>
-                숏폼을 얼마나 쌓을까요?
-            </div>
+        <div class="title">
+            활동 1시간당<br>
+            숏폼을 얼마나 쌓을까요?
+        </div>
 
-            <div class="activity-list">
-                <!-- 고정 1: 독서 -->
-                <div class="activity-item">
-                    <span class="activity-name">독서</span>
-                    <div class="activity-input-group">
-                        <input type="number" id="reading_min" class="minute-box" value="50">
-                        <span class="unit-text">분</span>
-                    </div>
-                </div>
 
-                <!-- 고정 2: 운동 -->
-                <div class="activity-item">
-                    <span class="activity-name">운동</span>
-                    <div class="activity-input-group">
-                        <input type="number" id="exercise_min" class="minute-box" value="50">
-                        <span class="unit-text">분</span>
-                    </div>
-                </div>
-
-                <!-- 고정 3: 공부 -->
-                <div class="activity-item">
-                    <span class="activity-name">공부</span>
-                    <div class="activity-input-group">
-                        <input type="number" id="study_min" class="minute-box" value="50">
-                        <span class="unit-text">분</span>
-                    </div>
-                </div>
-
-                <!-- 커스텀 추가 가변 항목 -->
-                <div class="activity-item">
-                    <input type="text" id="custom_activity_name" style="width: 140px; border: none; padding: 0;" placeholder="기타 (선택)">
-                    <div class="activity-input-group">
-                        <input type="number" id="custom_activity_min" class="minute-box" placeholder="0">
-                        <span class="unit-text">분</span>
-                    </div>
+        <div class="activity-list">
+            <!-- 고정 1: 독서 -->
+            <div class="activity-item">
+                <span class="activity-name">독서</span>
+                <div class="activity-input-group">
+                    <input type="number" id="reading_min" class="minute-box" value="50">
+                    <span class="unit-text">분</span>
                 </div>
             </div>
+
+            <!-- 고정 2: 운동 -->
+            <div class="activity-item">
+                <span class="activity-name">운동</span>
+                <div class="activity-input-group">
+                    <input type="number" id="exercise_min" class="minute-box" value="50">
+                    <span class="unit-text">분</span>
+                </div>
+            </div>
+
+            <!-- 고정 3: 공부 -->
+            <div class="activity-item">
+                <span class="activity-name">공부</span>
+                <div class="activity-input-group">
+                    <input type="number" id="study_min" class="minute-box" value="50">
+                    <span class="unit-text">분</span>
+                </div>
+            </div>
+
+            <!-- 커스텀 추가 가변 항목 -->
+            <div class="activity-item">
+                <input type="text" id="custom_activity_name" style="width: 140px; border: none; padding: 0;" placeholder="기타 (선택)">
+                <div class="activity-input-group">
+                    <input type="number" id="custom_activity_min" class="minute-box" placeholder="0">
+                    <span class="unit-text">분</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
             <div class="btn-group">
                 <button type="button" class="btn-prev" onclick="goToStep(2)">이전</button>

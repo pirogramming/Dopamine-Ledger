@@ -10,23 +10,30 @@
 
 body {
     background-color: #f4f4f4;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     min-height: 100vh;
+    /* display: flex; justify-content: center; align-items: center; 제거 */
 }
 
 .mobile-container {
-    overflow: hidden;
+    width: 100%;
+    /* min-height: 100vh; 제거 — 콘텐츠 길이만큼 자연스럽게 늘어나도록 */
+    /* overflow-y: scroll; 제거 — 문서 자체 스크롤만 사용 */
 }
 
 .step {
     width: 100%;
+    min-height: 100vh;         /* 화면 전체 높이 확보 */
+    padding: 10% 0 3% 0%; /*다음 버튼 간격 바닥이랑 줄이려면 여기 3%을 더 줄이면 됨*/
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* position: absolute; 제거 */
+}
+
+.inner-container {
+    width: 100%;
     height: 100%;
-    padding: 73px 33px 30px 33px;
-    position: absolute;
-    top: 0;
-    left: 0;
+    padding: 0% 0% 0% 0%;/*73px 33px 30px 33px;*/
     display: flex;
     flex-direction: column;
 }
@@ -95,7 +102,7 @@ input::placeholder {
 }
 
 .step1-grid input {
-    height: 68px;
+    height: 58px;
 }
 
 .step1-subtext {
@@ -112,6 +119,7 @@ input::placeholder {
     font-size: 13px;
     line-height: 18px;
     margin-top: 15px;
+    margin-bottom: 30px;
 }
 
 /* ================= 스텝 2 전용 스타일 (경고 안내) ================= */
@@ -123,6 +131,7 @@ input::placeholder {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    margin-bottom: 30px;
 }
 
 .step2-notice-item {
@@ -155,6 +164,7 @@ input::placeholder {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    margin-bottom: 30px;
 }
 
 .activity-item {
@@ -209,14 +219,13 @@ input::placeholder {
 
 /* 🔘 하단 버튼 스타일 */
 .btn-group {
-    position: absolute;
-    bottom: 30px;
-    left: 33px;
-    width: 327px;
+    width: 100%;               /* 327px → 85%로 변경 (inner-container와 동일) */
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-top: auto;         /* 필요시 간격 조정 */
 }
+
 
 .btn-next, .btn-submit {
     background: #ff7a00;
