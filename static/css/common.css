@@ -9,17 +9,27 @@ body.app-shell {
 }
 
 .phone-frame {
-    width: 393px;
-    height: 852px;              /* min-height → height 고정 */
-    max-height: 100vh;          /* 창이 작으면 창 높이까지만 */
+    width: 100%;
+    /*width: 393px; 문제 되면 이거로 바꾸기*/
+    height: 100dvh;
+    /*max-height: 100dvh;       창이 작으면 창 높이까지만 */
     background: #fdfcf9;
-    border: 1px solid #70737c;
-    border-radius: 28px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
     position: relative;
     display: flex;
     flex-direction: column;
-    overflow: hidden;  /* 프레임은 안 넘침 */
+    overflow: hidden;
+}
+
+/* 600px 이상(노트북 등 큰 화면)에서만 폰 프레임 형태로 */
+@media (min-width: 600px) {
+    .phone-frame {
+        width: 393px;
+        height: 100dvh;
+        /*max-height: 100vh;       창이 작으면 창 높이까지만 */
+        border: 1px solid #70737c;
+        border-radius: 28px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
 }
 
 /* ==========================================================================
