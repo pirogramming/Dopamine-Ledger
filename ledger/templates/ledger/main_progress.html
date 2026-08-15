@@ -33,6 +33,15 @@
         </div>
       </div>
     </div>
+=========
+    <div class="app-header__brand">
+      <img class="app-header__logo" src="{% static 'ledger/images/logo.png' %}" alt="도파민 가계부">
+      <span class="app-header__nickname">{{ request.user.nickname }}</span>
+    </div>
+    <a class="app-header__notification-link" href="#" aria-label="알림 보기">
+      <img class="app-header__notification" src="{% static 'ledger/images/icon-bell.svg' %}" alt="">
+    </a>
+>>>>>>>>> Temporary merge branch 2
   </header>
 {% endblock %}
 
@@ -118,4 +127,36 @@
 
   <a href="{% url 'ledger:record_choice' %}" class="btn-record">기록하기</a>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+<<<<<<<<< Temporary merge branch 1
+  (function () {
+    const pillBtn = document.getElementById('leaguePillBtn');
+    const tooltip = document.getElementById('leagueTooltip');
+
+    if (pillBtn && tooltip) {
+      // 1. 버튼 클릭 시 토글
+      pillBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        tooltip.classList.toggle('show');
+      });
+
+      // 2. 바깥 영역 클릭 시 닫기
+      document.addEventListener('click', function (e) {
+        if (!tooltip.contains(e.target) && !pillBtn.contains(e.target)) {
+          tooltip.classList.remove('show');
+        }
+      });
+    } else {
+      console.error('리그 요소를 찾을 수 없습니다:', { pillBtn, tooltip });
+    }
+  })();
+=========
+    document.querySelectorAll('.budget-progress__bar-fill').forEach(function (el) {
+        el.style.width = el.dataset.percent + '%';
+    });
+>>>>>>>>> Temporary merge branch 2
+</script>
 {% endblock %}
