@@ -526,15 +526,23 @@ def unit_edit(request):
             messages.error(request, '활동량은 0보다 큰 숫자여야 해요.')
         else:
             user.converting_activity = activity
-            # 저장은 "1단위당 분" = 60 ÷ 시간당 개수
             user.conversion_base = round(Decimal('60') / Decimal(str(units_per_hour)), 6)
+            user.conversion_units_per_hour = Decimal(str(units_per_hour))
             user.conversion_unit = unit
-            user.save(update_fields=['converting_activity', 'conversion_base', 'conversion_unit'])
+            user.save(update_fields=[
+                'converting_activity', 'conversion_base',
+                'conversion_units_per_hour', 'conversion_unit',
+            ])
             messages.success(request, '저장했어요.')
             return redirect('settings-page')
 
-    base = float(user.conversion_base) if user.conversion_base else 0
-    units_per_hour = round(60 / base) if base > 0 else ''
+    # 입력 원본이 저장돼 있으면 그대로(오차 없음), 없으면(기존 유저) 역산 폴백
+    if user.conversion_units_per_hour is not None:
+        raw = user.conversion_units_per_hour
+        units_per_hour = int(raw) if raw == int(raw) else raw
+    else:
+        base = float(user.conversion_base) if user.conversion_base else 0
+        units_per_hour = round(60 / base) if base > 0 else ''
     return render(request, 'accounts/unit_edit.html', {
         'active_tab': 'setting',
         'units_per_hour': units_per_hour,
