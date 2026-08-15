@@ -232,6 +232,7 @@
   font-weight: 700;
   color: #000000;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .budget-summary__value--negative {
@@ -244,7 +245,7 @@
 
 /* ===== 오늘의 기록 ===== */
 .today-record {
-  margin-top: auto;
+  margin-top: 0;
 }
 .today-record__header {
   display: flex;
@@ -269,7 +270,7 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 100px;      /* 대략 아이템 3.5개 정도 높이. 원하는 값으로 조정 */
+  max-height: 150px;      /* 대략 아이템 3.5개 정도 높이. 원하는 값으로 조정 */
   overflow-y: auto;       /* 세로 넘치면 리스트 내부에서만 스크롤 */
   overflow-x: hidden;
 }
@@ -306,6 +307,8 @@
 .record-list__value {
   font-size: 16px;
   font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .record-list__value--positive {
@@ -343,8 +346,11 @@
 /* ===== 기록하기 버튼 ===== */
 .btn-record {
   background: #ff7a00;
+  width: 100%;
+  max-width: 327px;
   border-radius: 15px;
   height: 50px;
+  margin: auto auto 0;
   padding: 0;
   display: flex;
   align-items: center;
@@ -353,6 +359,7 @@
   color: #ffffff;
   font-size: 16px;
   font-weight: 700;
+  flex-shrink: 0;
 }
 
 /* ===== 진행률+요약 감싸는 흰 카드 (main_progress 전용) ===== */
