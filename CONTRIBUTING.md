@@ -16,17 +16,18 @@
 ## 🌿 브랜치 전략
 
 ```
-main        ← 배포용. 항상 실행 가능한 상태 유지. 직접 push 금지.
- └ dev      ← 통합 브랜치. feature가 여기로 머지됨.
+main        ← 배포용.
+ └ develop  ← 통합 브랜치. feature가 여기로 머지됨. push 시 EC2에 자동 배포.
     └ feature/기능명   ← 개인 작업 브랜치. 이슈 단위로 생성.
 ```
 
 - **`main` 직접 push 금지.** 모든 변경은 PR을 통해 들어옵니다.
-- 작업은 항상 최신 `dev`에서 브랜치를 따서 시작합니다.
+- 작업은 항상 최신 `develop`에서 브랜치를 따서 시작합니다.
+- `develop`에 머지(push)되면 GitHub Actions가 즉시 EC2에 자동 배포합니다 (`.github/workflows/deploy.yml`). **`develop`도 항상 실행 가능한 상태로 유지하세요.**
 
 ```bash
-git checkout dev
-git pull origin dev
+git checkout develop
+git pull origin develop
 git checkout -b feature/onboarding-form
 ```
 
@@ -77,7 +78,7 @@ git commit -m "fix: 타이머 종료 시 적립분 계산 오류 수정"
 
 ## 🔀 Pull Request (PR)
 
-1. 작업이 끝나면 `dev`를 대상으로 PR을 엽니다.
+1. 작업이 끝나면 `develop`을 대상으로 PR을 엽니다.
 2. **최소 2명의 리뷰 승인** 후 머지합니다.
 3. PR은 **이슈 단위**로 작게 유지합니다. (거대한 PR = 리뷰 지옥)
 4. 리뷰어가 이해할 수 있도록 **핵심 로직엔 간단한 주석**을 답니다.
